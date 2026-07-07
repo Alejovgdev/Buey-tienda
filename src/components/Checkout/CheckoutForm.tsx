@@ -3,6 +3,12 @@
 import { useState, type FormEvent } from 'react';
 import Link from 'next/link';
 import { customerDataSchema, type CustomerData } from '@/lib/checkout-schema';
+import {
+  PHONE_PREFIX_OPTIONS,
+  getPhonePrefixOption,
+  normalizeInternationalPhone,
+  type PhonePrefixCountry,
+} from '@/lib/phone';
 
 interface CheckoutFormProps {
   disabled: boolean;
@@ -15,6 +21,8 @@ type FormState = {
   customerName: string;
   customerLastName: string;
   customerEmail: string;
+  phonePrefixCountry: PhonePrefixSelection;
+  customPhonePrefix: string;
   customerPhone: string;
   shippingStreet: string;
   shippingCity: string;
@@ -24,10 +32,15 @@ type FormState = {
   acceptTerms: boolean;
 };
 
+const CUSTOM_PHONE_PREFIX_VALUE = 'CUSTOM';
+type PhonePrefixSelection = PhonePrefixCountry | typeof CUSTOM_PHONE_PREFIX_VALUE;
+
 const initialState: FormState = {
   customerName: '',
   customerLastName: '',
   customerEmail: '',
+  phonePrefixCountry: 'ES',
+  customPhonePrefix: '',
   customerPhone: '',
   shippingStreet: '',
   shippingCity: '',
@@ -59,16 +72,37 @@ export default function CheckoutForm({
     setForm((current) => ({ ...current, [key]: value }));
   }
 
+  const selectedPhonePrefix =
+    form.phonePrefixCountry === CUSTOM_PHONE_PREFIX_VALUE
+      ? null
+      : getPhonePrefixOption(form.phonePrefixCountry);
+  const phonePrefix = selectedPhonePrefix?.callingCode ?? form.customPhonePrefix;
+  const isCustomPhonePrefix = form.phonePrefixCountry === CUSTOM_PHONE_PREFIX_VALUE;
+
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
 
+    const phoneNormalization = normalizeInternationalPhone(
+      phonePrefix,
+      form.customerPhone,
+      selectedPhonePrefix?.country
+    );
     const result = customerDataSchema.safeParse({
       ...form,
+      customerPhone: phoneNormalization.ok ? phoneNormalization.value : '',
       shippingNotes: form.shippingNotes.trim() || undefined,
     });
 
-    if (!result.success) {
-      setFieldErrors(result.error.flatten().fieldErrors as Record<string, string[]>);
+    if (!result.success || !phoneNormalization.ok) {
+      const errors = result.success
+        ? {}
+        : (result.error.flatten().fieldErrors as Record<string, string[]>);
+
+      if (!phoneNormalization.ok) {
+        errors.customerPhone = [phoneNormalization.message];
+      }
+
+      setFieldErrors(errors);
       return;
     }
 
@@ -129,18 +163,62 @@ export default function CheckoutForm({
           />
           <FieldError messages={fieldErrors.customerEmail} />
         </div>
-        <div>
+        <div className="sm:col-span-2">
           <label className={labelClass} htmlFor="customerPhone">
             Teléfono
           </label>
-          <input
-            id="customerPhone"
-            type="tel"
-            className={inputClass}
-            disabled={disabled}
-            value={form.customerPhone}
-            onChange={(e) => update('customerPhone', e.target.value)}
-          />
+          <div
+            className={`grid gap-2 ${
+              isCustomPhonePrefix
+                ? 'sm:grid-cols-[minmax(9rem,12rem)_minmax(7rem,9rem)_1fr]'
+                : 'sm:grid-cols-[minmax(9rem,14rem)_1fr]'
+            }`}
+          >
+            <select
+              aria-label="Prefijo telefónico"
+              className={inputClass}
+              disabled={disabled}
+              value={form.phonePrefixCountry}
+              onChange={(event) => {
+                const nextPrefix = event.target.value as PhonePrefixSelection;
+                setForm((current) => ({
+                  ...current,
+                  phonePrefixCountry: nextPrefix,
+                  customPhonePrefix:
+                    nextPrefix === CUSTOM_PHONE_PREFIX_VALUE ? current.customPhonePrefix : '',
+                }));
+              }}
+            >
+              {PHONE_PREFIX_OPTIONS.map((option) => (
+                <option key={option.country} value={option.country}>
+                  {option.label} {option.callingCode}
+                </option>
+              ))}
+              <option value={CUSTOM_PHONE_PREFIX_VALUE}>Otro prefijo</option>
+            </select>
+            {isCustomPhonePrefix && (
+              <input
+                aria-label="Prefijo personalizado"
+                type="tel"
+                inputMode="tel"
+                placeholder="+1"
+                className={inputClass}
+                disabled={disabled}
+                value={form.customPhonePrefix}
+                onChange={(e) => update('customPhonePrefix', e.target.value)}
+              />
+            )}
+            <input
+              id="customerPhone"
+              type="tel"
+              inputMode="tel"
+              autoComplete="tel-national"
+              className={inputClass}
+              disabled={disabled}
+              value={form.customerPhone}
+              onChange={(e) => update('customerPhone', e.target.value)}
+            />
+          </div>
           <FieldError messages={fieldErrors.customerPhone} />
         </div>
       </div>

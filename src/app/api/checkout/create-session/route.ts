@@ -29,6 +29,15 @@ type PromotionCandidate = {
   gift_variant_id: string;
 };
 
+type RedsysProductDescriptionItem = {
+  product_name_snapshot: string;
+  variant_name_snapshot: string;
+  quantity: number;
+  item_type: string;
+};
+
+const REDSYS_PRODUCT_DESCRIPTION_MAX_LENGTH = 125;
+
 function genericErrorResponse() {
   return NextResponse.json(
     { error: 'ERROR_INTERNO', message: 'No se pudo procesar el pedido. Inténtalo de nuevo.' },
@@ -38,6 +47,91 @@ function genericErrorResponse() {
 
 function getRequestBaseUrl(request: Request) {
   return new URL(request.url).origin;
+}
+
+function toRedsysSafeText(value: string) {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^0-9A-Za-z .,:;_\-+/()]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function truncateRedsysText(value: string, maxLength: number) {
+  const safeValue = toRedsysSafeText(value);
+  if (safeValue.length <= maxLength) {
+    return safeValue;
+  }
+
+  if (maxLength <= 3) {
+    return safeValue.slice(0, maxLength);
+  }
+
+  return `${safeValue.slice(0, maxLength - 3).trimEnd()}...`;
+}
+
+function formatRedsysProductLabel(item: RedsysProductDescriptionItem) {
+  const variantName =
+    item.variant_name_snapshot &&
+    item.variant_name_snapshot.toLowerCase() !== item.product_name_snapshot.toLowerCase()
+      ? ` ${item.variant_name_snapshot}`
+      : '';
+  const quantityPrefix = item.quantity > 1 ? `${item.quantity}x ` : '';
+
+  return toRedsysSafeText(`${quantityPrefix}${item.product_name_snapshot}${variantName}`);
+}
+
+function buildRedsysProductDescription(
+  items: RedsysProductDescriptionItem[],
+  orderNumber: string
+) {
+  const orderSuffix = toRedsysSafeText(`Pedido ${orderNumber}`);
+  const suffix = ` - ${orderSuffix}`;
+  const productLabels = items
+    .filter((item) => item.item_type === 'PRODUCT')
+    .map(formatRedsysProductLabel)
+    .filter(Boolean);
+
+  if (productLabels.length === 0) {
+    return truncateRedsysText(orderSuffix, REDSYS_PRODUCT_DESCRIPTION_MAX_LENGTH);
+  }
+
+  let description = '';
+  let omittedItems = 0;
+
+  for (let index = 0; index < productLabels.length; index += 1) {
+    const label = productLabels[index];
+    const candidate = description ? `${description}, ${label}` : label;
+
+    if ((candidate + suffix).length <= REDSYS_PRODUCT_DESCRIPTION_MAX_LENGTH) {
+      description = candidate;
+      continue;
+    }
+
+    omittedItems = productLabels.length - index;
+    break;
+  }
+
+  if (!description) {
+    const maxProductLength = REDSYS_PRODUCT_DESCRIPTION_MAX_LENGTH - suffix.length;
+    if (maxProductLength > 10) {
+      return `${truncateRedsysText(productLabels[0], maxProductLength)}${suffix}`;
+    }
+
+    return truncateRedsysText(productLabels[0], REDSYS_PRODUCT_DESCRIPTION_MAX_LENGTH);
+  }
+
+  if (omittedItems > 0) {
+    const moreText = toRedsysSafeText(` + ${omittedItems} mas`);
+    const candidate = `${description}${moreText}${suffix}`;
+
+    if (candidate.length <= REDSYS_PRODUCT_DESCRIPTION_MAX_LENGTH) {
+      return candidate;
+    }
+  }
+
+  return `${description}${suffix}`;
 }
 
 export async function POST(request: Request) {
@@ -299,6 +393,10 @@ export async function POST(request: Request) {
     // 12-13. Payload de Redsys, firmado con la libreria (nunca a mano). El
     // importe cobrado es solo productos reales + envio — el regalo ya es 0.
     const baseUrl = getRequestBaseUrl(request);
+    const redsysProductDescription = buildRedsysProductDescription(
+      orderItemsPayload,
+      order.order_number
+    );
     const { url, body: signedBody } = redsys.createRedirectForm({
       DS_MERCHANT_AMOUNT: String(total),
       DS_MERCHANT_ORDER: dsOrder,
@@ -309,7 +407,7 @@ export async function POST(request: Request) {
       DS_MERCHANT_MERCHANTURL: `${baseUrl}/api/pagos/notificacion`,
       DS_MERCHANT_URLOK: `${baseUrl}/pedido/confirmacion?order=${order.order_number}`,
       DS_MERCHANT_URLKO: `${baseUrl}/carrito?pago=fallido`,
-      DS_MERCHANT_PRODUCTDESCRIPTION: `Pedido ${order.order_number}`,
+      DS_MERCHANT_PRODUCTDESCRIPTION: redsysProductDescription,
       DS_MERCHANT_TITULAR: `${customer.customerName} ${customer.customerLastName}`,
     });
 

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { normalizeStoredPhone } from '@/lib/phone';
 
 const spanishPostalCodeRegex = /^\d{5}$/;
 const nonPeninsularPostalCodePrefixes = ['07', '35', '38', '51', '52'];
@@ -22,7 +23,16 @@ export const customerDataSchema = z.object({
   customerPhone: z
     .string()
     .trim()
-    .regex(/^[0-9+ ]{9,15}$/, { message: 'Teléfono no válido' }),
+    .transform((value, context) => {
+      const normalizedPhone = normalizeStoredPhone(value);
+
+      if (!normalizedPhone) {
+        context.addIssue({ code: 'custom', message: 'Teléfono no válido' });
+        return z.NEVER;
+      }
+
+      return normalizedPhone;
+    }),
   shippingStreet: z
     .string()
     .trim()
