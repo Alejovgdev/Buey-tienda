@@ -36,6 +36,10 @@ function genericErrorResponse() {
   );
 }
 
+function getRequestBaseUrl(request: Request) {
+  return new URL(request.url).origin;
+}
+
 export async function POST(request: Request) {
   let rawBody: unknown;
   try {
@@ -294,6 +298,7 @@ export async function POST(request: Request) {
 
     // 12-13. Payload de Redsys, firmado con la libreria (nunca a mano). El
     // importe cobrado es solo productos reales + envio — el regalo ya es 0.
+    const baseUrl = getRequestBaseUrl(request);
     const { url, body: signedBody } = redsys.createRedirectForm({
       DS_MERCHANT_AMOUNT: String(total),
       DS_MERCHANT_ORDER: dsOrder,
@@ -301,9 +306,9 @@ export async function POST(request: Request) {
       DS_MERCHANT_CURRENCY: '978',
       DS_MERCHANT_TRANSACTIONTYPE: '0',
       DS_MERCHANT_TERMINAL: process.env.REDSYS_TERMINAL!,
-      DS_MERCHANT_MERCHANTURL: `${process.env.NEXT_PUBLIC_BASE_URL}/api/pagos/notificacion`,
-      DS_MERCHANT_URLOK: `${process.env.NEXT_PUBLIC_BASE_URL}/pedido/confirmacion?order=${order.order_number}`,
-      DS_MERCHANT_URLKO: `${process.env.NEXT_PUBLIC_BASE_URL}/carrito?pago=fallido`,
+      DS_MERCHANT_MERCHANTURL: `${baseUrl}/api/pagos/notificacion`,
+      DS_MERCHANT_URLOK: `${baseUrl}/pedido/confirmacion?order=${order.order_number}`,
+      DS_MERCHANT_URLKO: `${baseUrl}/carrito?pago=fallido`,
       DS_MERCHANT_PRODUCTDESCRIPTION: `Pedido ${order.order_number}`,
       DS_MERCHANT_TITULAR: `${customer.customerName} ${customer.customerLastName}`,
     });

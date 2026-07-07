@@ -5,6 +5,7 @@ import { getCategoriesWithProducts } from '@/lib/tienda';
 import { getShopSettings } from '@/lib/shop-settings';
 import CategoryNav from '@/components/Tienda/CategoryNav';
 import ProductGrid from '@/components/Tienda/ProductGrid';
+import ShippingNotice from '@/components/Tienda/ShippingNotice';
 import ShopSettingsBanner from '@/components/Tienda/ShopSettingsBanner';
 
 export const metadata: Metadata = {
@@ -70,6 +71,8 @@ export default async function TiendaPage() {
           </div>
         )}
       </div>
+
+      <ShippingNotice className="mt-14 md:mt-20" />
     </div>
   );
 }

@@ -1,5 +1,12 @@
 import { z } from 'zod';
 
+const spanishPostalCodeRegex = /^\d{5}$/;
+const nonPeninsularPostalCodePrefixes = ['07', '35', '38', '51', '52'];
+
+function isPeninsularPostalCode(postalCode: string) {
+  return !nonPeninsularPostalCodePrefixes.some((prefix) => postalCode.startsWith(prefix));
+}
+
 // Fase 4, Unidad 1. Mismo esquema en cliente (UX) y servidor (verdad real, ver
 // create-session/route.ts). Nombres de campo mapeados 1:1 a las columnas de
 // `orders` (customer_name, shipping_street, ...) para que el INSERT del backend
@@ -30,8 +37,11 @@ export const customerDataSchema = z.object({
   shippingPostalCode: z
     .string()
     .trim()
-    .regex(/^\d{5}$/, { message: 'Código postal no válido' }),
-  shippingCountry: z.string().trim().length(2).default('ES'),
+    .regex(spanishPostalCodeRegex, { message: 'Código postal no válido' })
+    .refine(isPeninsularPostalCode, {
+      message: 'Solo realizamos envíos a España peninsular',
+    }),
+  shippingCountry: z.literal('ES').default('ES'),
   shippingNotes: z.string().trim().max(500).optional(),
   acceptTerms: z.literal(true, { message: 'Debes aceptar las condiciones' }),
 });

@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { getActiveCategories, getCategoryBySlug, getProductCardsByCategory } from '@/lib/tienda';
 import CategoryNav from '@/components/Tienda/CategoryNav';
 import ProductGrid from '@/components/Tienda/ProductGrid';
+import ShippingNotice from '@/components/Tienda/ShippingNotice';
 
 interface CategoriaPageProps {
   params: Promise<{ categoria: string }>;
@@ -39,7 +40,7 @@ export default async function CategoriaPage({ params }: CategoriaPageProps) {
         <CategoryNav categories={categories} activeSlug={category.slug} />
       </div>
 
-      <header className="mb-8 max-w-2xl md:mb-12">
+      <header className="mb-6 max-w-2xl md:mb-8">
         <h1 className="text-3xl font-extrabold text-white sm:text-4xl md:text-5xl">
           {category.name}
         </h1>
@@ -47,6 +48,8 @@ export default async function CategoriaPage({ params }: CategoriaPageProps) {
           <p className="mt-3 text-base text-white/70 md:text-lg">{category.description}</p>
         )}
       </header>
+
+      <ShippingNotice className="mb-8 md:mb-12" />
 
       <ProductGrid
         products={products}

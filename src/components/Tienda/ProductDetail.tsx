@@ -2,6 +2,7 @@ import type { ProductDetailData } from '@/types/shop';
 import ProductImageGallery from './ProductImageGallery';
 import VariantSelector from './VariantSelector';
 import AllergensBadge from './AllergensBadge';
+import ShippingNotice from './ShippingNotice';
 
 interface ProductDetailProps {
   product: ProductDetailData;
@@ -31,6 +32,8 @@ export default function ProductDetail({ product }: ProductDetailProps) {
           imageUrl={product.images[0]?.url ?? null}
           allergens={product.allergens}
         />
+
+        <ShippingNotice variant="compact" />
 
         <AllergensBadge allergens={product.allergens} allergensNotes={product.allergensNotes} />
       </div>

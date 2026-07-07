@@ -20,7 +20,6 @@ type FormState = {
   shippingCity: string;
   shippingProvince: string;
   shippingPostalCode: string;
-  shippingCountry: string;
   shippingNotes: string;
   acceptTerms: boolean;
 };
@@ -34,7 +33,6 @@ const initialState: FormState = {
   shippingCity: '',
   shippingProvince: '',
   shippingPostalCode: '',
-  shippingCountry: 'ES',
   shippingNotes: '',
   acceptTerms: false,
 };
@@ -151,6 +149,10 @@ export default function CheckoutForm({
         <h3 className="text-sm font-semibold uppercase tracking-wide text-white/60">
           Dirección de envío
         </h3>
+        <p className="mt-1 text-sm text-white/50">
+          Enviamos únicamente a España peninsular. La entrega se realiza en 24-48 h desde el
+          pedido; si compras de viernes a domingo, lo prepararemos el lunes.
+        </p>
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -205,19 +207,6 @@ export default function CheckoutForm({
             onChange={(e) => update('shippingProvince', e.target.value)}
           />
           <FieldError messages={fieldErrors.shippingProvince} />
-        </div>
-        <div>
-          <label className={labelClass} htmlFor="shippingCountry">
-            País
-          </label>
-          <input
-            id="shippingCountry"
-            className={inputClass}
-            disabled={disabled}
-            value={form.shippingCountry}
-            onChange={(e) => update('shippingCountry', e.target.value.toUpperCase())}
-          />
-          <FieldError messages={fieldErrors.shippingCountry} />
         </div>
         <div className="sm:col-span-2">
           <label className={labelClass} htmlFor="shippingNotes">
