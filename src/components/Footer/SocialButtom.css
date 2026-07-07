@@ -1,0 +1,25 @@
+@keyframes spinBorderHalf {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-border-half {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-top: 2px solid #f59e0b; /* color del borde */
+  border-right: 2px solid #f59e0b; /* color del borde */
+  border-bottom: none;
+  border-left: none;
+  border-radius: 50%;
+  box-sizing: border-box;
+  animation: spinBorderHalf 1.5s linear infinite;
+  pointer-events: none; /* que no interfiera con el click */
+}

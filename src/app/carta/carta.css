@@ -1,0 +1,1406 @@
+/* ===== BARRA DE NAVEGACIÓN DE CATEGORÍAS - FIJA ===== */
+.carta-nav-categorias {
+  position: fixed;
+  top: var(--site-header-visible-offset, var(--site-header-height));
+  left: 0;
+  right: 0;
+  z-index: 40;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+
+  padding: 0.75rem 1rem;
+  flex-wrap: wrap;
+
+  backdrop-filter: blur(10px);
+  background: rgba(0, 0, 0, 0.95);
+  transition: top 0.3s ease-in-out;
+}
+
+/* BOTÓN DE NAVEGACIÓN - INACTIVO */
+.carta-nav-btn {
+  padding: 0.5rem 1.25rem;
+  border: 2px solid #fbbf24;
+  background: #000;
+  color: #fbbf24;
+
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  border-radius: 0.5rem;
+
+  transition: all 0.3s ease;
+
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+
+  outline: none;
+}
+
+/* BOTÓN DE NAVEGACIÓN - HOVER (INACTIVO) */
+.carta-nav-btn:hover:not(.carta-nav-btn-active):not(:disabled) {
+  border-color: #fcd34d;
+  color: #fcd34d;
+  background: rgba(251, 191, 36, 0.1);
+  transform: translateY(-2px);
+}
+
+/* BOTÓN DE NAVEGACIÓN - ACTIVO (SELECCIONADO) */
+.carta-nav-btn-active {
+  background: #fbbf24;
+  color: #000;
+  border-color: #fbbf24;
+
+  box-shadow: 0 0 15px rgba(251, 191, 36, 0.3);
+  font-weight: 700;
+}
+
+/* BOTÓN DE NAVEGACIÓN - HOVER (ACTIVO) */
+.carta-nav-btn-active:hover {
+  background: #fcd34d;
+  border-color: #fcd34d;
+  box-shadow: 0 0 20px rgba(252, 211, 77, 0.5);
+}
+
+/* BOTONES DESHABILITADOS */
+.carta-nav-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* RESPONSIVE - Mobile (2x2 grid simétrico) */
+@media (max-width: 640px) {
+  .carta-nav-categorias {
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 0.5rem;
+  }
+
+  .carta-nav-btn {
+    padding: 0.5rem 0.9rem;
+    font-size: 0.7rem;
+    border-width: 1.5px;
+    flex: 0 1 calc(50% - 0.35rem);
+    text-align: center;
+  }
+}
+
+/* RESPONSIVE - Tablet */
+@media (min-width: 768px) {
+  .carta-nav-categorias {
+    gap: 1.5rem;
+    padding: 1rem 2rem;
+  }
+
+  .carta-nav-btn {
+    padding: 0.6rem 1.5rem;
+    font-size: 1rem;
+    flex: unset;
+  }
+}
+
+/* ===== SECCIÓN PRINCIPAL ===== */
+.carta-section {
+  min-height: 100vh;
+  padding-top: 80px;
+  padding-bottom: 4rem;
+  background: linear-gradient(to bottom, #000, #311a00, #000);
+  overflow-y: auto;
+  scrollbar-width: none;
+  margin-top: 0;
+}
+
+.carta-section::-webkit-scrollbar {
+  display: none;
+}
+
+@media (min-width: 640px) {
+  .carta-section {
+    padding-top: 100px;
+    padding-bottom: 3rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .carta-section {
+    padding-top: 120px;
+    padding-bottom: 4rem;
+  }
+}
+
+/* ===== CONTENEDOR ===== */
+.carta-container {
+  max-width: 100rem;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* ===== ENCABEZADO ===== */
+.carta-header {
+  text-align: center;
+  margin-bottom: 1.5rem;
+  padding: 0 1rem;
+}
+
+@media (min-width: 640px) {
+  .carta-header {
+    margin-bottom: 2rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .carta-header {
+    margin-bottom: 3rem;
+  }
+}
+
+/* SUBTÍTULO CARTA - RESPONSIVO CON ANIMACIÓN */
+.carta-subtitle {
+  font-size: clamp(0.9rem, 1.5vw + 0.5rem, 1.2rem);
+  line-height: 1.5;
+
+  margin: 0.75rem auto 1.5rem;
+  padding: 0 1rem;
+  max-width: 90%;
+  text-align: center;
+
+  /* 🔥 TEXTO NEGRO */
+  background: none;
+  color: #000;
+
+  animation: none;
+}
+
+@keyframes subtitleWave {
+  0% {
+    background-position: 0% 0%;
+  }
+  100% {
+    background-position: 200% 0%;
+  }
+}
+
+@media (max-width: 640px) {
+  .carta-subtitle {
+    font-size: clamp(0.85rem, 2.5vw, 1rem);
+    margin: 1.5rem auto 1rem;
+    padding: 0 0.75rem;
+    max-width: 96%;
+    line-height: 1.7;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 768px) {
+  .carta-subtitle {
+    font-size: clamp(1rem, 2vw, 1.15rem);
+    margin: 0.75rem auto 1.5rem;
+    padding: 0 1.5rem;
+    max-width: 92%;
+  }
+}
+
+@media (min-width: 769px) {
+  .carta-subtitle {
+    font-size: clamp(1.1rem, 1.5vw, 1.3rem);
+    margin: 1rem auto 2rem;
+    padding: 0 2rem;
+    max-width: 85%;
+  }
+}
+
+/* ===== WRAPPER PRINCIPAL ===== */
+.carta-wrapper {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  padding: 0 0.5rem;
+  margin: 0 auto;
+  position: relative;
+}
+
+@media (min-width: 640px) {
+  .carta-wrapper {
+    padding: 0 0.75rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .carta-wrapper {
+    padding: 0 1rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .carta-wrapper {
+    padding: 0 3rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  .carta-wrapper {
+    padding: 0 4rem;
+  }
+}
+
+/* ===== PÁGINA WRAPPER ===== */
+.carta-page-wrapper {
+  flex: 1;
+  min-width: 0;
+  perspective: 1000px;
+  position: relative;
+  max-width: 100%;
+}
+
+/* ===== PÁGINA ===== */
+.carta-page {
+  position: relative;
+  background: linear-gradient(to bottom right, #fef3c7, #fefce8);
+  border-radius: 0.75rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  padding: 1.25rem;
+  min-height: 500px;
+  display: flex;
+  flex-direction: column;
+  transition: box-shadow 0.3s ease;
+  border: 1px solid #fde047;
+}
+
+.carta-page-bottom {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  visibility: hidden;
+}
+
+.carta-page-top {
+  position: relative;
+  z-index: 2;
+  overflow: hidden;
+}
+
+@media (min-width: 640px) {
+  .carta-page {
+    border-radius: 1rem;
+    padding: 1.5rem;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+  }
+}
+
+@media (min-width: 768px) {
+  .carta-page {
+    border-radius: 1.5rem;
+    padding: 2rem;
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
+  }
+}
+
+@media (min-width: 1024px) {
+  .carta-page {
+    padding: 2.5rem;
+  }
+}
+
+.carta-page:hover {
+  box-shadow: 0 25px 50px rgba(251, 146, 60, 0.3);
+}
+
+/* ===== ANIMACIONES DE PÁGINA - SALIDA SIMPLE ===== */
+@keyframes pageOutLeft {
+  0% {
+    opacity: 1;
+    transform: rotateY(0deg) translateX(0px);
+  }
+
+  100% {
+    opacity: 0;
+    transform: rotateY(-25deg) translateX(-100%);
+  }
+}
+
+@keyframes pageOutRight {
+  0% {
+    opacity: 1;
+    transform: rotateY(0deg) translateX(0px);
+  }
+
+  100% {
+    opacity: 0;
+    transform: rotateY(25deg) translateX(100%);
+  }
+}
+
+.carta-page-out-left {
+  animation: pageOutLeft 1s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
+}
+
+.carta-page-out-right {
+  animation: pageOutRight 1s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
+}
+
+/* ===== DECORACIÓN ESQUINAS ===== */
+.carta-corner {
+  position: absolute;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-color: #f59e0b;
+  opacity: 0.5;
+  display: none;
+}
+
+@media (min-width: 640px) {
+  .carta-corner {
+    display: block;
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .carta-corner {
+    width: 2rem;
+    height: 2rem;
+  }
+}
+
+.carta-corner-top-left {
+  top: 1rem;
+  left: 1rem;
+  border-left: 2px solid;
+  border-top: 2px solid;
+}
+
+.carta-corner-top-right {
+  top: 1rem;
+  right: 1rem;
+  border-right: 2px solid;
+  border-top: 2px solid;
+}
+
+.carta-corner-bottom-left {
+  bottom: 1rem;
+  left: 1rem;
+  border-left: 2px solid;
+  border-bottom: 2px solid;
+}
+
+.carta-corner-bottom-right {
+  bottom: 1rem;
+  right: 1rem;
+  border-right: 2px solid;
+  border-bottom: 2px solid;
+}
+
+/* ===== CONTENIDO ===== */
+.carta-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ===== ENCABEZADO CATEGORÍA ===== */
+.carta-category-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+  text-align: center;
+}
+
+@media (min-width: 768px) {
+  .carta-category-header {
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+}
+
+.carta-decorative-line {
+  height: 0.125rem;
+  width: 1.5rem;
+  background: linear-gradient(to right, #b45309, #fbbf24);
+  border-radius: 9999px;
+}
+
+@media (min-width: 640px) {
+  .carta-decorative-line {
+    width: 3rem;
+  }
+}
+
+.carta-category-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #92400e;
+}
+
+@media (min-width: 640px) {
+  .carta-category-title {
+    font-size: 1.875rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .carta-category-title {
+    font-size: 2.25rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .carta-category-title {
+    font-size: 2.5rem;
+  }
+}
+
+/* ===== GRID DE PRODUCTOS (sin imágenes) ===== */
+.carta-products-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.9rem;
+  flex: 1;
+  width: 100%;
+}
+
+@media (min-width: 640px) {
+  .carta-products-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .carta-products-grid {
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1.25rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  .carta-products-grid {
+    gap: 1.5rem;
+  }
+}
+
+/* ===== ITEM DE PRODUCTO (tarjeta) ===== */
+.carta-product-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+
+  border: 1px solid rgba(251, 146, 60, 0.25);
+  background: rgba(255, 255, 255, 0.35);
+  backdrop-filter: blur(6px);
+
+  border-radius: 0.75rem;
+  padding: 0.9rem;
+
+  cursor: pointer;
+  transition: transform 0.2s ease, border-color 0.2s ease,
+    background 0.2s ease, box-shadow 0.2s ease;
+}
+
+@media (min-width: 768px) {
+  .carta-product-item {
+    padding: 1rem;
+    border-radius: 1rem;
+  }
+}
+
+.carta-product-item:hover {
+  transform: translateY(-2px);
+  border-color: rgba(245, 158, 11, 0.55);
+  background: rgba(255, 255, 255, 0.45);
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.12);
+}
+
+/* ===== INFO PRODUCTO ===== */
+.carta-product-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* Mantener estructura y permitir empujar el precio al fondo */
+.carta-product-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  height: 100%;
+}
+
+/* Precio abajo a la derecha */
+.carta-product-price-bottom {
+  margin-top: auto;      /* empuja el precio al final */
+  align-self: flex-end;  /* lo alinea a la derecha */
+  font-size: 1.1rem;
+  font-weight: 900;
+  color: #b45309;
+  padding-top: 0.75rem;
+  border-top: 1px dashed rgba(180, 83, 9, 0.25);
+}
+
+@media (min-width: 768px) {
+  .carta-product-price-bottom {
+    font-size: 1.25rem;
+  }
+}
+
+
+.carta-product-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+/* En móvil, apila precio debajo si hace falta */
+@media (max-width: 480px) {
+  .carta-product-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.35rem;
+  }
+}
+
+.carta-product-name {
+  font-size: 1rem;
+  font-weight: 800;
+  color: #92400e;
+  flex: 1;
+  line-height: 1.25;
+}
+
+@media (min-width: 768px) {
+  .carta-product-name {
+    font-size: 1.125rem;
+  }
+}
+
+
+.carta-product-description {
+  font-size: 0.9rem;
+  color: #7c2d12;
+  line-height: 1.5;
+  font-style: italic;
+  margin: 0;
+}
+
+.carta-product-allergens {
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: rgba(124, 45, 18, 0.82);
+}
+
+.carta-product-allergens span {
+  font-weight: 800;
+  color: #92400e;
+}
+
+@media (min-width: 768px) {
+  .carta-product-description {
+    font-size: 1rem;
+  }
+
+  .carta-product-allergens {
+    font-size: 0.85rem;
+  }
+}
+
+/* ===== DETALLES PRODUCTO ===== */
+.carta-product-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  font-size: 0.8rem;
+  color: #7c2d12;
+}
+
+@media (min-width: 768px) {
+  .carta-product-details {
+    font-size: 0.9rem;
+    gap: 0.35rem;
+  }
+}
+
+.carta-detail-item {
+  font-weight: 700;
+  margin: 0;
+}
+
+/* ===== VACÍO ===== */
+.carta-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+}
+
+.carta-empty p {
+  color: #b45309;
+  font-size: 1rem;
+}
+
+/* ===== PIE DE PÁGINA ===== */
+.carta-footer {
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(251, 146, 60, 0.35);
+  text-align: center;
+}
+
+@media (min-width: 768px) {
+  .carta-footer {
+    margin-top: 2rem;
+    padding-top: 1.25rem;
+  }
+}
+
+.carta-footer-text {
+  font-size: 0.78rem;
+  color: #7c2d12;
+  font-style: italic;
+  margin: 0;
+}
+
+@media (min-width: 640px) {
+  .carta-footer-text {
+    font-size: 0.9rem;
+  }
+}
+
+/* ===== INDICADORES ===== */
+.carta-indicators {
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+}
+
+@media (min-width: 768px) {
+  .carta-indicators {
+    gap: 1rem;
+    margin-top: 2rem;
+  }
+}
+
+.carta-indicator {
+  height: 0.5rem;
+  border-radius: 9999px;
+  background-color: #92400e;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+  width: 0.5rem;
+}
+
+@media (min-width: 640px) {
+  .carta-indicator {
+    height: 0.75rem;
+    width: 0.75rem;
+  }
+}
+
+.carta-indicator:hover:not(:disabled) {
+  background-color: #f59e0b;
+}
+
+.carta-indicator:disabled {
+  cursor: not-allowed;
+}
+
+.carta-indicator-active {
+  width: 1.5rem;
+  background: linear-gradient(to right, #b45309, #fbbf24);
+  box-shadow: 0 0 10px rgba(251, 146, 60, 0.5);
+}
+
+@media (min-width: 640px) {
+  .carta-indicator-active {
+    width: 2rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .carta-indicator-active {
+    width: 2.5rem;
+  }
+}
+
+/* ===== MODAL ===== */
+.carta-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  padding: 0.5rem;
+}
+
+@media (min-width: 640px) {
+  .carta-modal-overlay {
+    padding: 1rem;
+  }
+}
+
+.carta-modal {
+  background: linear-gradient(to bottom right, #fef3c7, #fefce8);
+  border: 2px solid #fbbf24;
+  border-radius: 1rem;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+  max-width: 42rem;
+  width: 100%;
+  max-height: 92vh;
+  overflow-y: auto;
+  position: relative;
+}
+
+@media (min-width: 640px) {
+  .carta-modal {
+    border-radius: 1.5rem;
+    border-width: 3px;
+    max-height: 90vh;
+  }
+}
+
+/* ===== BOTÓN CERRAR MODAL ===== */
+.carta-modal-close {
+  position: sticky; /* mejor en móvil: siempre accesible */
+  top: 0.5rem;
+  margin-left: auto;
+  z-index: 10;
+
+  width: 2.5rem;
+  height: 2.5rem;
+  background: linear-gradient(to bottom right, #fbbf24, #d97706);
+  color: #000;
+  font-weight: bold;
+  border-radius: 50%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  transition: all 0.3s ease;
+  border: none;
+  cursor: pointer;
+  font-size: 1.25rem;
+
+  /* posicionamiento dentro del modal */
+  position: absolute;
+  right: 0.5rem;
+  top: 0.5rem;
+}
+
+@media (min-width: 640px) {
+  .carta-modal-close {
+    right: 1rem;
+    top: 1rem;
+    width: 3rem;
+    height: 3rem;
+    font-size: 1.5rem;
+  }
+}
+
+.carta-modal-close:hover {
+  background: linear-gradient(to bottom right, #fcd34d, #f59e0b);
+  transform: scale(1.1);
+}
+
+.carta-modal-close:active {
+  transform: scale(0.95);
+}
+
+/* ===== CONTENIDO MODAL ===== */
+.carta-modal-content {
+  padding: 1.1rem 1rem 1.25rem;
+}
+
+@media (min-width: 640px) {
+  .carta-modal-content {
+    padding: 1.5rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .carta-modal-content {
+    padding: 2rem 2.5rem;
+  }
+}
+
+/* ===== INFO MODAL ===== */
+.carta-modal-title {
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: #92400e;
+  margin: 0 0 0.5rem;
+  line-height: 1.2;
+}
+
+@media (min-width: 640px) {
+  .carta-modal-title {
+    font-size: 2rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .carta-modal-title {
+    font-size: 2.25rem;
+  }
+}
+
+.carta-modal-divider {
+  height: 2px;
+  width: 100%;
+  background: linear-gradient(to right, rgba(180, 83, 9, 0.25), #fbbf24, rgba(180, 83, 9, 0.25));
+  border-radius: 999px;
+  margin: 0.5rem 0 1rem;
+}
+
+.carta-modal-price-group,
+.carta-modal-category-group {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.carta-modal-label {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #7c2d12;
+  opacity: 0.9;
+}
+
+.carta-modal-price {
+  font-size: 1.35rem;
+  font-weight: 900;
+  color: #b45309;
+}
+
+@media (min-width: 768px) {
+  .carta-modal-price {
+    font-size: 1.75rem;
+  }
+}
+
+.carta-modal-badge {
+  display: inline-flex;
+  padding: 0.35rem 0.6rem;
+  border-radius: 999px;
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  background: rgba(251, 191, 36, 0.18);
+  color: #7c2d12;
+  font-weight: 800;
+  font-size: 0.85rem;
+}
+
+.carta-modal-subtitle {
+  font-size: 1rem;
+  font-weight: 900;
+  color: #7c2d12;
+  margin: 0.75rem 0 0.4rem;
+}
+
+.carta-modal-description {
+  color: #7c2d12;
+  font-size: 1rem;
+  line-height: 1.6;
+  font-style: italic;
+  margin: 0 0 1rem;
+}
+
+@media (min-width: 768px) {
+  .carta-modal-description {
+    font-size: 1.1rem;
+  }
+}
+
+/* ===== DETALLES MODAL (tu estructura usa carta-modal-details-box) ===== */
+.carta-modal-details-box {
+  background: rgba(251, 146, 60, 0.12);
+  border: 2px solid rgba(251, 191, 36, 0.85);
+  border-radius: 0.9rem;
+  padding: 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  margin: 1rem 0 1rem;
+}
+
+@media (min-width: 768px) {
+  .carta-modal-details-box {
+    border-radius: 1rem;
+    padding: 1.2rem;
+    gap: 1rem;
+  }
+}
+
+.carta-modal-details-label {
+  display: block;
+  font-weight: 900;
+  color: #7c2d12;
+  letter-spacing: 0.6px;
+  font-size: 0.8rem;
+  margin-bottom: 0.25rem;
+  text-transform: uppercase;
+}
+
+.carta-modal-details-text {
+  color: #7c2d12;
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+/* ===== BOTÓN MODAL ===== */
+.carta-modal-button {
+  background: linear-gradient(to right, #fbbf24, #d97706);
+  color: #000;
+  font-weight: 900;
+  padding: 1rem;
+  border-radius: 0.65rem;
+  font-size: 1rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .carta-modal-button {
+    padding: 1.15rem;
+    font-size: 1.1rem;
+    border-radius: 0.75rem;
+  }
+}
+
+.carta-modal-button:hover {
+  background: linear-gradient(to right, #fcd34d, #f59e0b);
+  transform: scale(1.02);
+}
+
+.carta-modal-button:active {
+  transform: scale(0.99);
+}
+
+/* ===== PREVENT SCROLLBAR SHIFT ===== */
+html {
+  scrollbar-gutter: stable;
+  overflow-y: scroll;
+}
+
+body {
+  scrollbar-gutter: stable;
+}
+
+html.modal-open {
+  overflow-y: scroll;
+  padding-right: 0 !important;
+}
+.carta-nav-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+/* Estructura principal */
+.bebidas-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  color: #4a2c1d; /* Color oscuro base para nombres y precios */
+}
+
+.bebidas-main {
+  display: grid;
+  gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .bebidas-main {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+}
+
+.bebidas-block {
+  padding-top: 4px;
+}
+
+/* Títulos de secciones (Cervezas, Refrescos...) */
+.bebidas-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #92400E; /* El color ámbar oscuro que querías */
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.bebidas-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  border-top: 1px solid rgba(0,0,0,0.1);
+}
+
+.bebidas-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 12px 0;
+  border-bottom: 1px dashed rgba(0,0,0,0.15);
+}
+
+.bebidas-name {
+  font-weight: 500;
+}
+
+.bebidas-desc {
+  display: block;
+  font-size: 0.85rem;
+  color: #6b7280; /* Gris para la descripción */
+}
+
+.bebidas-price {
+  font-weight: 700;
+  color: #92400e; /* Color ámbar para destacar el precio */
+  white-space: nowrap;
+}
+
+/* Navegación y Grilla */
+.carta-vinos-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.carta-vinos-block {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0.25rem 0 0.5rem;
+  padding: 1.25rem 0;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  text-align: center;
+}
+
+.carta-vinos-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  max-width: 38rem;
+}
+
+.carta-vinos-title {
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-size: 0.78rem;
+  color: #6b4e2e;
+}
+
+.carta-vinos-description {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.6;
+  color: #6b4e2e;
+  font-style: italic;
+}
+
+.bebidas-vinos-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+@media (min-width: 768px) {
+  .bebidas-vinos-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: start;
+    gap: 1.25rem;
+  }
+}
+
+.bebidas-block--vino {
+  padding: 1rem 1rem 0.25rem;
+  border: 1px solid rgba(146, 64, 14, 0.12);
+  border-radius: 1rem;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.35),
+    rgba(146, 64, 14, 0.04)
+  );
+}
+
+.bebidas-title--vino {
+  margin-bottom: 0.75rem;
+}
+
+.bebidas-block--vino .bebidas-list {
+  border-top-color: rgba(146, 64, 14, 0.14);
+}
+
+.bebidas-block--vino .bebidas-item:last-child {
+  border-bottom: none;
+}
+
+.carta-carnes-section {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.carta-chuletones-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.carta-chuletones-block {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0.25rem 0 0.5rem;
+  padding: 1.25rem 0;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  text-align: center;
+}
+
+.carta-chuletones-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  max-width: 40rem;
+}
+
+.carta-chuletones-title {
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-size: 0.78rem;
+  color: #6b4e2e;
+}
+
+.carta-chuletones-description {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.6;
+  color: #6b4e2e;
+  font-style: italic;
+}
+
+.carta-product-item--premium {
+  border-color: rgba(120, 53, 15, 0.28);
+  background: linear-gradient(
+    180deg,
+    rgba(255, 251, 235, 0.9),
+    rgba(180, 83, 9, 0.08)
+  );
+  box-shadow: 0 16px 30px rgba(120, 53, 15, 0.08);
+}
+
+.carta-product-item--premium:hover {
+  border-color: rgba(146, 64, 14, 0.42);
+  background: linear-gradient(
+    180deg,
+    rgba(255, 251, 235, 0.98),
+    rgba(180, 83, 9, 0.12)
+  );
+  box-shadow: 0 18px 36px rgba(120, 53, 15, 0.12);
+}
+
+.carta-product-item--premium .carta-product-name {
+  color: #78350f;
+}
+
+.carta-product-item--premium .carta-product-description {
+  color: #6b3a13;
+}
+
+.carta-product-item--premium .carta-product-price-bottom {
+  color: #78350f;
+  border-top-color: rgba(120, 53, 15, 0.25);
+}
+
+.carta-nav-btn-bebidas {
+  grid-column: 1 / -1;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.carta-nav-categorias.carta-nav-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+/* --- Bloque guarnición (Rediseño Elegante) --- */
+.carta-guarnicion {
+  margin: 30px auto;
+  padding: 15px 0;
+  max-width: 400px; /* Más estrecho para que sea una nota central */
+  border-top: 1px double rgba(120, 53, 15, 0.2); /* Doble línea fina muy clásica */
+  border-bottom: 1px double rgba(120, 53, 15, 0.2);
+  background: transparent; /* Quitamos el gris para que no "manche" la carta */
+}
+
+.carta-guarnicion-title {
+  text-align: center;
+  font-weight: 700;
+  font-size: 0.8rem;
+  letter-spacing: 0.2em; /* Mucho aire entre letras para lujo */
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  color: #92400e;
+}
+
+.carta-guarnicion-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  justify-content: center; /* En línea para ahorrar espacio */
+  gap: 20px;
+}
+
+.carta-guarnicion-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.carta-guarnicion-name {
+  font-size: 0.9rem;
+  color: #4a2c1d;
+  font-style: italic; /* Cursiva para que parezca una sugerencia */
+}
+
+.carta-guarnicion-price {
+  font-weight: 700;
+  color: #78350f;
+  font-size: 0.85rem;
+}
+
+/* Separador visual entre opciones si caben en una fila */
+.carta-guarnicion-item:not(:last-child)::after {
+  content: "|";
+  margin-left: 20px;
+  color: rgba(120, 53, 15, 0.2);
+  font-style: normal;
+}
+/* =========================
+   BLOQUE LETI'S – POSTRES
+   ========================= */
+
+.carta-letis-block {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin: 2rem 0 2.5rem;
+  padding: 1.5rem 0;
+  background: transparent;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.carta-letis-logo {
+  width: auto;          /* ancho automático */
+  max-width: 120px;     /* tamaño máximo permitido */
+  height: auto;         /* mantiene proporción */
+  object-fit: contain;
+  flex-shrink: 0;       /* no se encoja demasiado */
+}
+
+.carta-letis-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.carta-letis-title {
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  color: #6b4e2e;
+}
+
+.carta-letis-description {
+  font-size: 0.7rem;
+  color: #5a5a5a;
+  line-height: 1.4;
+}
+@media (max-width: 640px) {
+  .carta-letis-block {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .carta-vinos-block {
+    padding: 1rem 0;
+  }
+
+  .carta-chuletones-block {
+    padding: 1rem 0;
+  }
+}
+.carta-postres-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.carta-postres-divider {
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    rgba(120, 120, 120, 0.35),
+    transparent
+  );
+  margin: 0.5rem 0;
+}
+.carta-postres-subtitle {
+  text-align: center;
+  font-size: 0.95rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(80, 80, 80, 0.85);
+  margin-top: 0.5rem;
+}
+
+/* ===== PÁGINA ÚNICA (modo scroll continuo) ===== */
+.carta-page-single {
+  position: relative; /* referencia para las esquinas decorativas */
+  min-height: auto;
+  overflow: visible;
+}
+
+/* ===== SECCIÓN DE CADA CATEGORÍA ===== */
+.carta-menu-section {
+  padding-bottom: 1rem;
+}
+
+/* Divisor visual entre secciones */
+.carta-menu-section--divided {
+  margin-top: 2.5rem;
+  padding-top: 2.5rem;
+  border-top: 1px solid rgba(180, 83, 9, 0.2);
+  position: relative;
+}
+
+@media (min-width: 768px) {
+  .carta-menu-section--divided {
+    margin-top: 3.5rem;
+    padding-top: 3rem;
+  }
+}
