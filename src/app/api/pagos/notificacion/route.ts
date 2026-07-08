@@ -245,7 +245,7 @@ export async function POST(request: Request) {
 
   // Pago confirmado, stock descontado, promocion resuelta (si aplicaba) -
   // todo dentro de la misma transaccion de la RPC.
-  await supabaseAdmin.from('payments').insert({
+  const { error: paymentError } = await supabaseAdmin.from('payments').insert({
     order_id: order.id,
     redsys_ds_order: dsOrder,
     redsys_ds_response: dsResponse,
@@ -254,6 +254,37 @@ export async function POST(request: Request) {
     status: 'succeeded',
     paid_at: new Date().toISOString(),
   });
+
+  if (paymentError) {
+    // El pedido YA esta PAID y el stock YA se descontó (correcto e
+    // irreversible en este punto, eso ocurrio dentro de la RPC atomica). No
+    // se devuelve 500: Redsys no reintentaria nada que arregle este INSERT
+    // (saldria por already_processed), asi que lo unico que hace falta es
+    // dejar un rastro imposible de ignorar para revision manual.
+    console.error('[pagos/notificacion] Fallo el INSERT en payments tras confirmar el pago', {
+      orderId: order.id,
+      dsOrder,
+      err: paymentError,
+    });
+    const { error: paymentErrorEventError } = await supabaseAdmin.from('order_status_history').insert({
+      order_id: order.id,
+      event_type: 'PAYMENTS_INSERT_ERROR',
+      metadata: {
+        error: paymentError.message,
+        ds_order: dsOrder,
+        ds_response: dsResponse,
+        ds_authorization: dsAuthorisationCode,
+        amount: dsAmount,
+      },
+    });
+    if (paymentErrorEventError) {
+      console.error('[pagos/notificacion] Fallo tambien el INSERT del evento PAYMENTS_INSERT_ERROR', {
+        orderId: order.id,
+        dsOrder,
+        err: paymentErrorEventError,
+      });
+    }
+  }
 
   const historyEvents: Array<{
     order_id: string;
@@ -320,7 +351,14 @@ export async function POST(request: Request) {
     }
   }
 
-  await supabaseAdmin.from('order_status_history').insert(historyEvents);
+  const { error: historyEventsError } = await supabaseAdmin.from('order_status_history').insert(historyEvents);
+  if (historyEventsError) {
+    console.error('[pagos/notificacion] Fallo el INSERT de los eventos de exito en order_status_history', {
+      orderId: order.id,
+      dsOrder,
+      err: historyEventsError,
+    });
+  }
 
   // 5. Emails: nunca deben romper el acuse a Redsys. Cada uno en su propio
   // try/catch - si el del cliente falla se intenta igual el interno.

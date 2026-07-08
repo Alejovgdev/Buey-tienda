@@ -8,7 +8,7 @@ const SEVERITY_CONFIG: Record<IncidentSeverity, { classes: string; icon: string;
     classes: 'bg-red-600 text-white',
     icon: '⚠',
     shortLabel: 'Revisar pago',
-    title: 'Importe incoherente — requiere revisión manual antes de dar el pedido por bueno',
+    title: 'Requiere revisión manual antes de dar el pedido por bueno (ver detalle del pedido)',
   },
   action_required: {
     classes: 'bg-amber-500 text-white',

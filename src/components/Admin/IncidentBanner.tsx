@@ -56,6 +56,29 @@ function IncidentContent({ incident, giftNames }: { incident: IncidentEvent; gif
     );
   }
 
+  if (incident.eventType === 'PAYMENTS_INSERT_ERROR') {
+    const dsOrder = getMetadataString(incident.metadata, 'ds_order');
+    const dsAuthorization = getMetadataString(incident.metadata, 'ds_authorization');
+    const errorMessage = getMetadataString(incident.metadata, 'error');
+    return (
+      <>
+        <p className="font-semibold text-gray-900">
+          El pago se cobró y el stock ya se descontó, pero el registro en <code>payments</code> no se pudo guardar.
+          Revisa manualmente contra la liquidación de Redsys antes de dar este pedido por conciliado.
+        </p>
+        <p className="mt-1 text-sm text-gray-700">
+          Ds_Order: <strong>{dsOrder ?? '—'}</strong> · Autorización Redsys: <strong>{dsAuthorization ?? '—'}</strong>
+          {errorMessage && (
+            <>
+              {' · Error: '}
+              <strong>{errorMessage}</strong>
+            </>
+          )}
+        </p>
+      </>
+    );
+  }
+
   if (incident.eventType === 'PROMOCION_NO_APLICADA') {
     const giftVariantId = getMetadataString(incident.metadata, 'gift_variant_id');
     const giftName = (giftVariantId && giftNames.get(giftVariantId)) || 'el regalo de la promoción';

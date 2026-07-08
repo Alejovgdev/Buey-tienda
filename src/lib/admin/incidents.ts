@@ -13,6 +13,7 @@ export type IncidentSeverity = 'critical' | 'action_required' | 'info';
 
 export const INCIDENT_EVENT_TYPES = [
   'IMPORTE_INCOHERENTE',
+  'PAYMENTS_INSERT_ERROR',
   'PROMOCION_NO_APLICADA',
   'REGALO_ENTREGADO_SIN_CANJE_CONTADO',
 ] as const;
@@ -41,6 +42,8 @@ export function getMetadataString(metadata: Json | null, field: string): string 
 // regalo se prometió por email y no había stock al confirmar el pago.
 export function classifyIncidentEvent(eventType: string, metadata: Json | null): IncidentSeverity | null {
   if (eventType === 'IMPORTE_INCOHERENTE') return 'critical';
+
+  if (eventType === 'PAYMENTS_INSERT_ERROR') return 'critical';
 
   if (eventType === 'PROMOCION_NO_APLICADA') {
     return getMetadataField(metadata, 'reason') === 'SIN_STOCK_REGALO_EN_CONFIRMACION' ? 'action_required' : null;

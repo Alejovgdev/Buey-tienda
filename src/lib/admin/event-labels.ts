@@ -12,6 +12,7 @@ const EVENT_TYPE_LABELS: Record<string, string> = {
   PROMOCION_NO_APLICADA: 'Promoción no aplicada',
   REGALO_ENTREGADO_SIN_CANJE_CONTADO: 'Regalo entregado sin contar como canje oficial',
   IMPORTE_INCOHERENTE: 'Importe incoherente detectado',
+  PAYMENTS_INSERT_ERROR: 'Error al registrar el pago (payments)',
   EMAIL_CLIENTE_ENVIADO: 'Email de confirmación enviado al cliente',
   EMAIL_CLIENTE_ERROR: 'Error al enviar el email al cliente',
   EMAIL_INTERNO_ENVIADO: 'Email interno enviado al restaurante',

@@ -251,6 +251,7 @@ export async function POST(request: Request) {
 
   const promoCandidate = (promoRows as unknown as PromotionCandidate[] | null)?.[0] ?? null;
   let giftLine: { variant: VariantRow; promotionId: string } | null = null;
+  let giftUnavailable = false;
 
   if (promoCandidate) {
     const redemptionsOk =
@@ -273,21 +274,19 @@ export async function POST(request: Request) {
       const giftVariant = giftVariantRow as unknown as VariantRow | null;
 
       if (!giftVariant || !giftVariant.is_active || giftVariant.stock < 1) {
-        stockIssues.push({
-          variantId: giftVariant?.id ?? null,
-          productName: giftVariant?.product?.name ?? 'Regalo de la promoción',
-          variantName: giftVariant?.name ?? '',
-          requestedQuantity: 1,
-          availableStock: giftVariant?.is_active ? giftVariant.stock : 0,
-          isGift: true,
-        });
+        // Regla fundamental (seccion 13 del MVP doc): si el regalo no se
+        // puede aplicar por cualquier motivo, el pedido continua sin el
+        // regalo. Nunca se bloquea el checkout por esto - no se añade a
+        // stockIssues, que es lo que dispara el 409 mas abajo.
+        giftUnavailable = true;
       } else {
         giftLine = { variant: giftVariant, promotionId: promoCandidate.id };
       }
     }
   }
 
-  // 7. Si falta stock en cualquier linea (incluido el regalo) -> 409, nada se crea.
+  // 7. Si falta stock en un producto real del carrito -> 409, nada se crea.
+  // El regalo de una promocion NUNCA entra en stockIssues (ver arriba).
   if (stockIssues.length > 0) {
     return NextResponse.json(
       {
@@ -389,6 +388,18 @@ export async function POST(request: Request) {
       new_status: 'PENDING_PAYMENT',
       metadata: { itemCount: orderItemsPayload.length, promotionApplied: giftLine !== null },
     });
+
+    // El pedido se creo sin el regalo porque no habia stock (o estaba
+    // inactivo) en el momento del checkout - se deja rastro para el panel
+    // admin, igual que hace la RPC de confirmacion (migracion 0011) cuando el
+    // regalo se agota justo antes de confirmar el pago.
+    if (giftUnavailable && promoCandidate) {
+      await supabaseAdmin.from('order_status_history').insert({
+        order_id: order.id,
+        event_type: 'PROMOCION_NO_APLICADA',
+        metadata: { promotion_id: promoCandidate.id, reason: 'SIN_STOCK_REGALO_EN_CHECKOUT' },
+      });
+    }
 
     // 12-13. Payload de Redsys, firmado con la libreria (nunca a mano). El
     // importe cobrado es solo productos reales + envio — el regalo ya es 0.
