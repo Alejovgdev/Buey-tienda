@@ -49,12 +49,12 @@ export default async function CategoriaPage({ params }: CategoriaPageProps) {
         )}
       </header>
 
-      <ShippingNotice className="mb-8 md:mb-12" />
-
       <ProductGrid
         products={products}
         emptyMessage={`Todavía no hay productos disponibles en ${category.name}.`}
       />
+
+      <ShippingNotice className="mt-14 md:mt-20" />
     </div>
   );
 }

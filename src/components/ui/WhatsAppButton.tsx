@@ -7,14 +7,16 @@ import { FaCalendarAlt } from 'react-icons/fa';
 // Dentro del flujo de compra (tienda/carrito/checkout/confirmacion) no tiene
 // sentido invitar a reservar mesa mientras el usuario compra online, y el
 // boton flotante llega a tapar tarjetas de producto. En /reservas tambien se
-// oculta porque el usuario ya esta en ese flujo.
+// oculta porque el usuario ya esta en ese flujo, y en /admin porque es una
+// herramienta interna.
 function isInShopFlow(pathname: string): boolean {
   return (
     pathname.startsWith('/tienda') ||
     pathname.startsWith('/carrito') ||
     pathname.startsWith('/checkout') ||
     pathname.startsWith('/pedido') ||
-    pathname.startsWith('/reservas')
+    pathname.startsWith('/reservas') ||
+    pathname.startsWith('/admin')
   );
 }
 
