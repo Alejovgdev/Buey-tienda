@@ -1,4 +1,4 @@
-import { timingSafeEqual } from 'crypto';
+import { randomUUID, timingSafeEqual } from 'crypto';
 import { NextResponse } from 'next/server';
 import {
   ADMIN_SESSION_COOKIE,
@@ -35,9 +35,20 @@ export async function POST(request: Request) {
 
   const body = await request.json().catch(() => null);
   const password = typeof body?.password === 'string' ? body.password : null;
+  const workerName = typeof body?.workerName === 'string' ? body.workerName.trim() : '';
 
   if (!password) {
     return NextResponse.json({ error: 'Contraseña requerida' }, { status: 400 });
+  }
+
+  // Nombre operativo obligatorio (sistema de etiquetado): identifica quién
+  // preparó/imprimió cada etiqueta dentro de esta misma sesión compartida —
+  // no crea una cuenta ni un rol nuevo (ver docs/FOOD_LABEL_ADMIN_DESIGN.md, §17).
+  if (!workerName || workerName.length > 80) {
+    return NextResponse.json(
+      { error: 'Indica tu nombre para poder registrar quién prepara e imprime cada etiqueta' },
+      { status: 400 }
+    );
   }
 
   const adminPassword = process.env.ADMIN_PASSWORD;
@@ -53,7 +64,7 @@ export async function POST(request: Request) {
 
   resetLoginRateLimit(clientKey);
 
-  const token = await createAdminSessionToken();
+  const token = await createAdminSessionToken({ workerName, sid: randomUUID() });
   const response = NextResponse.json({ ok: true });
   response.cookies.set(ADMIN_SESSION_COOKIE, token, {
     httpOnly: true,

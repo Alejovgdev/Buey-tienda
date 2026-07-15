@@ -833,6 +833,8 @@ Si el restaurante modifica los alérgenos de un producto en Supabase Studio, los
 
 ## 11 bis — Etiquetas de producto y trazabilidad
 
+> **Actualizado (2026-07-15):** el diseño de esta sección (una etiqueta por `order_item`, formulario directo sobre `product_labels`) se ha ampliado y ya está implementado — envase físico = etiqueta, perfiles de etiquetado configurables, snapshot legal completo en `order_items`, histórico de impresión/reimpresión y pantalla de configuración sin pasar por Supabase Studio. Ver `docs/FOOD_LABEL_ADMIN_DESIGN.md` (secciones 1-18 para el diseño, §19 para el estado real de la implementación) — es la referencia vigente para este sistema; lo que sigue en esta sección se conserva como contexto histórico de la v1.1.
+
 ### Propósito
 
 Permite generar una etiqueta imprimible por cada producto de cada pedido con la información de trazabilidad requerida para productos elaborados de origen animal (Reglamento CE 853/2004). El restaurante crea la etiqueta desde el panel admin al preparar el pedido. La etiqueta se pre-rellena con los datos del producto (plantilla) y el admin puede ajustar los campos antes de guardarla.

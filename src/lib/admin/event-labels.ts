@@ -19,6 +19,7 @@ const EVENT_TYPE_LABELS: Record<string, string> = {
   EMAIL_INTERNO_ERROR: 'Error al enviar el email interno',
   ESTADO_CAMBIADO: 'Estado cambiado',
   NOTA_INTERNA_AÑADIDA: 'Nota interna añadida',
+  PEDIDO_ETIQUETADO: 'Pedido marcado como preparado/etiquetado',
 };
 
 export function getEventLabel(eventType: string): string {

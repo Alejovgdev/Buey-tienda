@@ -72,47 +72,184 @@ export type Database = {
         }
         Relationships: []
       }
+      label_print_events: {
+        Row: {
+          id: string
+          is_reprint: boolean
+          label_snapshot: Json
+          printed_at: string
+          printed_by: string
+          product_label_id: string
+          reprint_reason: string | null
+          session_id: string
+        }
+        Insert: {
+          id?: string
+          is_reprint?: boolean
+          label_snapshot: Json
+          printed_at?: string
+          printed_by: string
+          product_label_id: string
+          reprint_reason?: string | null
+          session_id: string
+        }
+        Update: {
+          id?: string
+          is_reprint?: boolean
+          label_snapshot?: Json
+          printed_at?: string
+          printed_by?: string
+          product_label_id?: string
+          reprint_reason?: string | null
+          session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "label_print_events_product_label_id_fkey"
+            columns: ["product_label_id"]
+            isOneToOne: false
+            referencedRelation: "product_labels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      label_profiles: {
+        Row: {
+          blocking_fields: string[]
+          created_at: string
+          date_type: string
+          default_storage_text: string | null
+          field_order: string[]
+          fixed_texts: Json | null
+          id: string
+          is_active: boolean
+          key: string
+          name: string
+          preparation_fields: string[]
+          required_fields: string[]
+          requires_beef_traceability: boolean
+          requires_health_mark: boolean
+          requires_lot: boolean
+          requires_weight: boolean
+          suggested_shelf_life_days: number | null
+          updated_at: string
+          visible_fields: string[]
+        }
+        Insert: {
+          blocking_fields?: string[]
+          created_at?: string
+          date_type?: string
+          default_storage_text?: string | null
+          field_order?: string[]
+          fixed_texts?: Json | null
+          id?: string
+          is_active?: boolean
+          key: string
+          name: string
+          preparation_fields?: string[]
+          required_fields?: string[]
+          requires_beef_traceability?: boolean
+          requires_health_mark?: boolean
+          requires_lot?: boolean
+          requires_weight?: boolean
+          suggested_shelf_life_days?: number | null
+          updated_at?: string
+          visible_fields?: string[]
+        }
+        Update: {
+          blocking_fields?: string[]
+          created_at?: string
+          date_type?: string
+          default_storage_text?: string | null
+          field_order?: string[]
+          fixed_texts?: Json | null
+          id?: string
+          is_active?: boolean
+          key?: string
+          name?: string
+          preparation_fields?: string[]
+          required_fields?: string[]
+          requires_beef_traceability?: boolean
+          requires_health_mark?: boolean
+          requires_lot?: boolean
+          requires_weight?: boolean
+          suggested_shelf_life_days?: number | null
+          updated_at?: string
+          visible_fields?: string[]
+        }
+        Relationships: []
+      }
       order_items: {
         Row: {
           allergens_notes_snapshot: string | null
           allergens_snapshot: string[] | null
+          cooking_method_snapshot: string | null
+          country_of_origin_snapshot: string | null
           id: string
+          ingredients_snapshot: string | null
           item_type: string
+          label_display_name_snapshot: string | null
+          label_profile_id_snapshot: string | null
+          label_profile_snapshot: Json | null
           line_total: number
           order_id: string
+          prep_instructions_snapshot: string | null
           product_name_snapshot: string
           product_variant_id: string | null
           promotion_id: string | null
           quantity: number
+          storage_conditions_snapshot: string | null
+          suggested_package_count_snapshot: number | null
           unit_price_snapshot: number
+          usual_units_per_package_snapshot: number | null
           variant_name_snapshot: string
         }
         Insert: {
           allergens_notes_snapshot?: string | null
           allergens_snapshot?: string[] | null
+          cooking_method_snapshot?: string | null
+          country_of_origin_snapshot?: string | null
           id?: string
+          ingredients_snapshot?: string | null
           item_type?: string
+          label_display_name_snapshot?: string | null
+          label_profile_id_snapshot?: string | null
+          label_profile_snapshot?: Json | null
           line_total: number
           order_id: string
+          prep_instructions_snapshot?: string | null
           product_name_snapshot: string
           product_variant_id?: string | null
           promotion_id?: string | null
           quantity: number
+          storage_conditions_snapshot?: string | null
+          suggested_package_count_snapshot?: number | null
           unit_price_snapshot: number
+          usual_units_per_package_snapshot?: number | null
           variant_name_snapshot: string
         }
         Update: {
           allergens_notes_snapshot?: string | null
           allergens_snapshot?: string[] | null
+          cooking_method_snapshot?: string | null
+          country_of_origin_snapshot?: string | null
           id?: string
+          ingredients_snapshot?: string | null
           item_type?: string
+          label_display_name_snapshot?: string | null
+          label_profile_id_snapshot?: string | null
+          label_profile_snapshot?: Json | null
           line_total?: number
           order_id?: string
+          prep_instructions_snapshot?: string | null
           product_name_snapshot?: string
           product_variant_id?: string | null
           promotion_id?: string | null
           quantity?: number
+          storage_conditions_snapshot?: string | null
+          suggested_package_count_snapshot?: number | null
           unit_price_snapshot?: number
+          usual_units_per_package_snapshot?: number | null
           variant_name_snapshot?: string
         }
         Relationships: [
@@ -135,6 +272,13 @@ export type Database = {
             columns: ["promotion_id"]
             isOneToOne: false
             referencedRelation: "promotions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_items_label_profile_id_snapshot_fkey"
+            columns: ["label_profile_id_snapshot"]
+            isOneToOne: false
+            referencedRelation: "label_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -189,6 +333,8 @@ export type Database = {
           customer_name: string
           customer_phone: string
           id: string
+          labeled_at: string | null
+          labeled_by: string | null
           order_number: string
           paid_at: string | null
           redsys_ds_order: string | null
@@ -212,6 +358,8 @@ export type Database = {
           customer_name: string
           customer_phone: string
           id?: string
+          labeled_at?: string | null
+          labeled_by?: string | null
           order_number: string
           paid_at?: string | null
           redsys_ds_order?: string | null
@@ -235,6 +383,8 @@ export type Database = {
           customer_name?: string
           customer_phone?: string
           id?: string
+          labeled_at?: string | null
+          labeled_by?: string | null
           order_number?: string
           paid_at?: string | null
           redsys_ds_order?: string | null
@@ -341,52 +491,97 @@ export type Database = {
         Row: {
           allergens: string[] | null
           allergens_notes: string | null
+          beef_traceability_info: string | null
+          best_before_date: string | null
+          cancelled_at: string | null
+          cancelled_reason: string | null
           cooking_method: string | null
+          country_of_origin: string | null
           created_at: string
+          created_by: string | null
           elaboration_date: string | null
           expiry_date: string | null
           id: string
           ingredients: string | null
+          label_profile_id: string | null
           lote: string
           order_item_id: string | null
+          package_count_for_line: number
+          package_sequence: number
+          packaging_date: string | null
           prep_instructions: string | null
           product_id: string
           product_name: string
+          status: string
           storage_conditions: string | null
+          units_in_package: number
+          updated_at: string
+          updated_by: string | null
+          variant_name: string | null
           weight_grams: number | null
         }
         Insert: {
           allergens?: string[] | null
           allergens_notes?: string | null
+          beef_traceability_info?: string | null
+          best_before_date?: string | null
+          cancelled_at?: string | null
+          cancelled_reason?: string | null
           cooking_method?: string | null
+          country_of_origin?: string | null
           created_at?: string
+          created_by?: string | null
           elaboration_date?: string | null
           expiry_date?: string | null
           id?: string
           ingredients?: string | null
+          label_profile_id?: string | null
           lote?: string
           order_item_id?: string | null
+          package_count_for_line?: number
+          package_sequence?: number
+          packaging_date?: string | null
           prep_instructions?: string | null
           product_id: string
           product_name?: string
+          status?: string
           storage_conditions?: string | null
+          units_in_package?: number
+          updated_at?: string
+          updated_by?: string | null
+          variant_name?: string | null
           weight_grams?: number | null
         }
         Update: {
           allergens?: string[] | null
           allergens_notes?: string | null
+          beef_traceability_info?: string | null
+          best_before_date?: string | null
+          cancelled_at?: string | null
+          cancelled_reason?: string | null
           cooking_method?: string | null
+          country_of_origin?: string | null
           created_at?: string
+          created_by?: string | null
           elaboration_date?: string | null
           expiry_date?: string | null
           id?: string
           ingredients?: string | null
+          label_profile_id?: string | null
           lote?: string
           order_item_id?: string | null
+          package_count_for_line?: number
+          package_sequence?: number
+          packaging_date?: string | null
           prep_instructions?: string | null
           product_id?: string
           product_name?: string
+          status?: string
           storage_conditions?: string | null
+          units_in_package?: number
+          updated_at?: string
+          updated_by?: string | null
+          variant_name?: string | null
           weight_grams?: number | null
         }
         Relationships: [
@@ -402,6 +597,13 @@ export type Database = {
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_labels_label_profile_id_fkey"
+            columns: ["label_profile_id"]
+            isOneToOne: false
+            referencedRelation: "label_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -450,51 +652,66 @@ export type Database = {
           allergens_notes: string | null
           category_id: string
           cooking_method: string | null
+          country_of_origin: string | null
           created_at: string
           description: string | null
           id: string
           ingredients: string | null
           is_active: boolean
+          label_display_name: string | null
+          label_profile_id: string | null
           name: string
           prep_instructions: string | null
           slug: string
           sort_order: number
           storage_conditions: string | null
+          suggested_package_count: number
           updated_at: string
+          usual_units_per_package: number
         }
         Insert: {
           allergens?: string[] | null
           allergens_notes?: string | null
           category_id: string
           cooking_method?: string | null
+          country_of_origin?: string | null
           created_at?: string
           description?: string | null
           id?: string
           ingredients?: string | null
           is_active?: boolean
+          label_display_name?: string | null
+          label_profile_id?: string | null
           name: string
           prep_instructions?: string | null
           slug: string
           sort_order?: number
           storage_conditions?: string | null
+          suggested_package_count?: number
           updated_at?: string
+          usual_units_per_package?: number
         }
         Update: {
           allergens?: string[] | null
           allergens_notes?: string | null
           category_id?: string
           cooking_method?: string | null
+          country_of_origin?: string | null
           created_at?: string
           description?: string | null
           id?: string
           ingredients?: string | null
           is_active?: boolean
+          label_display_name?: string | null
+          label_profile_id?: string | null
           name?: string
           prep_instructions?: string | null
           slug?: string
           sort_order?: number
           storage_conditions?: string | null
+          suggested_package_count?: number
           updated_at?: string
+          usual_units_per_package?: number
         }
         Relationships: [
           {
@@ -502,6 +719,13 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "products_label_profile_id_fkey"
+            columns: ["label_profile_id"]
+            isOneToOne: false
+            referencedRelation: "label_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -565,6 +789,12 @@ export type Database = {
           checkout_disabled_message: string | null
           id: string
           notice_message: string | null
+          operator_address: string | null
+          operator_country: string
+          operator_health_registry_code: string | null
+          operator_identification_mark: string | null
+          operator_legal_name: string | null
+          operator_tax_id: string | null
           singleton: boolean
           updated_at: string
         }
@@ -573,6 +803,12 @@ export type Database = {
           checkout_disabled_message?: string | null
           id?: string
           notice_message?: string | null
+          operator_address?: string | null
+          operator_country?: string
+          operator_health_registry_code?: string | null
+          operator_identification_mark?: string | null
+          operator_legal_name?: string | null
+          operator_tax_id?: string | null
           singleton?: boolean
           updated_at?: string
         }
@@ -581,6 +817,12 @@ export type Database = {
           checkout_disabled_message?: string | null
           id?: string
           notice_message?: string | null
+          operator_address?: string | null
+          operator_country?: string
+          operator_health_registry_code?: string | null
+          operator_identification_mark?: string | null
+          operator_legal_name?: string | null
+          operator_tax_id?: string | null
           singleton?: boolean
           updated_at?: string
         }

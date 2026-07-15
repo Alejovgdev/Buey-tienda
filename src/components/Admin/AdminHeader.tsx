@@ -24,13 +24,18 @@ export default function AdminHeader({ title }: { title: string }) {
         <span className="text-gray-300">/</span>
         <h1 className="text-base font-bold text-gray-900 sm:text-lg">{title}</h1>
       </div>
-      <button
-        onClick={handleLogout}
-        disabled={loggingOut}
-        className="rounded-md border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
-      >
-        {loggingOut ? 'Saliendo…' : 'Cerrar sesión'}
-      </button>
+      <div className="flex items-center gap-3">
+        <Link href="/admin/configuracion/etiquetas" className="text-sm font-medium text-gray-600 hover:text-gray-900">
+          Configuración de etiquetas
+        </Link>
+        <button
+          onClick={handleLogout}
+          disabled={loggingOut}
+          className="rounded-md border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+        >
+          {loggingOut ? 'Saliendo…' : 'Cerrar sesión'}
+        </button>
+      </div>
     </header>
   );
 }

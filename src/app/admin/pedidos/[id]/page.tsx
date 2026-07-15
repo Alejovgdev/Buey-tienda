@@ -5,6 +5,7 @@ import { formatPriceFromCents } from '@/lib/format-price';
 import { formatAllergenLabel } from '@/lib/format-allergen';
 import { formatDateTime } from '@/lib/admin/format-datetime';
 import { classifyIncidentEvent, getMetadataString } from '@/lib/admin/incidents';
+import Link from 'next/link';
 import AdminHeader from '@/components/Admin/AdminHeader';
 import OrderStatusControl from '@/components/Admin/OrderStatusControl';
 import OrderNotesForm from '@/components/Admin/OrderNotesForm';
@@ -45,6 +46,8 @@ type OrderDetailRow = {
   shipping_cost: number;
   total: number;
   admin_notes: string | null;
+  labeled_at: string | null;
+  labeled_by: string | null;
 };
 
 type OrderItemDetailRow = {
@@ -69,7 +72,7 @@ export default async function AdminPedidoDetailPage({ params }: AdminPedidoDetai
   const { data: order } = await supabaseAdmin
     .from('orders')
     .select(
-      'id, order_number, status, created_at, customer_name, customer_last_name, customer_email, customer_phone, shipping_street, shipping_city, shipping_province, shipping_postal_code, shipping_country, shipping_notes, subtotal, shipping_cost, total, admin_notes'
+      'id, order_number, status, created_at, customer_name, customer_last_name, customer_email, customer_phone, shipping_street, shipping_city, shipping_province, shipping_postal_code, shipping_country, shipping_notes, subtotal, shipping_cost, total, admin_notes, labeled_at, labeled_by'
     )
     .eq('id', id)
     .maybeSingle<OrderDetailRow>();
@@ -83,6 +86,17 @@ export default async function AdminPedidoDetailPage({ params }: AdminPedidoDetai
     .select('id, product_name_snapshot, variant_name_snapshot, unit_price_snapshot, quantity, line_total, allergens_snapshot, allergens_notes_snapshot, item_type')
     .eq('order_id', order.id)
     .returns<OrderItemDetailRow[]>();
+
+  const orderItemIds = (items ?? []).map((item) => item.id);
+  const { data: labelStats } = await supabaseAdmin
+    .from('product_labels')
+    .select('status')
+    .in('order_item_id', orderItemIds.length > 0 ? orderItemIds : [''])
+    .returns<{ status: string }[]>();
+
+  const totalLabels = labelStats?.length ?? 0;
+  const finishedLabels = (labelStats ?? []).filter((label) => label.status !== 'PENDING' && label.status !== 'READY').length;
+  const canLabel = order.status === 'PAID' || order.status === 'PREPARING';
 
   const { data: history } = await supabaseAdmin
     .from('order_status_history')
@@ -130,6 +144,30 @@ export default async function AdminPedidoDetailPage({ params }: AdminPedidoDetai
           </div>
           <OrderStatusControl orderId={order.id} status={order.status} />
         </div>
+
+        {(canLabel || order.labeled_at) && (
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-gray-300 bg-white p-4">
+            <div>
+              <p className="text-sm font-semibold text-gray-900">Preparar y etiquetar</p>
+              <p className="text-sm text-gray-500">
+                {finishedLabels} de {totalLabels} envase(s) impresos/anulados
+                {order.labeled_at && (
+                  <span className="ml-2 font-medium text-green-700">
+                    · Etiquetado el {formatDateTime(order.labeled_at)} por {order.labeled_by}
+                  </span>
+                )}
+              </p>
+            </div>
+            {canLabel && (
+              <Link
+                href={`/admin/pedidos/${order.id}/etiquetar`}
+                className="rounded-md bg-gray-900 px-4 py-2 text-sm font-semibold text-white hover:bg-gray-800"
+              >
+                Preparar y etiquetar
+              </Link>
+            )}
+          </div>
+        )}
 
         <IncidentBanner incidents={incidents} giftNames={giftNames} />
 

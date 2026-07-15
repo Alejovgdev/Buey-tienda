@@ -5,6 +5,8 @@ import { calculateShippingCost } from '@/lib/shipping';
 import { createSessionRequestSchema } from '@/lib/checkout-schema';
 import { generateOrderNumber } from '@/lib/order-number';
 import { redsys } from '@/lib/redsys';
+import { toLabelProfileRules } from '@/lib/labels/label-snapshot';
+import type { Json, Tables } from '@/supabase/types';
 import type { CreateSessionSuccess, StockIssueItem } from '@/types/checkout';
 
 // Fase 4, Unidad 2. Nucleo del checkout: nada de lo que llega del frontend es
@@ -18,7 +20,22 @@ type VariantRow = {
   price: number;
   stock: number;
   is_active: boolean;
-  product: { name: string; allergens: string[] | null; allergens_notes: string | null } | null;
+  product: {
+    name: string;
+    allergens: string[] | null;
+    allergens_notes: string | null;
+    // Sistema de etiquetado alimentario (docs/FOOD_LABEL_ADMIN_DESIGN.md, §6.4):
+    // se congelan aquí, no se leen en vivo cuando se genere la etiqueta.
+    ingredients: string | null;
+    storage_conditions: string | null;
+    prep_instructions: string | null;
+    cooking_method: string | null;
+    country_of_origin: string | null;
+    label_display_name: string | null;
+    label_profile_id: string | null;
+    usual_units_per_package: number;
+    suggested_package_count: number;
+  } | null;
 };
 
 type PromotionCandidate = {
@@ -178,7 +195,9 @@ export async function POST(request: Request) {
   const variantIds = [...new Set(items.map((line) => line.variantId))];
   const { data: variantRows, error: variantsError } = await supabaseAdmin
     .from('product_variants')
-    .select('id, name, price, stock, is_active, product:products(name, allergens, allergens_notes)')
+    .select(
+      'id, name, price, stock, is_active, product:products(name, allergens, allergens_notes, ingredients, storage_conditions, prep_instructions, cooking_method, country_of_origin, label_display_name, label_profile_id, usual_units_per_package, suggested_package_count)'
+    )
     .in('id', variantIds);
 
   if (variantsError) {
@@ -263,7 +282,9 @@ export async function POST(request: Request) {
     if (redemptionsOk && subtotalOk) {
       const { data: giftVariantRow, error: giftError } = await supabaseAdmin
         .from('product_variants')
-        .select('id, name, price, stock, is_active, product:products(name, allergens, allergens_notes)')
+        .select(
+      'id, name, price, stock, is_active, product:products(name, allergens, allergens_notes, ingredients, storage_conditions, prep_instructions, cooking_method, country_of_origin, label_display_name, label_profile_id, usual_units_per_package, suggested_package_count)'
+    )
         .eq('id', promoCandidate.gift_variant_id)
         .maybeSingle();
 
@@ -339,6 +360,50 @@ export async function POST(request: Request) {
       return genericErrorResponse();
     }
 
+    // 9bis. Sistema de etiquetado alimentario (docs/FOOD_LABEL_ADMIN_DESIGN.md,
+    // §6.4 y §7): perfiles de etiquetado referenciados por las variantes de
+    // esta compra, congelados junto al resto del snapshot legal para que una
+    // edición posterior del perfil no altere las etiquetas de un pedido ya
+    // hecho.
+    const labelProfileIds = [
+      ...new Set(
+        [...variantMap.values(), ...(giftLine ? [giftLine.variant] : [])]
+          .map((variant) => variant.product?.label_profile_id)
+          .filter((id): id is string => Boolean(id))
+      ),
+    ];
+
+    const labelProfileRulesById = new Map<string, ReturnType<typeof toLabelProfileRules>>();
+    if (labelProfileIds.length > 0) {
+      const { data: labelProfileRows } = await supabaseAdmin
+        .from('label_profiles')
+        .select('*')
+        .in('id', labelProfileIds)
+        .returns<Tables<'label_profiles'>[]>();
+
+      for (const row of labelProfileRows ?? []) {
+        labelProfileRulesById.set(row.id, toLabelProfileRules(row));
+      }
+    }
+
+    function buildLabelSnapshotFields(variant: VariantRow) {
+      const product = variant.product;
+      const labelProfileId = product?.label_profile_id ?? null;
+      const labelProfileRules = labelProfileId ? (labelProfileRulesById.get(labelProfileId) ?? null) : null;
+      return {
+        ingredients_snapshot: product?.ingredients ?? null,
+        storage_conditions_snapshot: product?.storage_conditions ?? null,
+        prep_instructions_snapshot: product?.prep_instructions ?? null,
+        cooking_method_snapshot: product?.cooking_method ?? null,
+        country_of_origin_snapshot: product?.country_of_origin ?? null,
+        label_display_name_snapshot: product?.label_display_name ?? null,
+        usual_units_per_package_snapshot: product?.usual_units_per_package ?? null,
+        suggested_package_count_snapshot: product?.suggested_package_count ?? null,
+        label_profile_id_snapshot: labelProfileId,
+        label_profile_snapshot: (labelProfileRules as unknown as Json) ?? null,
+      };
+    }
+
     // 10. INSERT order_items: una linea PRODUCT por variante + GIFT si aplica.
     const orderItemsPayload = [
       ...[...requestedQuantityByVariant].map(([variantId, quantity]) => {
@@ -355,6 +420,7 @@ export async function POST(request: Request) {
           allergens_notes_snapshot: variant.product?.allergens_notes ?? null,
           item_type: 'PRODUCT',
           promotion_id: null as string | null,
+          ...buildLabelSnapshotFields(variant),
         };
       }),
       ...(giftLine
@@ -371,6 +437,7 @@ export async function POST(request: Request) {
               allergens_notes_snapshot: giftLine.variant.product?.allergens_notes ?? null,
               item_type: 'GIFT',
               promotion_id: giftLine.promotionId as string | null,
+              ...buildLabelSnapshotFields(giftLine.variant),
             },
           ]
         : []),
