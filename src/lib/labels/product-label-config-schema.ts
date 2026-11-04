@@ -4,19 +4,24 @@ import { z } from 'zod';
 // /admin/configuracion/etiquetas sin pasar por Supabase Studio. Reutiliza los
 // campos ya existentes en products (ingredients, allergens, storage_conditions,
 // prep_instructions, cooking_method) — no se duplican en ninguna tabla nueva.
-export const productLabelConfigSchema = z.object({
-  labelProfileId: z.string().uuid().nullable(),
-  labelDisplayName: z.string().trim().max(200).nullable(),
+// Lista cerrada: con el etiquetado desactivado el endpoint rechaza campos
+// internos, incluso si llegan desde una pestaña antigua o una petición directa.
+export const sharedProductConfigSchema = z.object({
   countryOfOrigin: z.string().trim().max(200).nullable(),
-  usualUnitsPerPackage: z.number().int().min(1).max(9999),
-  suggestedPackageCount: z.number().int().min(1).max(9999),
   ingredients: z.string().trim().max(2000).nullable(),
   allergens: z.array(z.string().trim().min(1)).max(30),
   allergensNotes: z.string().trim().max(500).nullable(),
   storageConditions: z.string().trim().max(500).nullable(),
   prepInstructions: z.string().trim().max(1000).nullable(),
   cookingMethod: z.string().trim().max(1000).nullable(),
-});
+}).strict();
+
+export const productLabelConfigSchema = sharedProductConfigSchema.extend({
+  labelProfileId: z.string().uuid().nullable(),
+  labelDisplayName: z.string().trim().max(200).nullable(),
+  usualUnitsPerPackage: z.number().int().min(1).max(9999),
+  suggestedPackageCount: z.number().int().min(1).max(9999),
+}).strip();
 
 export type ProductLabelConfigInput = z.infer<typeof productLabelConfigSchema>;
 

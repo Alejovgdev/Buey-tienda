@@ -122,13 +122,13 @@ export default function FoodLabel({ profile, values, packageSequence, packageCou
 
   return (
     <div
-      className="label-page flex flex-col gap-[1mm] bg-white text-black"
+      className="label-page flex flex-col gap-[0.5mm] bg-white text-black"
       style={{
         width: `${LABEL_WIDTH_MM}mm`,
         height: `${LABEL_HEIGHT_MM}mm`,
-        padding: '3mm',
+        padding: '2.5mm',
         fontSize: '8pt',
-        lineHeight: 1.2,
+        lineHeight: 1.1,
         overflow: 'hidden',
       }}
     >

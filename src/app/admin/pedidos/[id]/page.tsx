@@ -1,5 +1,7 @@
 import { notFound, redirect } from 'next/navigation';
 import { isAdminAuthenticated } from '@/lib/admin-session';
+import { FOOD_LABELING_ENABLED } from '@/lib/admin/features';
+import { canPrepareBoxLabel } from '@/lib/box-label/schema';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { formatPriceFromCents } from '@/lib/format-price';
 import { formatAllergenLabel } from '@/lib/format-allergen';
@@ -46,8 +48,13 @@ type OrderDetailRow = {
   shipping_cost: number;
   total: number;
   admin_notes: string | null;
-  labeled_at: string | null;
-  labeled_by: string | null;
+  labeled_at?: string | null;
+  labeled_by?: string | null;
+  terms_version: string | null;
+  terms_accepted_at: string | null;
+  marketing_consent: boolean | null;
+  marketing_consent_at: string | null;
+  marketing_consent_version: string | null;
 };
 
 type OrderItemDetailRow = {
@@ -72,7 +79,8 @@ export default async function AdminPedidoDetailPage({ params }: AdminPedidoDetai
   const { data: order } = await supabaseAdmin
     .from('orders')
     .select(
-      'id, order_number, status, created_at, customer_name, customer_last_name, customer_email, customer_phone, shipping_street, shipping_city, shipping_province, shipping_postal_code, shipping_country, shipping_notes, subtotal, shipping_cost, total, admin_notes, labeled_at, labeled_by'
+      'id, order_number, status, created_at, customer_name, customer_last_name, customer_email, customer_phone, shipping_street, shipping_city, shipping_province, shipping_postal_code, shipping_country, shipping_notes, subtotal, shipping_cost, total, admin_notes, terms_version, terms_accepted_at, marketing_consent, marketing_consent_at, marketing_consent_version' +
+        (FOOD_LABELING_ENABLED ? ', labeled_at, labeled_by' : '')
     )
     .eq('id', id)
     .maybeSingle<OrderDetailRow>();
@@ -88,11 +96,13 @@ export default async function AdminPedidoDetailPage({ params }: AdminPedidoDetai
     .returns<OrderItemDetailRow[]>();
 
   const orderItemIds = (items ?? []).map((item) => item.id);
-  const { data: labelStats } = await supabaseAdmin
-    .from('product_labels')
-    .select('status')
-    .in('order_item_id', orderItemIds.length > 0 ? orderItemIds : [''])
-    .returns<{ status: string }[]>();
+  const { data: labelStats } = FOOD_LABELING_ENABLED
+    ? await supabaseAdmin
+        .from('product_labels')
+        .select('status')
+        .in('order_item_id', orderItemIds.length > 0 ? orderItemIds : [''])
+        .returns<{ status: string }[]>()
+    : { data: null };
 
   const totalLabels = labelStats?.length ?? 0;
   const finishedLabels = (labelStats ?? []).filter((label) => label.status !== 'PENDING' && label.status !== 'READY').length;
@@ -145,7 +155,14 @@ export default async function AdminPedidoDetailPage({ params }: AdminPedidoDetai
           <OrderStatusControl orderId={order.id} status={order.status} />
         </div>
 
-        {(canLabel || order.labeled_at) && (
+        {canPrepareBoxLabel(order.status) && (
+          <Link href={`/admin/pedidos/${order.id}/etiqueta-caja`}
+            className="inline-block rounded-md bg-gray-900 px-4 py-2 text-sm font-semibold text-white hover:bg-gray-800">
+            Etiqueta de caja
+          </Link>
+        )}
+
+        {FOOD_LABELING_ENABLED && (canLabel || order.labeled_at) && (
           <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-gray-300 bg-white p-4">
             <div>
               <p className="text-sm font-semibold text-gray-900">Preparar y etiquetar</p>
@@ -241,6 +258,49 @@ export default async function AdminPedidoDetailPage({ params }: AdminPedidoDetai
           <p className="text-gray-900">
             {order.shipping_postal_code} {order.shipping_city} ({order.shipping_province}) · {order.shipping_country}
           </p>
+        </section>
+
+        <section className="rounded-lg border border-gray-300 bg-white p-4">
+          <h3 className="mb-3 text-sm font-bold uppercase tracking-wide text-gray-500">
+            Condiciones aceptadas
+          </h3>
+          {order.terms_version ? (
+            <>
+              <p className="font-medium text-gray-900">Versión {order.terms_version}</p>
+              <p className="text-sm text-gray-600">
+                {order.terms_accepted_at
+                  ? `Aceptadas el ${formatDateTime(order.terms_accepted_at)}`
+                  : 'Fecha no registrada'}
+              </p>
+            </>
+          ) : (
+            <p className="text-gray-700">No registrado.</p>
+          )}
+        </section>
+
+        <section className="rounded-lg border border-gray-300 bg-white p-4">
+          <h3 className="mb-3 text-sm font-bold uppercase tracking-wide text-gray-500">
+            Comunicaciones comerciales
+          </h3>
+          {order.marketing_consent === null ? (
+            <p className="text-gray-700">No registrado (pedido anterior a este sistema).</p>
+          ) : order.marketing_consent ? (
+            <>
+              <p className="font-medium text-green-700">
+                Consentimiento otorgado al realizar el pedido
+              </p>
+              <p className="text-sm text-gray-600">
+                {order.marketing_consent_at
+                  ? `Registrado el ${formatDateTime(order.marketing_consent_at)}`
+                  : 'Fecha no registrada'}
+                {order.marketing_consent_version
+                  ? ` · Texto v${order.marketing_consent_version}`
+                  : ''}
+              </p>
+            </>
+          ) : (
+            <p className="font-medium text-gray-900">No otorgado durante la compra</p>
+          )}
         </section>
 
         <section className="rounded-lg border border-gray-300 bg-white p-4">

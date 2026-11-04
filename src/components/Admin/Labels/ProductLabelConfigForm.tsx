@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import type { ProductLabelConfigInput } from '@/lib/labels/product-label-config-schema';
+import { FOOD_LABELING_ENABLED } from '@/lib/admin/features';
 
 export interface ProductLabelConfigFormProps {
   productId: string;
@@ -10,9 +11,9 @@ export interface ProductLabelConfigFormProps {
   profiles: { id: string; name: string }[];
 }
 
-// Configuración de etiquetado de un producto. Deliberadamente NO es un CRUD
-// de catálogo: precio, stock, imágenes y categorías se siguen gestionando
-// donde ya se gestionaban — aquí solo lo necesario para generar su etiqueta.
+// Datos alimentarios compartidos y configuración interna de etiquetas cuando
+// el módulo está habilitado. Precio, stock, imágenes y categorías se siguen
+// gestionando donde ya se gestionaban.
 export default function ProductLabelConfigForm({ productId, initial, profiles }: ProductLabelConfigFormProps) {
   const router = useRouter();
   const [form, setForm] = useState(initial);
@@ -25,8 +26,10 @@ export default function ProductLabelConfigForm({ productId, initial, profiles }:
     setSaving(true);
     setError(null);
 
-    const payload: ProductLabelConfigInput = {
-      ...form,
+    const { labelProfileId, labelDisplayName, usualUnitsPerPackage, suggestedPackageCount, ...sharedFields } = form;
+    const payload = {
+      ...sharedFields,
+      ...(FOOD_LABELING_ENABLED ? { labelProfileId, labelDisplayName, usualUnitsPerPackage, suggestedPackageCount } : {}),
       allergens: allergensText
         .split(',')
         .map((value) => value.trim().toLowerCase())
@@ -52,7 +55,7 @@ export default function ProductLabelConfigForm({ productId, initial, profiles }:
 
   return (
     <form onSubmit={handleSubmit} className="space-y-3">
-      <div className="grid gap-3 sm:grid-cols-2">
+      {FOOD_LABELING_ENABLED && <div className="grid gap-3 sm:grid-cols-2">
         <label className="block text-sm">
           <span className="mb-1 block font-medium text-gray-700">Perfil de etiquetado</span>
           <select
@@ -79,9 +82,9 @@ export default function ProductLabelConfigForm({ productId, initial, profiles }:
             className="w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900"
           />
         </label>
-      </div>
+      </div>}
 
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className={FOOD_LABELING_ENABLED ? 'grid gap-3 sm:grid-cols-3' : 'grid gap-3'}>
         <label className="block text-sm">
           <span className="mb-1 block font-medium text-gray-700">País/lugar de origen</span>
           <input
@@ -91,7 +94,7 @@ export default function ProductLabelConfigForm({ productId, initial, profiles }:
             className="w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900"
           />
         </label>
-        <label className="block text-sm">
+        {FOOD_LABELING_ENABLED && <label className="block text-sm">
           <span className="mb-1 block font-medium text-gray-700">Unidades habituales por envase</span>
           <input
             type="number"
@@ -100,8 +103,8 @@ export default function ProductLabelConfigForm({ productId, initial, profiles }:
             onChange={(e) => setForm((prev) => ({ ...prev, usualUnitsPerPackage: Number(e.target.value) || 1 }))}
             className="w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900"
           />
-        </label>
-        <label className="block text-sm">
+        </label>}
+        {FOOD_LABELING_ENABLED && <label className="block text-sm">
           <span className="mb-1 block font-medium text-gray-700">Envases sugeridos por unidad vendida</span>
           <input
             type="number"
@@ -110,7 +113,7 @@ export default function ProductLabelConfigForm({ productId, initial, profiles }:
             onChange={(e) => setForm((prev) => ({ ...prev, suggestedPackageCount: Number(e.target.value) || 1 }))}
             className="w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900"
           />
-        </label>
+        </label>}
       </div>
 
       <label className="block text-sm">
@@ -151,7 +154,7 @@ export default function ProductLabelConfigForm({ productId, initial, profiles }:
           type="text"
           value={form.storageConditions ?? ''}
           onChange={(e) => setForm((prev) => ({ ...prev, storageConditions: e.target.value || null }))}
-          placeholder="Vacío por defecto del perfil si se deja en blanco"
+          placeholder={FOOD_LABELING_ENABLED ? 'Vacío por defecto del perfil si se deja en blanco' : undefined}
           className="w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900"
         />
       </label>

@@ -4,7 +4,7 @@ import Link from 'next/link';
 export const metadata: Metadata = {
   title: 'Aviso Legal y Condiciones de Uso | El Buey Madurado',
   description:
-    'Aviso legal, condiciones de uso y datos identificativos de EL BUEY MADURADO, S.L., titular del sitio web restauranteelbueymadurado.com.',
+    'Aviso legal, condiciones de uso y datos identificativos de EL BUEY MADURADO, S.L., titular del sitio web restauranteelbueymadurado.com y de su tienda online de carne madurada.',
 };
 
 export default function AvisoLegalPage() {
@@ -18,7 +18,7 @@ export default function AvisoLegalPage() {
         <h1 className="text-3xl md:text-4xl font-black text-white mb-3">
           Aviso Legal y Condiciones de Uso
         </h1>
-        <p className="text-sm text-gray-500">Última actualización: junio de 2026</p>
+        <p className="text-sm text-gray-500">Última actualización: agosto de 2026</p>
         <div className="mt-6 h-px bg-gradient-to-r from-amber-500/40 via-amber-500/10 to-transparent" />
       </div>
 
@@ -67,7 +67,9 @@ export default function AvisoLegalPage() {
             titularidad de EL BUEY MADURADO, S.L. (en adelante, &ldquo;el Restaurante&rdquo;). El
             Sitio Web tiene como finalidad ofrecer información sobre el restaurante, su carta y sus
             servicios, permitir la gestión de reservas de mesa, la suscripción a su newsletter de
-            descuentos y poner a disposición de los usuarios distintas vías de contacto.
+            descuentos, poner a disposición de los usuarios distintas vías de contacto y, asimismo,
+            la <strong>venta online de productos cárnicos</strong> (carne madurada Dry Aged, cortes
+            selectos y productos derivados) con envío refrigerado a España peninsular.
           </p>
           <p>
             El acceso al Sitio Web y la utilización de sus contenidos y servicios atribuye la
@@ -97,7 +99,9 @@ export default function AvisoLegalPage() {
 
         {/* 4 */}
         <section className="mb-10">
-          <h2>4. Reservas</h2>
+          <h2>4. Servicios del Sitio Web</h2>
+
+          <h3>4.1. Reservas</h3>
           <p>
             El servicio de reserva de mesa disponible en el Sitio Web se gestiona a través de la
             plataforma de terceros <strong>CoverManager</strong> (CoverManager, S.L.), integrada
@@ -106,6 +110,29 @@ export default function AvisoLegalPage() {
             <Link href="/politica-de-privacidad">Política de Privacidad</Link> del Restaurante y a
             las condiciones del propio proveedor. El Restaurante no se hace responsable de las
             incidencias técnicas ajenas a su control que puedan producirse en dicha plataforma.
+          </p>
+
+          <h3>4.2. Tienda online</h3>
+          <p>
+            El Sitio Web incorpora una tienda online a través de la cual el usuario puede adquirir
+            productos cárnicos con envío refrigerado a España peninsular.
+          </p>
+          <p>
+            <strong>
+              El presente Aviso Legal regula únicamente el acceso, la navegación y el uso del Sitio
+              Web. La relación contractual de compraventa —proceso de contratación, precios, gastos
+              y plazos de envío, recepción de la mercancía, devoluciones, derecho de desistimiento,
+              garantías y resolución de litigios— se rige exclusivamente por las{' '}
+              <Link href="/condiciones-de-contratacion">
+                Condiciones Generales de Contratación
+              </Link>
+            </strong>
+            , que el usuario debe aceptar de forma expresa antes de formalizar cualquier pedido y que
+            prevalecen sobre este Aviso Legal en todo lo relativo a la compra.
+          </p>
+          <p>
+            El tratamiento de los datos personales facilitados durante el proceso de compra se rige
+            por la <Link href="/politica-de-privacidad">Política de Privacidad</Link>.
           </p>
         </section>
 
@@ -143,6 +170,15 @@ export default function AvisoLegalPage() {
             dichos sitios externos, cuyo acceso se realiza bajo la exclusiva responsabilidad del
             usuario.
           </p>
+          <p>
+            Asimismo, durante el proceso de compra en la tienda online el usuario es{' '}
+            <strong>
+              redirigido al entorno seguro de la pasarela de pago Redsys (TPV Virtual)
+            </strong>{' '}
+            para introducir los datos de su tarjeta y completar el cobro. Dicho entorno es ajeno al
+            Sitio Web y se rige por las condiciones y las medidas de seguridad de su titular. El
+            Restaurante no recibe ni almacena en ningún momento los datos de la tarjeta.
+          </p>
         </section>
 
         {/* 7 */}
@@ -170,8 +206,8 @@ export default function AvisoLegalPage() {
           <h2>8. Protección de datos personales</h2>
           <p>
             El tratamiento de los datos personales que el usuario facilite a través del Sitio Web
-            (formularios de reserva, suscripción a la newsletter o comunicaciones por correo
-            electrónico, teléfono o WhatsApp) se rige por lo dispuesto en la{' '}
+            (formularios de reserva, suscripción a la newsletter, proceso de compra o comunicaciones
+            por correo electrónico, teléfono o WhatsApp) se rige por lo dispuesto en la{' '}
             <Link href="/politica-de-privacidad">Política de Privacidad</Link>, que forma parte
             integrante de este Aviso Legal.
           </p>
@@ -181,10 +217,20 @@ export default function AvisoLegalPage() {
         <section className="mb-10">
           <h2>9. Legislación aplicable y jurisdicción</h2>
           <p>
-            El presente Aviso Legal se rige íntegramente por la legislación española. Para la
-            resolución de cualquier controversia que pudiera derivarse del acceso o uso del Sitio
-            Web, las partes se someten a los Juzgados y Tribunales de la ciudad de València, salvo
-            que la normativa de protección de los consumidores y usuarios disponga otra cosa.
+            El presente Aviso Legal se rige íntegramente por la legislación española y europea
+            aplicable.
+          </p>
+          <p>
+            En caso de conflicto, controversia o discrepancia, cuando el usuario tenga la condición
+            legal de <strong>consumidor o usuario</strong>, la jurisdicción competente será la
+            correspondiente al domicilio habitual del comprador.
+          </p>
+          <p>
+            Cuando el usuario no tenga la condición de consumidor (personas jurídicas, empresas o
+            profesionales que actúen dentro del marco de su actividad comercial), ambas partes se
+            someten expresamente a los{' '}
+            <strong>Juzgados y Tribunales de Xàtiva (València)</strong>, renunciando de forma expresa
+            a cualquier otro fuero o jurisdicción que por derecho pudiera corresponderles.
           </p>
         </section>
 
@@ -203,6 +249,12 @@ export default function AvisoLegalPage() {
           aria-label="Otras páginas legales"
           className="mt-14 pt-8 border-t border-white/10 flex flex-wrap gap-4 text-sm"
         >
+          <Link
+            href="/condiciones-de-contratacion"
+            className="text-amber-500 hover:text-amber-400 transition-colors"
+          >
+            Condiciones de contratación →
+          </Link>
           <Link href="/politica-de-privacidad" className="text-amber-500 hover:text-amber-400 transition-colors">
             Política de privacidad →
           </Link>
@@ -220,6 +272,13 @@ export default function AvisoLegalPage() {
           margin-bottom: 0.75rem;
           padding-bottom: 0.5rem;
           border-bottom: 1px solid rgba(255,255,255,0.07);
+        }
+        .prose-legal h3 {
+          font-size: 0.9375rem;
+          font-weight: 600;
+          color: rgb(229 231 235);
+          margin-top: 1.25rem;
+          margin-bottom: 0.5rem;
         }
         .prose-legal p {
           color: rgb(209 213 219);

@@ -275,6 +275,12 @@ export default function PoliticaDeCookiesPage() {
             Aviso legal →
           </Link>
           <Link
+            href="/condiciones-de-contratacion"
+            className="text-amber-500 hover:text-amber-400 transition-colors"
+          >
+            Condiciones de contratación →
+          </Link>
+          <Link
             href="/politica-de-privacidad"
             className="text-amber-500 hover:text-amber-400 transition-colors"
           >

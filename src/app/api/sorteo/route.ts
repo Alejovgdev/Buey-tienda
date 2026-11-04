@@ -16,6 +16,12 @@ type AppsScriptResponse = {
   message?: string;
 };
 
+// Region fijada en codigo ademas de en vercel.json: esta ruta recibe nombre y
+// email del formulario de newsletter antes de reenviarlos al Apps Script. La
+// Politica de Privacidad afirma que Vercel los trata dentro del EEE.
+// cdg1 = Paris.
+export const preferredRegion = 'cdg1';
+
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function normalizeText(value: unknown) {

@@ -1,5 +1,6 @@
-import { redirect } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { isAdminAuthenticated } from '@/lib/admin-session';
+import { FOOD_LABELING_ENABLED } from '@/lib/admin/features';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import FoodLabel from '@/components/Admin/Labels/FoodLabel';
 import PrintLabelsClient from '@/components/Admin/Labels/PrintLabelsClient';
@@ -34,6 +35,10 @@ interface PrintableLabel {
 export default async function ImprimirEtiquetasPage({ params, searchParams }: PrintPageProps) {
   if (!(await isAdminAuthenticated())) {
     redirect('/admin/login');
+  }
+
+  if (!FOOD_LABELING_ENABLED) {
+    notFound();
   }
 
   const { id: orderId } = await params;
@@ -99,12 +104,26 @@ export default async function ImprimirEtiquetasPage({ params, searchParams }: Pr
   const printableIds = printable.filter((item) => item.profile && item.values).map((item) => item.id);
 
   return (
-    <div className="fixed inset-0 z-[9999] overflow-y-auto bg-white text-black">
+    <div className="label-print-root fixed inset-0 z-[9999] overflow-y-auto bg-white text-black">
       <style>{`
         @page { size: 100mm 70mm; margin: 0; }
         @media print {
           body { margin: 0; }
           .no-print { display: none !important; }
+          /* En impresión, "position: fixed" queda anclado al tamaño de cada
+             página (100mm x 70mm por el @page de arriba), así que este
+             contenedor deja de poder mostrar los 5+ mm de etiquetas apiladas
+             y el navegador renderiza una barra de scroll dentro del propio
+             PDF/preview. En pantalla sí debe quedarse "fixed" + scrollable
+             (para previsualizar antes de imprimir), pero en impresión debe
+             fluir como contenido normal para que "page-break-after" pagine
+             cada etiqueta correctamente. */
+          .label-print-root {
+            position: static !important;
+            inset: auto !important;
+            overflow: visible !important;
+            height: auto !important;
+          }
           .label-page { page-break-after: always; break-after: page; }
           .label-page:last-child { page-break-after: auto; }
         }

@@ -3,6 +3,8 @@
 import { useState, type FormEvent } from 'react';
 import Link from 'next/link';
 import { customerDataSchema, type CustomerData } from '@/lib/checkout-schema';
+import { MARKETING_CONSENT_TEXT, PERISHABLE_WITHDRAWAL_NOTICE } from '@/lib/legal';
+import { SHIPPING_SUMMARY } from '@/lib/shipping';
 import {
   PHONE_PREFIX_OPTIONS,
   getPhonePrefixOption,
@@ -30,6 +32,7 @@ type FormState = {
   shippingPostalCode: string;
   shippingNotes: string;
   acceptTerms: boolean;
+  marketingConsent: boolean;
 };
 
 const CUSTOM_PHONE_PREFIX_VALUE = 'CUSTOM';
@@ -48,6 +51,7 @@ const initialState: FormState = {
   shippingPostalCode: '',
   shippingNotes: '',
   acceptTerms: false,
+  marketingConsent: false,
 };
 
 const inputClass =
@@ -227,10 +231,7 @@ export default function CheckoutForm({
         <h3 className="text-sm font-semibold uppercase tracking-wide text-white/60">
           Dirección de envío
         </h3>
-        <p className="mt-1 text-sm text-white/50">
-          Enviamos únicamente a España peninsular. La entrega se realiza en 24-48 h desde el
-          pedido; si compras de viernes a domingo, lo prepararemos el lunes.
-        </p>
+        <p className="mt-1 text-sm text-white/50">{SHIPPING_SUMMARY}</p>
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -302,19 +303,69 @@ export default function CheckoutForm({
         </div>
       </div>
 
+      <div className="rounded-xl border border-white/10 bg-black/20 p-4">
+        <div className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-white/50">
+          Información sobre productos perecederos
+        </div>
+        <p id="withdrawalNotice" className="text-sm leading-6 text-white/60">
+          {PERISHABLE_WITHDRAWAL_NOTICE}
+        </p>
+        <Link
+          href="/condiciones-de-contratacion#derecho-de-desistimiento"
+          className="mt-1.5 inline-block text-xs text-amber-400 underline hover:text-amber-300"
+        >
+          Ver condiciones de desistimiento
+        </Link>
+      </div>
+
+      <div className="rounded-xl border border-white/10 bg-black/20 p-4">
+        <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-white/45">
+          Comunicaciones comerciales · Opcional
+        </div>
+        <label className="flex items-start gap-2 text-sm text-white/70">
+          <input
+            id="marketingConsent"
+            name="marketingConsent"
+            type="checkbox"
+            disabled={disabled}
+            checked={form.marketingConsent}
+            onChange={(e) => update('marketingConsent', e.target.checked)}
+            aria-describedby="marketingConsentHelp"
+            className="mt-0.5 h-4 w-4 rounded border-white/30 bg-black/30 accent-amber-500"
+          />
+          <span>{MARKETING_CONSENT_TEXT}</span>
+        </label>
+        <p id="marketingConsentHelp" className="ml-6 mt-2 text-xs leading-5 text-white/45">
+          Puedes retirar tu consentimiento en cualquier momento. Más información en la{' '}
+          <Link
+            href="/politica-de-privacidad"
+            className="text-amber-400 underline hover:text-amber-300"
+          >
+            política de privacidad
+          </Link>
+          .
+        </p>
+      </div>
+
       <div>
         <label className="flex items-start gap-2 text-sm text-white/70">
           <input
+            id="acceptTerms"
+            name="acceptTerms"
             type="checkbox"
             disabled={disabled}
             checked={form.acceptTerms}
             onChange={(e) => update('acceptTerms', e.target.checked)}
+            aria-describedby="withdrawalNotice"
             className="mt-0.5 h-4 w-4 rounded border-white/30 bg-black/30 accent-amber-500"
           />
           <span>
-            He leído y acepto el{' '}
-            <Link href="/aviso-legal" className="text-amber-400 underline hover:text-amber-300">
-              aviso legal
+            He leído y acepto las{' '}
+            <Link
+              href="/condiciones-de-contratacion"
+              className="text-amber-400 underline hover:text-amber-300"
+            >
+              condiciones generales de contratación
             </Link>{' '}
             y la{' '}
             <Link

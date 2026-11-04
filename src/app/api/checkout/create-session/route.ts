@@ -5,6 +5,8 @@ import { calculateShippingCost } from '@/lib/shipping';
 import { createSessionRequestSchema } from '@/lib/checkout-schema';
 import { generateOrderNumber } from '@/lib/order-number';
 import { redsys } from '@/lib/redsys';
+import { TERMS_VERSION } from '@/lib/legal';
+import { buildMarketingConsentEvidence } from '@/lib/marketing-consent';
 import { toLabelProfileRules } from '@/lib/labels/label-snapshot';
 import type { Json, Tables } from '@/supabase/types';
 import type { CreateSessionSuccess, StockIssueItem } from '@/types/checkout';
@@ -13,6 +15,12 @@ import type { CreateSessionSuccess, StockIssueItem } from '@/types/checkout';
 // fiable. Precios, stock y disponibilidad de la promocion se recalculan aqui
 // desde BD; si el body trae un total o un precio, se ignora por completo.
 export const dynamic = 'force-dynamic';
+
+// Region fijada en codigo ademas de en vercel.json: esta ruta trata datos
+// personales (nombre, email, telefono y direccion de entrega) y la Politica de
+// Privacidad afirma que Vercel los trata dentro del EEE. Si alguien cambia la
+// region en el panel, esto la sigue fijando aqui. cdg1 = Paris.
+export const preferredRegion = 'cdg1';
 
 type VariantRow = {
   id: string;
@@ -352,6 +360,18 @@ export async function POST(request: Request) {
         shipping_cost: shippingCost,
         total,
         redsys_ds_order: dsOrder,
+        // Paso 5. Prueba de que este cliente acepto el contrato y de QUE texto
+        // acepto. La version sale de la constante del servidor, nunca del body:
+        // `customer` ya paso por el schema y solo trae acceptTerms: true, que es
+        // el booleano que exige el checkbox — que version se registra no es
+        // decision del cliente.
+        terms_version: TERMS_VERSION,
+        terms_accepted_at: new Date().toISOString(),
+        // Paso 7. La elección comercial es independiente del contrato. Para
+        // pedidos nuevos se guarda siempre true/false; la fecha y la versión
+        // solo existen si hubo consentimiento afirmativo. La versión procede
+        // del servidor y nunca del body.
+        ...buildMarketingConsentEvidence(customer.marketingConsent),
       })
       .select('id, order_number')
       .single();

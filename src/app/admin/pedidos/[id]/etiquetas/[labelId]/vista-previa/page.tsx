@@ -1,6 +1,7 @@
 import { notFound, redirect } from 'next/navigation';
 import Link from 'next/link';
 import { isAdminAuthenticated } from '@/lib/admin-session';
+import { FOOD_LABELING_ENABLED } from '@/lib/admin/features';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import AdminHeader from '@/components/Admin/AdminHeader';
 import FoodLabel from '@/components/Admin/Labels/FoodLabel';
@@ -23,6 +24,10 @@ interface PreviewPageProps {
 export default async function LabelPreviewPage({ params }: PreviewPageProps) {
   if (!(await isAdminAuthenticated())) {
     redirect('/admin/login');
+  }
+
+  if (!FOOD_LABELING_ENABLED) {
+    notFound();
   }
 
   const { id: orderId, labelId } = await params;

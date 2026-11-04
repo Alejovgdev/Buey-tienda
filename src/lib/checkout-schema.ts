@@ -54,6 +54,9 @@ export const customerDataSchema = z.object({
   shippingCountry: z.literal('ES').default('ES'),
   shippingNotes: z.string().trim().max(500).optional(),
   acceptTerms: z.literal(true, { message: 'Debes aceptar las condiciones' }),
+  // Es un consentimiento independiente y opcional. Si un cliente antiguo de
+  // la API no envía el campo, se interpreta como que NO ha consentido.
+  marketingConsent: z.boolean().default(false),
 });
 
 export type CustomerData = z.infer<typeof customerDataSchema>;

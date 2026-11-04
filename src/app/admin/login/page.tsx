@@ -55,7 +55,7 @@ export default function AdminLoginPage() {
           maxLength={80}
           value={workerName}
           onChange={(event) => setWorkerName(event.target.value)}
-          placeholder="Para saber quién preparó/imprimió cada etiqueta"
+          placeholder="Nombre del trabajador"
           className="mb-4 w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 focus:border-gray-500 focus:outline-none"
         />
 

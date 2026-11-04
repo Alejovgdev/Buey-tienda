@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { FaBalanceScale, FaFingerprint, FaCookie } from 'react-icons/fa';
+import { FaBalanceScale, FaFileContract, FaFingerprint, FaCookie } from 'react-icons/fa';
 import { useConsent } from '@/contexts/ConsentContext';
 
 export default function FooterLegal() {
@@ -18,6 +18,15 @@ export default function FooterLegal() {
             className="hover:text-amber-500 transition-colors"
           >
             Términos y condiciones
+          </Link>
+        </li>
+        <li className="flex justify-center md:justify-start items-center gap-2">
+          <FaFileContract className="text-amber-500 shrink-0" aria-hidden="true" />
+          <Link
+            href="/condiciones-de-contratacion"
+            className="hover:text-amber-500 transition-colors"
+          >
+            Condiciones de contratación
           </Link>
         </li>
         <li className="flex justify-center md:justify-start items-center gap-2">

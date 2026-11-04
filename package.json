@@ -8,7 +8,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:box-label-browser": "node scripts/check-box-label-print.mjs"
   },
   "dependencies": {
     "@react-email/components": "^1.0.12",

@@ -1,5 +1,6 @@
 import type { IconType } from 'react-icons';
 import { TbCalendarCheck, TbClockHour4, TbMapPin } from 'react-icons/tb';
+import { SHIPPING_INFO } from '@/lib/shipping';
 
 type ShippingNoticeVariant = 'full' | 'compact';
 
@@ -13,21 +14,9 @@ const shippingItems: Array<{
   title: string;
   text: string;
 }> = [
-  {
-    icon: TbMapPin,
-    title: 'Solo península',
-    text: 'Enviamos únicamente a España peninsular.',
-  },
-  {
-    icon: TbClockHour4,
-    title: 'Entrega 24-48 h',
-    text: 'Recibe tu pedido en 24-48 h desde que lo realizas.',
-  },
-  {
-    icon: TbCalendarCheck,
-    title: 'Fin de semana',
-    text: 'Los pedidos de viernes a domingo se preparan el lunes.',
-  },
+  { icon: TbMapPin, ...SHIPPING_INFO.area },
+  { icon: TbClockHour4, ...SHIPPING_INFO.eta },
+  { icon: TbCalendarCheck, ...SHIPPING_INFO.days },
 ];
 
 export default function ShippingNotice({

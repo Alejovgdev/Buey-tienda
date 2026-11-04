@@ -41,12 +41,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Contraseña requerida' }, { status: 400 });
   }
 
-  // Nombre operativo obligatorio (sistema de etiquetado): identifica quién
-  // preparó/imprimió cada etiqueta dentro de esta misma sesión compartida —
-  // no crea una cuenta ni un rol nuevo (ver docs/FOOD_LABEL_ADMIN_DESIGN.md, §17).
+  // El nombre operativo sigue siendo obligatorio aunque el etiquetado esté
+  // desactivado. Se conserva en la sesión para identificar al trabajador;
+  // no crea una cuenta ni un rol nuevo.
   if (!workerName || workerName.length > 80) {
     return NextResponse.json(
-      { error: 'Indica tu nombre para poder registrar quién prepara e imprime cada etiqueta' },
+      { error: 'Indica tu nombre de trabajador para iniciar sesión' },
       { status: 400 }
     );
   }

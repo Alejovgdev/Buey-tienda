@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { isAdminAuthenticated } from '@/lib/admin-session';
+import { FOOD_LABELING_ENABLED } from '@/lib/admin/features';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { formatDateTime } from '@/lib/admin/format-datetime';
 import AdminHeader from '@/components/Admin/AdminHeader';
@@ -25,6 +26,10 @@ type OrderRow = Pick<Tables<'orders'>, 'id' | 'order_number' | 'status' | 'creat
 export default async function EtiquetarPedidoPage({ params }: EtiquetarPageProps) {
   if (!(await isAdminAuthenticated())) {
     redirect('/admin/login');
+  }
+
+  if (!FOOD_LABELING_ENABLED) {
+    notFound();
   }
 
   const { id: orderId } = await params;

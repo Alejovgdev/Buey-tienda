@@ -9,6 +9,11 @@ import type { OrderStatusResponse } from '@/types/checkout';
 // para pintar el estado.
 export const dynamic = 'force-dynamic';
 
+// Region fijada en codigo ademas de en vercel.json: aunque la respuesta no
+// devuelve PII, la consulta si lee la fila del pedido. La Politica de
+// Privacidad afirma que Vercel trata los datos dentro del EEE. cdg1 = Paris.
+export const preferredRegion = 'cdg1';
+
 export async function GET(request: Request) {
   const orderNumber = new URL(request.url).searchParams.get('order');
 

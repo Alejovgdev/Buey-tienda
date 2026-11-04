@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import Link from 'next/link';
+import { FOOD_LABELING_ENABLED } from '@/lib/admin/features';
 
 export default function AdminHeader({ title }: { title: string }) {
   const router = useRouter();
@@ -26,7 +27,7 @@ export default function AdminHeader({ title }: { title: string }) {
       </div>
       <div className="flex items-center gap-3">
         <Link href="/admin/configuracion/etiquetas" className="text-sm font-medium text-gray-600 hover:text-gray-900">
-          Configuración de etiquetas
+          {FOOD_LABELING_ENABLED ? 'Configuración de etiquetas' : 'Datos de productos'}
         </Link>
         <button
           onClick={handleLogout}

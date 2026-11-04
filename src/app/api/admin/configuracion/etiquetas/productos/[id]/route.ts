@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { isAdminAuthenticated } from '@/lib/admin-session';
 import { supabaseAdmin } from '@/lib/supabase-admin';
-import { productLabelConfigSchema } from '@/lib/labels/product-label-config-schema';
+import { productLabelConfigSchema, sharedProductConfigSchema } from '@/lib/labels/product-label-config-schema';
+import { FOOD_LABELING_ENABLED } from '@/lib/admin/features';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -19,7 +20,8 @@ export async function PATCH(request: Request, { params }: RouteParams) {
 
   const { id } = await params;
   const body = await request.json().catch(() => null);
-  const parsed = productLabelConfigSchema.safeParse(body);
+  const labelConfig = FOOD_LABELING_ENABLED ? productLabelConfigSchema.safeParse(body) : null;
+  const parsed = labelConfig ?? sharedProductConfigSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json(
       { error: 'Datos no válidos', fieldErrors: parsed.error.flatten().fieldErrors },
@@ -33,14 +35,19 @@ export async function PATCH(request: Request, { params }: RouteParams) {
   }
 
   const v = parsed.data;
+  // No enviar columnas internas cuando el módulo está desactivado: se
+  // conservan sus valores en la base, aunque el cliente intente cambiarlos.
+  const labelUpdate = labelConfig?.success ? {
+    label_profile_id: labelConfig.data.labelProfileId,
+    label_display_name: labelConfig.data.labelDisplayName,
+    usual_units_per_package: labelConfig.data.usualUnitsPerPackage,
+    suggested_package_count: labelConfig.data.suggestedPackageCount,
+  } : {};
   const { error } = await supabaseAdmin
     .from('products')
     .update({
-      label_profile_id: v.labelProfileId,
-      label_display_name: v.labelDisplayName,
+      ...labelUpdate,
       country_of_origin: v.countryOfOrigin,
-      usual_units_per_package: v.usualUnitsPerPackage,
-      suggested_package_count: v.suggestedPackageCount,
       ingredients: v.ingredients,
       allergens: v.allergens,
       allergens_notes: v.allergensNotes,

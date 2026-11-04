@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { FOOD_LABELING_ENABLED } from '@/lib/admin/features';
 import { getAdminSession } from '@/lib/admin-session';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { printLabelsSchema } from '@/lib/labels/label-preparation-schema';
@@ -27,6 +28,10 @@ export async function POST(request: Request) {
   const session = await getAdminSession();
   if (!session) {
     return NextResponse.json({ error: 'No autenticado' }, { status: 401 });
+  }
+
+  if (!FOOD_LABELING_ENABLED) {
+    return NextResponse.json({ error: 'No encontrado' }, { status: 404 });
   }
 
   const body = await request.json().catch(() => null);

@@ -32,6 +32,8 @@ export interface OrderEmailData {
   shippingPostalCode: string;
   shippingCountry: string;
   shippingNotes: string | null;
+  paidAt: string;
+  termsVersion: string | null;
   subtotal: number;
   shippingCost: number;
   total: number;

@@ -16,6 +16,12 @@ import type { Json } from '@/supabase/types';
 // rama de rechazo. Nunca al reves.
 export const dynamic = 'force-dynamic';
 
+// Region fijada en codigo ademas de en vercel.json: aqui se leen los datos del
+// pedido (nombre, email, telefono y direccion) para los emails de confirmacion.
+// La Politica de Privacidad afirma que Vercel los trata dentro del EEE.
+// cdg1 = Paris.
+export const preferredRegion = 'cdg1';
+
 // "26000001" -> true. "0596", "9999", "abcd", "123" (3 digitos) -> false.
 // Se exige el formato de 4 digitos ademas del rango numerico: un Ds_Response
 // mal formado no es "raro pero probablemente ok", es directamente rechazo.
@@ -39,6 +45,7 @@ type OrderRow = {
   shipping_postal_code: string;
   shipping_country: string;
   shipping_notes: string | null;
+  terms_version: string | null;
   subtotal: number;
   shipping_cost: number;
   total: number;
@@ -63,6 +70,8 @@ type StockRpcResult = {
   promotion_consumed?: boolean;
   gift_skipped_no_stock?: boolean;
   error?: string;
+  review_required?: boolean;
+  paid_at?: string;
   variant_id?: string;
   requested?: number;
   available?: number;
@@ -99,7 +108,7 @@ export async function POST(request: Request) {
   const { data: order, error: orderError } = await supabaseAdmin
     .from('orders')
     .select(
-      'id, status, order_number, customer_name, customer_last_name, customer_email, customer_phone, shipping_street, shipping_city, shipping_province, shipping_postal_code, shipping_country, shipping_notes, subtotal, shipping_cost, total'
+      'id, status, order_number, customer_name, customer_last_name, customer_email, customer_phone, shipping_street, shipping_city, shipping_province, shipping_postal_code, shipping_country, shipping_notes, terms_version, subtotal, shipping_cost, total'
     )
     .eq('redsys_ds_order', dsOrder)
     .maybeSingle<OrderRow>();
@@ -123,7 +132,8 @@ export async function POST(request: Request) {
       await supabaseAdmin
         .from('orders')
         .update({ status: 'PAYMENT_FAILED', updated_at: new Date().toISOString() })
-        .eq('id', order.id);
+        .eq('id', order.id)
+        .eq('status', 'PENDING_PAYMENT');
     }
 
     await supabaseAdmin.from('order_status_history').insert({
@@ -137,28 +147,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true });
   }
 
-  // 3bis. Coherencia de importe (auditoria Fase 5 "final boss", hallazgo
-  // 5bis): la firma HMAC-SHA256 solo prueba que el mensaje lo firmo quien
-  // conoce la clave del comercio, no que el importe tenga relacion con lo que
-  // el pedido vale. Si el pedido ya esta PAID, la idempotencia de la RPC de
-  // mas abajo ya sale sin tocar nada (already_processed:true) - no hace falta
-  // ni conviene comparar aqui, para no bloquear ese camino ya seguro.
-  if (order.status !== 'PAID' && Number(dsAmount) !== order.total) {
-    await supabaseAdmin
-      .from('orders')
-      .update({ status: 'NEEDS_REVIEW', updated_at: new Date().toISOString() })
-      .eq('id', order.id);
-
-    await supabaseAdmin.from('order_status_history').insert({
-      order_id: order.id,
-      event_type: 'IMPORTE_INCOHERENTE',
-      previous_status: order.status,
-      new_status: 'NEEDS_REVIEW',
-      metadata: { ds_amount: dsAmount, order_total: order.total, ds_order: dsOrder },
-    });
-
-    return NextResponse.json({ ok: true });
-  }
+  // Importe, duplicados y estado operativo se comprueban bajo el bloqueo
+  // de orders en la RPC; ninguna escritura depende de esta lectura previa.
 
   // 4. Camino de exito: leer las lineas del pedido (todas, PRODUCT y GIFT -
   // el regalo tambien descuenta stock real, salvo que se agote justo antes de
@@ -199,6 +189,10 @@ export async function POST(request: Request) {
   try {
     const { data, error } = await supabaseAdmin.rpc('decrement_stock_and_confirm_order', {
       p_order_id: order.id,
+      p_redsys_ds_order: dsOrder,
+      p_redsys_ds_response: dsResponse,
+      p_redsys_authorization: dsAuthorisationCode,
+      p_amount: Number(dsAmount),
       p_line_items: lineItems,
       p_promotion_id: promotionId ?? undefined,
     });
@@ -213,78 +207,27 @@ export async function POST(request: Request) {
     return new NextResponse('Error interno', { status: 500 });
   }
 
-  // Notificacion duplicada: la primera llamada ya dejo el pedido en PAID
-  // (payments, historico y emails ya se hicieron entonces). Nada que repetir.
+  // Duplicado confirmado en BD, con independencia del estado operativo.
+  // No repetir stock, regalos, historico ni intentos de email.
   if (rpcResult.already_processed) {
     return NextResponse.json({ ok: true });
   }
 
   if (!rpcResult.ok) {
-    // Pago ya cobrado por Redsys pero sin stock suficiente en el momento de
-    // confirmar. No se automatiza el reembolso - resolucion manual.
-    await supabaseAdmin
-      .from('orders')
-      .update({ status: 'STOCK_ERROR', updated_at: new Date().toISOString() })
-      .eq('id', order.id);
-
-    await supabaseAdmin.from('order_status_history').insert({
-      order_id: order.id,
-      event_type: 'STOCK_ERROR',
-      previous_status: order.status,
-      new_status: 'STOCK_ERROR',
-      metadata: {
-        rpc_error: rpcResult.error,
-        variant_id: rpcResult.variant_id,
-        requested: rpcResult.requested,
-        available: rpcResult.available,
-      },
+    // La RPC ya ha resuelto el fallo de stock dentro de la transaccion.
+    // Las inconsistencias historicas se dejan intactas para conciliacion.
+    console.error('[pagos/notificacion] Pago pendiente de revision', {
+      orderId: order.id, dsOrder, rpcResult,
     });
-
     return NextResponse.json({ ok: true });
   }
 
-  // Pago confirmado, stock descontado, promocion resuelta (si aplicaba) -
-  // todo dentro de la misma transaccion de la RPC.
-  const { error: paymentError } = await supabaseAdmin.from('payments').insert({
-    order_id: order.id,
-    redsys_ds_order: dsOrder,
-    redsys_ds_response: dsResponse,
-    redsys_authorization: dsAuthorisationCode,
-    amount: Number(dsAmount),
-    status: 'succeeded',
-    paid_at: new Date().toISOString(),
-  });
-
-  if (paymentError) {
-    // El pedido YA esta PAID y el stock YA se descontó (correcto e
-    // irreversible en este punto, eso ocurrio dentro de la RPC atomica). No
-    // se devuelve 500: Redsys no reintentaria nada que arregle este INSERT
-    // (saldria por already_processed), asi que lo unico que hace falta es
-    // dejar un rastro imposible de ignorar para revision manual.
-    console.error('[pagos/notificacion] Fallo el INSERT en payments tras confirmar el pago', {
-      orderId: order.id,
-      dsOrder,
-      err: paymentError,
-    });
-    const { error: paymentErrorEventError } = await supabaseAdmin.from('order_status_history').insert({
-      order_id: order.id,
-      event_type: 'PAYMENTS_INSERT_ERROR',
-      metadata: {
-        error: paymentError.message,
-        ds_order: dsOrder,
-        ds_response: dsResponse,
-        ds_authorization: dsAuthorisationCode,
-        amount: dsAmount,
-      },
-    });
-    if (paymentErrorEventError) {
-      console.error('[pagos/notificacion] Fallo tambien el INSERT del evento PAYMENTS_INSERT_ERROR', {
-        orderId: order.id,
-        dsOrder,
-        err: paymentErrorEventError,
-      });
-    }
+  // La fecha procede de la misma transaccion que payments y orders.paid_at.
+  if (!rpcResult.paid_at) {
+    console.error('[pagos/notificacion] RPC sin fecha de pago', { orderId: order.id });
+    return new NextResponse('Error interno', { status: 500 });
   }
+  const paidAt = rpcResult.paid_at;
 
   const historyEvents: Array<{
     order_id: string;
@@ -381,6 +324,8 @@ export async function POST(request: Request) {
     shippingPostalCode: order.shipping_postal_code,
     shippingCountry: order.shipping_country,
     shippingNotes: order.shipping_notes,
+    paidAt,
+    termsVersion: order.terms_version,
     subtotal: order.subtotal,
     shippingCost: order.shipping_cost,
     total: order.total,

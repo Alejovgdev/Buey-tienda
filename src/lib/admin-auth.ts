@@ -12,10 +12,10 @@ export const ADMIN_SESSION_DURATION_SECONDS = 8 * 60 * 60; // 8h, según el docu
 // roles nuevos. Al iniciar sesión se pide además un nombre operativo de
 // texto libre, que viaja dentro de esta misma cookie/JWT como un dato más de
 // la sesión, junto a un identificador de sesión (sid) generado en el login.
-// Sirven únicamente para anotar en la auditoría de etiquetas (product_labels,
-// label_print_events, orders.labeled_by) quién realizó cada acción — no
-// autentican una identidad real: cualquiera con la contraseña compartida
-// puede escribir cualquier nombre. Ver docs/FOOD_LABEL_ADMIN_DESIGN.md, §17.
+// El nombre se mantiene obligatorio aunque el etiquetado esté desactivado.
+// Permite identificar al trabajador y anotar la auditoría de etiquetas cuando
+// esté habilitada. No autentica una identidad real: cualquiera que conozca la
+// contraseña compartida puede escribir cualquier nombre. Ver §17 del diseño.
 export interface AdminSessionClaims {
   workerName: string;
   sid: string;

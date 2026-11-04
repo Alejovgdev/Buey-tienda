@@ -179,6 +179,32 @@ export type Database = {
         }
         Relationships: []
       }
+      order_box_labels: {
+        Row: {
+          order_id: string
+          draft_id: string
+          snapshot: Json
+          confirmed_session_id: string
+          confirmed_at: string
+        }
+        Insert: {
+          order_id: string
+          draft_id: string
+          snapshot: Json
+          confirmed_session_id: string
+          confirmed_at?: string
+        }
+        Update: { [key: string]: never }
+        Relationships: [
+          {
+            foreignKeyName: "order_box_labels_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: true
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       order_items: {
         Row: {
           allergens_notes_snapshot: string | null
@@ -335,6 +361,9 @@ export type Database = {
           id: string
           labeled_at: string | null
           labeled_by: string | null
+          marketing_consent: boolean | null
+          marketing_consent_at: string | null
+          marketing_consent_version: string | null
           order_number: string
           paid_at: string | null
           redsys_ds_order: string | null
@@ -347,6 +376,8 @@ export type Database = {
           shipping_street: string
           status: string
           subtotal: number
+          terms_accepted_at: string | null
+          terms_version: string | null
           total: number
           updated_at: string
         }
@@ -360,6 +391,9 @@ export type Database = {
           id?: string
           labeled_at?: string | null
           labeled_by?: string | null
+          marketing_consent?: boolean | null
+          marketing_consent_at?: string | null
+          marketing_consent_version?: string | null
           order_number: string
           paid_at?: string | null
           redsys_ds_order?: string | null
@@ -372,6 +406,8 @@ export type Database = {
           shipping_street: string
           status: string
           subtotal: number
+          terms_accepted_at?: string | null
+          terms_version?: string | null
           total: number
           updated_at?: string
         }
@@ -385,6 +421,9 @@ export type Database = {
           id?: string
           labeled_at?: string | null
           labeled_by?: string | null
+          marketing_consent?: boolean | null
+          marketing_consent_at?: string | null
+          marketing_consent_version?: string | null
           order_number?: string
           paid_at?: string | null
           redsys_ds_order?: string | null
@@ -397,6 +436,8 @@ export type Database = {
           shipping_street?: string
           status?: string
           subtotal?: number
+          terms_accepted_at?: string | null
+          terms_version?: string | null
           total?: number
           updated_at?: string
         }
@@ -835,6 +876,10 @@ export type Database = {
     Functions: {
       decrement_stock_and_confirm_order: {
         Args: {
+          p_amount: number
+          p_redsys_ds_order: string
+          p_redsys_ds_response: string
+          p_redsys_authorization: string | null
           p_line_items: Json
           p_order_id: string
           p_promotion_id?: string

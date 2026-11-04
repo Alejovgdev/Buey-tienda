@@ -4,7 +4,7 @@ import Link from 'next/link';
 export const metadata: Metadata = {
   title: 'Política de Privacidad | El Buey Madurado',
   description:
-    'Política de privacidad de EL BUEY MADURADO, S.L. conforme al RGPD y la LOPDGDD. Cómo recogemos, usamos y protegemos tus datos personales.',
+    'Política de privacidad de EL BUEY MADURADO, S.L. conforme al RGPD y la LOPDGDD. Cómo recogemos, usamos y protegemos tus datos personales en el restaurante y en la tienda online.',
 };
 
 export default function PoliticaPrivacidadPage() {
@@ -18,7 +18,7 @@ export default function PoliticaPrivacidadPage() {
         <h1 className="text-3xl md:text-4xl font-black text-white mb-3">
           Política de Privacidad
         </h1>
-        <p className="text-sm text-gray-500">Última actualización: junio de 2026</p>
+        <p className="text-sm text-gray-500">Última actualización: agosto de 2026</p>
         <div className="mt-6 h-px bg-gradient-to-r from-amber-500/40 via-amber-500/10 to-transparent" />
       </div>
 
@@ -31,6 +31,12 @@ export default function PoliticaPrivacidadPage() {
           2016/679 General de Protección de Datos (RGPD) y la Ley Orgánica 3/2018, de 5 de
           diciembre, de Protección de Datos Personales y garantía de los derechos digitales
           (LOPDGDD).
+        </p>
+        <p>
+          Esta Política cubre tanto los servicios del restaurante (reservas, newsletter y atención
+          de consultas) como los de la <strong>tienda online</strong> (compra de productos cárnicos,
+          pago, envío refrigerado y gestión de incidencias), prestados ambos por el mismo
+          responsable.
         </p>
 
         {/* 1 */}
@@ -84,8 +90,11 @@ export default function PoliticaPrivacidadPage() {
               sobre descuentos, promociones, ventajas para suscriptores y novedades del Restaurante.
             </li>
             <li>
-              <strong>Plataforma:</strong> los envíos se gestionan a través del proveedor{' '}
-              <strong>Brevo</strong>, que actúa como encargado del tratamiento. El usuario podrá
+              <strong>Plataformas:</strong> los datos introducidos en el formulario de suscripción
+              se remiten y se almacenan mediante los servicios de{' '}
+              <strong>Google (Apps Script y Google Sheets)</strong>. Posteriormente, el envío de las
+              campañas y comunicaciones comerciales se gestiona a través del proveedor{' '}
+              <strong>Brevo</strong>. Ambos actúan como encargados del tratamiento. El usuario podrá
               darse de baja en cualquier momento, bien desde el enlace habilitado en cada
               comunicación, bien desde el formulario de baja disponible en el propio Sitio Web.
             </li>
@@ -104,7 +113,71 @@ export default function PoliticaPrivacidadPage() {
             </li>
           </ul>
 
-          <h3>d) Navegación y cookies</h3>
+          <h3>d) Compra en la tienda online</h3>
+          <p>
+            <strong>La compra se realiza siempre en modalidad de invitado.</strong> El Sitio Web no
+            dispone de cuentas de usuario, registro ni contraseñas para los compradores: no se crea
+            ningún perfil ni credencial de acceso, y los datos se asocian únicamente al pedido
+            concreto.
+          </p>
+          <ul>
+            <li>
+              <strong>Datos tratados (facilitados por el comprador en el proceso de compra):</strong>{' '}
+              nombre, apellidos, correo electrónico, número de teléfono, dirección de envío (calle y
+              número, población, provincia y código postal), país de envío —limitado a España
+              peninsular— y, opcionalmente, notas o instrucciones de entrega que el propio cliente
+              escriba.
+            </li>
+            <li>
+              <strong>Datos generados por el propio pedido:</strong> número de pedido, estado del
+              pedido, productos y variantes adquiridos, cantidades, precios e importes (subtotal,
+              gastos de envío y total), fecha de pago y el histórico de eventos del pedido
+              (creación, confirmación de pago, preparación, incidencias).
+            </li>
+            <li>
+              <strong>Datos relativos al pago:</strong> referencia del pedido en la pasarela, código
+              de respuesta, código de autorización, importe y estado de la transacción.{' '}
+              <strong>
+                En ningún momento el Titular recibe ni almacena el número de tarjeta, su fecha de
+                caducidad ni el código de seguridad (CVV):
+              </strong>{' '}
+              esos datos se introducen directamente en el entorno seguro de la pasarela de pago y no
+              llegan a nuestros sistemas.
+            </li>
+            <li>
+              <strong>Datos de las incidencias:</strong> las comunicaciones y las fotografías que el
+              cliente aporte para acreditar una incidencia con el producto (imagen de la pieza, de
+              la caja exterior y de la etiqueta de trazabilidad).
+            </li>
+          </ul>
+          <p>
+            <strong>Finalidades:</strong>
+          </p>
+          <ul>
+            <li>
+              Gestión y tramitación del pedido, incluida la reserva de existencias y la preparación
+              del producto.
+            </li>
+            <li>Procesamiento del pago a través de la pasarela de pago segura.</li>
+            <li>
+              Envío refrigerado del pedido y coordinación de la entrega con la empresa de
+              transporte, que podrá contactar directamente con el destinatario.
+            </li>
+            <li>
+              Gestión de incidencias alimentarias, reclamaciones y garantías, así como la
+              tramitación de los reembolsos que procedan.
+            </li>
+            <li>
+              Facturación y cumplimiento de las obligaciones contables, fiscales y de trazabilidad
+              alimentaria.
+            </li>
+            <li>
+              Comunicaciones necesarias sobre el estado del pedido (confirmación, expedición y
+              seguimiento logístico).
+            </li>
+          </ul>
+
+          <h3>e) Navegación y cookies</h3>
           <ul>
             <li>
               <strong>Datos tratados:</strong> datos de navegación y dispositivo (como dirección IP,
@@ -123,6 +196,8 @@ export default function PoliticaPrivacidadPage() {
             No tratamos categorías especiales de datos (datos de salud, ideología, etc.) a través
             del Sitio Web. El usuario no está obligado a facilitarnos sus datos, pero la falta de
             los datos mínimos necesarios puede impedir la prestación del servicio correspondiente.
+            En el caso de la tienda online, los datos de contacto y de entrega son imprescindibles:
+            sin ellos no es posible formalizar el contrato ni entregar un producto refrigerado.
           </p>
         </section>
 
@@ -149,6 +224,22 @@ export default function PoliticaPrivacidadPage() {
                 <tr>
                   <td>Atención de consultas</td>
                   <td>Consentimiento del interesado (art. 6.1.a RGPD)</td>
+                </tr>
+                <tr>
+                  <td>Gestión del pedido, pago y envío de la tienda online</td>
+                  <td>Ejecución de un contrato (art. 6.1.b RGPD)</td>
+                </tr>
+                <tr>
+                  <td>Facturación, obligaciones tributarias y trazabilidad alimentaria</td>
+                  <td>Cumplimiento de obligaciones legales (art. 6.1.c RGPD)</td>
+                </tr>
+                <tr>
+                  <td>Promociones, regalos y acciones de fidelización</td>
+                  <td>Consentimiento del interesado (art. 6.1.a RGPD)</td>
+                </tr>
+                <tr>
+                  <td>Prevención del fraude en la pasarela de pago y optimización del portal</td>
+                  <td>Interés legítimo del responsable (art. 6.1.f RGPD)</td>
                 </tr>
                 <tr>
                   <td>Cookies analíticas y no esenciales</td>
@@ -185,6 +276,21 @@ export default function PoliticaPrivacidadPage() {
               atender la consulta y un plazo prudencial posterior; en caso de derivarse una relación
               contractual, mientras esta se mantenga.
             </li>
+            <li>
+              <strong>Pedidos de la tienda online:</strong> los datos de los compradores invitados se
+              conservarán durante el tiempo estrictamente necesario para culminar la entrega del
+              pedido y resolver la <strong>ventana de 24 horas</strong> de que dispone el cliente
+              para notificar incidencias con el producto, así como para atender la garantía y las
+              reclamaciones que puedan derivarse.
+            </li>
+            <li>
+              <strong>Documentación contable y fiscal:</strong> posteriormente, los datos se
+              mantendrán debidamente bloqueados durante los plazos legales de prescripción exigidos
+              por la normativa mercantil y tributaria: <strong>6 años</strong> para libros de
+              contabilidad y facturas, conforme al Código de Comercio, y <strong>4 años</strong> de
+              prescripción de las obligaciones y deberes tributarios, conforme a la Ley 58/2003,
+              General Tributaria.
+            </li>
           </ul>
           <p>
             Transcurridos dichos plazos, los datos serán suprimidos o anonimizados, conservándose
@@ -202,28 +308,93 @@ export default function PoliticaPrivacidadPage() {
             proveedores que actúan como encargados del tratamiento, habiéndose suscrito con ellos
             los correspondientes contratos de encargo:
           </p>
+
+          <h3>Servicios del restaurante</h3>
           <ul>
             <li><strong>CoverManager</strong> — gestión del sistema de reservas.</li>
-            <li><strong>Brevo</strong> — gestión y envío de la newsletter y comunicaciones comerciales.</li>
             <li>
-              <strong>Google</strong> — servicios de correo electrónico (Gmail) y, en su caso,
-              mapas y analítica web.
+              <strong>Google (Apps Script y Sheets)</strong> — recepción y almacenamiento de los
+              datos facilitados en el formulario de suscripción a la newsletter.
             </li>
             <li>
-              <strong>Vercel Inc.</strong> — alojamiento del Sitio Web y analítica de tráfico
-              web sin cookies.
+              <strong>Brevo</strong> — envío de las campañas y comunicaciones comerciales de la
+              newsletter.
+            </li>
+          </ul>
+
+          <h3>Servicios de la tienda online</h3>
+          <ul>
+            <li>
+              <strong>Redsys</strong> — pasarela de pago (TPV Virtual) que procesa el cobro con
+              tarjeta de los pedidos.
+            </li>
+            <li>
+              <strong>SEUR Frío</strong> — empresa de transporte refrigerado encargada de la
+              entrega. Recibe el nombre, la dirección de entrega, el teléfono y el correo
+              electrónico del destinatario, necesarios para coordinar la entrega y notificar
+              incidencias logísticas.
+            </li>
+            <li>
+              <strong>Supabase</strong> — proveedor de la base de datos y del almacenamiento donde
+              se registran los pedidos y los datos de contacto y de entrega del cliente.
+            </li>
+            <li>
+              <strong>Resend</strong> — proveedor de envío de los correos electrónicos
+              transaccionales (confirmación de pedido y avisos de gestión).
+            </li>
+          </ul>
+
+          <h3>Servicios comunes a ambas actividades</h3>
+          <ul>
+            <li>
+              <strong>Vercel Inc.</strong> — alojamiento del Sitio Web y analítica de tráfico web sin
+              cookies.
+            </li>
+            <li>
+              <strong>WhatsApp (Meta)</strong> — canal oficial de atención e incidencias designado en
+              las{' '}
+              <Link href="/condiciones-de-contratacion">
+                Condiciones Generales de Contratación
+              </Link>
+              . A través de él, el cliente remite datos de su pedido y las fotografías que acreditan
+              una incidencia.
+            </li>
+            <li>
+              <strong>Google</strong> — servicios de correo electrónico (Gmail) empleados como canal
+              oficial de ventas y de ejercicio de derechos y, en su caso, mapas y analítica web.
+            </li>
+            <li>
+              <strong>Asesoría fiscal, contable y legal</strong> encargada de la administración de la
+              empresa.
+            </li>
+            <li>
+              <strong>Administraciones públicas, órganos judiciales o autoridades sanitarias</strong>{' '}
+              cuando exista una obligación legal o un requerimiento oficial.
             </li>
           </ul>
 
           <h3>Transferencias internacionales</h3>
           <p>
-            Algunos de los proveedores indicados (como Google o Brevo) pueden tratar datos en
-            servidores ubicados fuera del Espacio Económico Europeo, principalmente en Estados
-            Unidos. Dichas transferencias se amparan en la decisión de adecuación de la Comisión
-            Europea relativa al <strong>Marco de Privacidad de Datos UE-EE. UU. (EU-U.S. Data
-            Privacy Framework)</strong> para las entidades certificadas en él y, con carácter
+            <strong>Supabase</strong>, <strong>Vercel</strong>, <strong>Redsys</strong> y{' '}
+            <strong>SEUR Frío</strong> tratan los datos dentro del Espacio Económico Europeo, sin que
+            se produzca transferencia internacional.
+          </p>
+          <p>
+            Algunos de los proveedores indicados (como Google —tanto Gmail como Apps Script y
+            Sheets—, Brevo, Resend o WhatsApp (Meta)) pueden tratar datos en servidores ubicados
+            fuera del Espacio Económico Europeo, principalmente en Estados Unidos. Dichas
+            transferencias se amparan en la decisión de adecuación de la Comisión Europea relativa
+            al <strong>Marco de Privacidad de Datos UE-EE. UU. (EU-U.S. Data Privacy
+            Framework)</strong> para las entidades certificadas en él y, con carácter
             complementario, en las <strong>Cláusulas Contractuales Tipo</strong> aprobadas por la
             Comisión Europea, garantizando un nivel de protección adecuado.
+          </p>
+          <p>
+            En el caso concreto de <strong>Resend</strong>, el envío de los correos electrónicos
+            transaccionales se realiza desde servidores ubicados en la Unión Europea (Irlanda), si
+            bien los datos de la cuenta, los metadatos y los registros de actividad se almacenan en
+            Estados Unidos, por lo que sí se produce transferencia internacional amparada en las
+            garantías indicadas.
           </p>
         </section>
 
@@ -248,6 +419,14 @@ export default function PoliticaPrivacidadPage() {
             que acredite su identidad.
           </p>
           <p>
+            <strong>Verificación de identidad de los compradores invitados.</strong> Dado que la
+            tienda online no dispone de cuentas de usuario, cuando la solicitud se refiera a un
+            pedido el Titular verificará la identidad del solicitante a través del{' '}
+            <strong>correo electrónico o del número de teléfono asociados a la compra</strong>, junto
+            con los datos del pedido correspondiente. Se recomienda indicar el número de pedido para
+            agilizar la tramitación.
+          </p>
+          <p>
             Asimismo, el usuario tiene derecho a presentar una reclamación ante la{' '}
             <strong>Agencia Española de Protección de Datos (AEPD)</strong>{' '}
             (<a href="https://www.aepd.es" target="_blank" rel="noreferrer">www.aepd.es</a>),
@@ -265,6 +444,10 @@ export default function PoliticaPrivacidadPage() {
             alteración, pérdida, tratamiento o acceso no autorizado, de acuerdo con lo dispuesto en
             el RGPD y la LOPDGDD.
           </p>
+          <p>
+            En particular, los datos de la tarjeta de pago se introducen directamente en el entorno
+            seguro de la pasarela de pago y no son recibidos ni almacenados por el Titular.
+          </p>
         </section>
 
         {/* 8 */}
@@ -275,6 +458,15 @@ export default function PoliticaPrivacidadPage() {
             intencionadamente datos de menores de dicha edad. En caso de detectarse, se procederá a
             su supresión.
           </p>
+          <p>
+            Adicionalmente, y conforme al apartado 3.4 de las{' '}
+            <Link href="/condiciones-de-contratacion">Condiciones Generales de Contratación</Link>,{' '}
+            <strong>
+              solo pueden formalizar compras en la tienda online las personas mayores de 18 años
+            </strong>
+            . Al realizar un pedido, el cliente manifiesta bajo su exclusiva responsabilidad que
+            cuenta con la edad legal mínima para contratar.
+          </p>
         </section>
 
         {/* 9 */}
@@ -284,9 +476,26 @@ export default function PoliticaPrivacidadPage() {
             De conformidad con la Ley 34/2002, de Servicios de la Sociedad de la Información y de
             Comercio Electrónico (LSSI-CE), el Restaurante solo enviará comunicaciones comerciales
             por medios electrónicos cuando el usuario haya prestado previamente su consentimiento.
+          </p>
+          <p>
+            En el caso de la tienda online, el usuario únicamente recibirá comunicaciones
+            comerciales, promociones u ofertas de fidelización si ha otorgado su consentimiento
+            expreso mediante una <strong>acción afirmativa clara</strong>, consistente en marcar una{' '}
+            <strong>casilla de verificación no preseleccionada</strong> durante el proceso de compra.
+            La aceptación de las Condiciones Generales de Contratación no implica en ningún caso el
+            consentimiento para recibir comunicaciones comerciales: son consentimientos
+            independientes.
+          </p>
+          <p>
             El usuario podrá revocar dicho consentimiento en cualquier momento mediante el enlace de
             baja incluido en cada comunicación o escribiendo a{' '}
             <a href="mailto:elbueymaduradoxativa@gmail.com">elbueymaduradoxativa@gmail.com</a>.
+          </p>
+          <p>
+            Los correos electrónicos relativos a la gestión del pedido (confirmación, expedición,
+            seguimiento e incidencias) no son comunicaciones comerciales, sino comunicaciones
+            necesarias para la ejecución del contrato, y se envían con independencia de que se haya
+            prestado o no el consentimiento comercial.
           </p>
         </section>
 
@@ -308,6 +517,12 @@ export default function PoliticaPrivacidadPage() {
         >
           <Link href="/aviso-legal" className="text-amber-500 hover:text-amber-400 transition-colors">
             Aviso legal →
+          </Link>
+          <Link
+            href="/condiciones-de-contratacion"
+            className="text-amber-500 hover:text-amber-400 transition-colors"
+          >
+            Condiciones de contratación →
           </Link>
           <Link href="/politica-de-cookies" className="text-amber-500 hover:text-amber-400 transition-colors">
             Política de cookies →
@@ -372,7 +587,7 @@ export default function PoliticaPrivacidadPage() {
         .prose-legal table {
           width: 100%;
           border-collapse: collapse;
-          font-size: 0.875rem;
+          font-size: 0.8125rem;
           margin-bottom: 1rem;
         }
         .prose-legal thead tr {
@@ -380,16 +595,18 @@ export default function PoliticaPrivacidadPage() {
         }
         .prose-legal th {
           text-align: left;
-          padding: 0.625rem 0.875rem;
+          padding: 0.625rem 0.75rem;
           color: rgb(245 158 11);
           font-weight: 600;
           border: 1px solid rgba(255,255,255,0.08);
+          white-space: nowrap;
         }
         .prose-legal td {
-          padding: 0.625rem 0.875rem;
+          padding: 0.625rem 0.75rem;
           color: rgb(209 213 219);
           border: 1px solid rgba(255,255,255,0.08);
           vertical-align: top;
+          line-height: 1.6;
         }
         .prose-legal tbody tr:nth-child(even) {
           background: rgba(255,255,255,0.02);

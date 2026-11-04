@@ -1,20 +1,19 @@
 import { Body, Container, Head, Heading, Hr, Html, Link, Preview, Section, Text } from '@react-email/components';
 import { formatPriceFromCents } from '@/lib/format-price';
+import { getPublicSiteUrl } from '@/lib/public-site-url';
 import type { OrderEmailData } from '@/lib/email/send-order-notifications';
 
 // Fase 5, Unidad 4. Plantilla interna al restaurante (seccion 16 del MVP).
-// Prioridad: que el equipo vea de un vistazo que preparar. El enlace al
-// panel admin apunta a una ruta que todavia no existe (Fase 7) - no hace
-// falta que resuelva, solo que quede lista para cuando exista.
+// Prioridad: que el equipo vea de un vistazo qué preparar y pueda abrir el
+// pedido ya confirmado directamente en el panel.
 export function InternalOrderNotificationEmail({ data }: { data: OrderEmailData }) {
-  const now = new Date().toLocaleString('es-ES', {
+  const paidAt = new Date(data.paidAt).toLocaleString('es-ES', {
     timeZone: 'Europe/Madrid',
     dateStyle: 'short',
     timeStyle: 'short',
   });
   const productItems = data.items.filter((item) => item.itemType === 'PRODUCT');
   const giftItems = data.items.filter((item) => item.itemType === 'GIFT');
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? '';
 
   return (
     <Html>
@@ -23,7 +22,7 @@ export function InternalOrderNotificationEmail({ data }: { data: OrderEmailData 
       <Body style={styles.body}>
         <Container style={styles.container}>
           <Heading style={styles.h1}>NUEVO PEDIDO #{data.orderNumber}</Heading>
-          <Text style={styles.smallText}>Recibido: {now}</Text>
+          <Text style={styles.smallText}>Pago confirmado: {paidAt}</Text>
 
           <Section style={styles.box}>
             <Text style={styles.boxTitle}>Productos a preparar</Text>
@@ -80,7 +79,7 @@ export function InternalOrderNotificationEmail({ data }: { data: OrderEmailData 
 
           <Text style={styles.total}>Total cobrado: {formatPriceFromCents(data.total)}</Text>
 
-          <Link href={`${baseUrl}/admin/pedidos/${data.orderId}`} style={styles.link}>
+          <Link href={getPublicSiteUrl(`/admin/pedidos/${data.orderId}`)} style={styles.link}>
             Ver pedido en el panel admin
           </Link>
         </Container>

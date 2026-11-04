@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import { isAdminAuthenticated } from '@/lib/admin-session';
+import { FOOD_LABELING_ENABLED } from '@/lib/admin/features';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import AdminHeader from '@/components/Admin/AdminHeader';
 import OperatorConfigForm from '@/components/Admin/Labels/OperatorConfigForm';
@@ -29,18 +30,17 @@ type ProductRow = Pick<
   Tables<'products'>,
   | 'id'
   | 'name'
-  | 'label_profile_id'
-  | 'label_display_name'
   | 'country_of_origin'
-  | 'usual_units_per_package'
-  | 'suggested_package_count'
   | 'ingredients'
   | 'allergens'
   | 'allergens_notes'
   | 'storage_conditions'
   | 'prep_instructions'
   | 'cooking_method'
->;
+> & Partial<Pick<
+  Tables<'products'>,
+  'label_profile_id' | 'label_display_name' | 'usual_units_per_package' | 'suggested_package_count'
+>>;
 
 export default async function LabelSettingsPage() {
   if (!(await isAdminAuthenticated())) {
@@ -48,17 +48,22 @@ export default async function LabelSettingsPage() {
   }
 
   const [{ data: shopSettings }, { data: profileRows }, { data: productRows }] = await Promise.all([
-    supabaseAdmin
-      .from('shop_settings')
-      .select(
-        'operator_legal_name, operator_tax_id, operator_address, operator_country, operator_health_registry_code, operator_identification_mark'
-      )
-      .maybeSingle(),
-    supabaseAdmin.from('label_profiles').select('*').order('name').returns<Tables<'label_profiles'>[]>(),
+    FOOD_LABELING_ENABLED
+      ? supabaseAdmin
+          .from('shop_settings')
+          .select(
+            'operator_legal_name, operator_tax_id, operator_address, operator_country, operator_health_registry_code, operator_identification_mark'
+          )
+          .maybeSingle()
+      : Promise.resolve({ data: null }),
+    FOOD_LABELING_ENABLED
+      ? supabaseAdmin.from('label_profiles').select('*').order('name').returns<Tables<'label_profiles'>[]>()
+      : Promise.resolve({ data: [] as Tables<'label_profiles'>[] }),
     supabaseAdmin
       .from('products')
       .select(
-        'id, name, label_profile_id, label_display_name, country_of_origin, usual_units_per_package, suggested_package_count, ingredients, allergens, allergens_notes, storage_conditions, prep_instructions, cooking_method'
+        'id, name, country_of_origin, ingredients, allergens, allergens_notes, storage_conditions, prep_instructions, cooking_method' +
+          (FOOD_LABELING_ENABLED ? ', label_profile_id, label_display_name, usual_units_per_package, suggested_package_count' : '')
       )
       .order('name')
       .returns<ProductRow[]>(),
@@ -70,9 +75,10 @@ export default async function LabelSettingsPage() {
 
   return (
     <div>
-      <AdminHeader title="Configuración de etiquetas" />
+      <AdminHeader title={FOOD_LABELING_ENABLED ? 'Configuración de etiquetas' : 'Datos de productos'} />
 
       <div className="mx-auto max-w-5xl space-y-8 px-4 py-6 sm:px-6">
+        {FOOD_LABELING_ENABLED && <>
         <section className="rounded-lg border border-gray-300 bg-white p-4">
           <h2 className="mb-1 text-lg font-bold text-gray-900">Datos del operador alimentario</h2>
           <p className="mb-4 text-sm text-gray-500">
@@ -124,11 +130,13 @@ export default async function LabelSettingsPage() {
           </div>
         </section>
 
+        </>}
+
         <section className="rounded-lg border border-gray-300 bg-white p-4">
-          <h2 className="mb-1 text-lg font-bold text-gray-900">Configuración por producto</h2>
+          <h2 className="mb-1 text-lg font-bold text-gray-900">{FOOD_LABELING_ENABLED ? 'Configuración por producto' : 'Datos de productos'}</h2>
           <p className="mb-4 text-sm text-gray-500">
-            Perfil asignado y datos legales de cada producto. Precio, stock, imágenes y categorías se siguen
-            gestionando donde ya se gestionaban.
+            {FOOD_LABELING_ENABLED ? 'Perfil asignado y datos alimentarios de cada producto.' : 'Información alimentaria de cada producto.'}
+            {' '}Precio, stock, imágenes y categorías se siguen gestionando donde ya se gestionaban.
           </p>
 
           <div className="space-y-2">
@@ -136,7 +144,7 @@ export default async function LabelSettingsPage() {
               <details key={product.id} className="rounded-md border border-gray-200 p-3">
                 <summary className="cursor-pointer text-sm font-semibold text-gray-800">
                   {product.name}
-                  {!product.label_profile_id && (
+                  {FOOD_LABELING_ENABLED && !product.label_profile_id && (
                     <span className="ml-2 rounded bg-orange-100 px-2 py-0.5 text-xs font-medium text-orange-800">
                       Sin perfil asignado
                     </span>
@@ -147,11 +155,11 @@ export default async function LabelSettingsPage() {
                     productId={product.id}
                     profiles={profileOptions}
                     initial={{
-                      labelProfileId: product.label_profile_id,
-                      labelDisplayName: product.label_display_name,
+                      labelProfileId: product.label_profile_id ?? null,
+                      labelDisplayName: product.label_display_name ?? null,
                       countryOfOrigin: product.country_of_origin,
-                      usualUnitsPerPackage: product.usual_units_per_package,
-                      suggestedPackageCount: product.suggested_package_count,
+                      usualUnitsPerPackage: product.usual_units_per_package ?? 1,
+                      suggestedPackageCount: product.suggested_package_count ?? 1,
                       ingredients: product.ingredients,
                       allergens: product.allergens ?? [],
                       allergensNotes: product.allergens_notes,
