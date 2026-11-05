@@ -26,6 +26,16 @@ body {
 :root {
   --site-header-height: 104px;
   --site-header-visible-offset: var(--site-header-height);
+  --site-header-transition: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* El navbar y las categorías de Carta comparten movimiento y duración. */
+.site-header {
+  transition:
+    transform var(--site-header-transition),
+    background-color 300ms ease,
+    box-shadow 300ms ease;
+  will-change: transform;
 }
 
 @media (min-width: 640px) {
@@ -48,7 +58,7 @@ body {
 
 @media (min-width: 1280px) {
   :root {
-    --site-header-height: 156px;
+    --site-header-height: 84px;
   }
 }
 

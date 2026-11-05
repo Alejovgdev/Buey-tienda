@@ -89,6 +89,17 @@ export default async function AdminPedidoDetailPage({ params }: AdminPedidoDetai
     notFound();
   }
 
+  // El estado operativo puede cambiar tras el cobro (por ejemplo, CANCELLED).
+  // Solo un pago confirmado acredita el importe cobrado, nunca orders.total.
+  const { data: payment, error: paymentError } = await supabaseAdmin
+    .from('payments')
+    .select('amount')
+    .eq('order_id', order.id)
+    .eq('status', 'succeeded')
+    .maybeSingle();
+
+  const totalCollected = paymentError ? null : (payment?.amount ?? 0);
+
   const { data: items } = await supabaseAdmin
     .from('order_items')
     .select('id, product_name_snapshot, variant_name_snapshot, unit_price_snapshot, quantity, line_total, allergens_snapshot, allergens_notes_snapshot, item_type')
@@ -236,8 +247,12 @@ export default async function AdminPedidoDetailPage({ params }: AdminPedidoDetai
               <span>{formatPriceFromCents(order.shipping_cost)}</span>
             </div>
             <div className="flex justify-between border-t border-gray-200 pt-1 text-base font-bold text-gray-900">
-              <span>Total cobrado</span>
+              <span>Total del pedido</span>
               <span>{formatPriceFromCents(order.total)}</span>
+            </div>
+            <div className="flex justify-between text-base font-bold text-gray-900">
+              <span>Total cobrado</span>
+              <span>{totalCollected === null ? 'No disponible' : formatPriceFromCents(totalCollected)}</span>
             </div>
           </div>
         </section>

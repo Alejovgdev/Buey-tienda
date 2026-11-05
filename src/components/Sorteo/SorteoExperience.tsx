@@ -276,7 +276,7 @@ export default function NewsletterExperience() {
   return (
     <section className="relative isolate overflow-hidden bg-[#080502]">
       <Image
-        src="/assets/images/carne3.jpeg"
+        src="/assets/images/cecina.webp"
         alt=""
         fill
         priority

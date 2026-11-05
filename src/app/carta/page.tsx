@@ -8,39 +8,50 @@ const slides: { key: MenuItem['categoria']; titulo: string }[] = [
   { key: 'Entrantes', titulo: 'Entrantes' },
   { key: 'Carnes', titulo: 'Carnes' },
   { key: 'Hamburguesas', titulo: 'Burgers' },
+  { key: 'Kebabs', titulo: 'Kebabs' },
   { key: 'Postres', titulo: 'Postres' },
   { key: 'Bebidas', titulo: 'Bebidas' },
 ];
 
-const NAV_OFFSET_FALLBACK = 150;
-const SECTION_ACTIVATION_OFFSET = 80;
-const SECTION_SCROLL_GAP = 16;
+// Space left between the fixed category bar and a section after jumping to it
+const SCROLL_GAP = 16;
 
 export default function CartaPage() {
   const [currentSlide, setCurrentSlide] = useState(0);
 
-  const categoryNavRef = useRef<HTMLElement>(null);
+  const navRef = useRef<HTMLElement>(null);
   const cartaSectionRef = useRef<HTMLDivElement>(null);
   const sectionRefs = useRef<(HTMLDivElement | null)[]>(
     new Array(slides.length).fill(null)
   );
 
-  const getCategoryNavOffset = () => {
-    return (
-      categoryNavRef.current?.getBoundingClientRect().bottom ??
-      NAV_OFFSET_FALLBACK
-    );
-  };
+  // Bottom edge of the fixed bars (site header + category nav). Measured instead
+  // of hardcoded because the category nav changes height with the screen size.
+  const getNavBottom = () =>
+    navRef.current?.getBoundingClientRect().bottom ?? 0;
+
+  useEffect(() => {
+    const nav = navRef.current;
+    const section = cartaSectionRef.current;
+    if (!nav || !section) return;
+
+    const updateHeight = () => section.style.setProperty('--carta-category-height', `${nav.offsetHeight}px`);
+    const observer = new ResizeObserver(updateHeight);
+    observer.observe(nav);
+    updateHeight();
+    return () => observer.disconnect();
+  }, []);
 
   // Scrollspy: mark category as active when its section enters the visible area
   useEffect(() => {
     const handleScroll = () => {
+      const threshold = getNavBottom() + 80;
       // Iterate from last section to first; first match from bottom = active section
       for (let i = slides.length - 1; i >= 0; i--) {
         const el = sectionRefs.current[i];
         if (!el) continue;
         const top = el.getBoundingClientRect().top;
-        if (top <= getCategoryNavOffset() + SECTION_ACTIVATION_OFFSET) {
+        if (top <= threshold) {
           setCurrentSlide(i);
           return;
         }
@@ -56,15 +67,18 @@ export default function CartaPage() {
   const handleNavegaCategoria = (index: number) => {
     const el = sectionRefs.current[index];
     if (!el) return;
-    const top =
-      el.getBoundingClientRect().top +
-      window.scrollY -
-      getCategoryNavOffset() -
-      SECTION_SCROLL_GAP;
+    // El navbar de la tienda se oculta al bajar y reaparece al subir. Calcular
+    // el destino con ese estado final evita tanto solapamientos como un hueco
+    // que deje activa la categoría anterior tras el desplazamiento.
+    const sectionTop = el.getBoundingClientRect().top + window.scrollY;
+    const headerHeight = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--site-header-height'));
+    const categoryHeight = navRef.current?.offsetHeight ?? 0;
+    const topWithHeader = sectionTop - headerHeight - categoryHeight - SCROLL_GAP;
+    const scrollingDown = topWithHeader > window.scrollY + headerHeight;
+    const visibleOffset = categoryHeight + (scrollingDown ? 0 : headerHeight);
+    const top = sectionTop - visibleOffset - SCROLL_GAP;
     window.scrollTo({ top, behavior: 'smooth' });
   };
-
-  const handleAbrirProducto = () => {};
 
   const renderBebidasLista = (items: MenuItem[]) => (
     <ul className="bebidas-list">
@@ -96,12 +110,7 @@ export default function CartaPage() {
       .join(' ');
 
     return (
-      <button
-        key={producto.id}
-        type="button"
-        className={className}
-        onClick={() => handleAbrirProducto()}
-      >
+      <div key={producto.id} className={className}>
         <div className="carta-product-info">
           <div className="carta-product-header">
             <h3
@@ -112,32 +121,33 @@ export default function CartaPage() {
               {esSuplemento && '⭐ '}
               {producto.nombre}
             </h3>
+            <span
+              className={`carta-product-price ${
+                esSuplemento ? 'text-amber-700 font-bold text-lg' : ''
+              }`}
+            >
+              {producto.precio}
+            </span>
           </div>
 
-          <p
-            className={`carta-product-description ${
-              esSuplemento ? 'text-amber-800 italic' : ''
-            }`}
-            style={{ whiteSpace: 'pre-line' }}
-          >
-            {producto.descripcion}
-          </p>
+          {producto.descripcion && (
+            <p
+              className={`carta-product-description ${
+                esSuplemento ? 'text-amber-800 italic' : ''
+              }`}
+              style={{ whiteSpace: 'pre-line' }}
+            >
+              {producto.descripcion}
+            </p>
+          )}
 
           {producto.alergenos && (
             <p className="carta-product-allergens">
               <span>Alérgenos:</span> {producto.alergenos}
             </p>
           )}
-
-          <div
-            className={`carta-product-price-bottom ${
-              esSuplemento ? 'text-amber-700 font-bold text-lg' : ''
-            }`}
-          >
-            {producto.precio}
-          </div>
         </div>
-      </button>
+      </div>
     );
   };
 
@@ -169,6 +179,14 @@ export default function CartaPage() {
       'coulant de lotus',
       'coulant de baileys',
       'helado',
+      'cookie de chocolate',
+      'torrija brioche caramelizada',
+      'tarta de la abuela',
+      'tarta crujiente de almendras',
+      'tarta dubái',
+      'tarta de leche merengada',
+      'tiramisú de pistacho',
+      'tarta de queso donostiarra con turrón',
     ];
 
     const postresLetis = productos.filter(
@@ -184,10 +202,12 @@ export default function CartaPage() {
       { tipo: 'Tinto', titulo: 'Tintos' },
     ] as const;
     const chuletones = productos.filter((item) =>
-      item.nombre.startsWith('Chulet')
+      item.nombre.startsWith('Chulet') ||
+      item.nombre.startsWith('🔥 Chulet')
     );
-    const carnesBase = productos.filter(
-      (item) => !item.nombre.startsWith('Chulet')
+    const carnesBase = productos.filter((item) =>
+      !item.nombre.startsWith('Chulet') &&
+      !item.nombre.startsWith('🔥 Chulet')
     );
 
     if (productos.length === 0) {
@@ -294,7 +314,7 @@ export default function CartaPage() {
 
   return (
     <>
-      <nav ref={categoryNavRef} className="carta-nav-categorias carta-nav-grid">
+      <nav ref={navRef} className="carta-nav-categorias carta-nav-grid">
         {slides.map((slide, index) => {
           const isBebidas = slide.key === 'Bebidas';
           return (
@@ -314,13 +334,6 @@ export default function CartaPage() {
 
       <section className="carta-section" ref={cartaSectionRef}>
         <div className="carta-container">
-          <div className="carta-header">
-            <p className="carta-subtitle">
-              Descubre nuestras especialidades elaboradas con carne madurada y
-              productos de proximidad.
-            </p>
-          </div>
-
           <div className="carta-wrapper">
             <div className="carta-page carta-page-single">
               <div className="carta-corner carta-corner-top-left"></div>
@@ -380,7 +393,7 @@ export default function CartaPage() {
                             <span className="carta-guarnicion-name">
                               Patatas fritas artesanas
                             </span>
-                            <span className="carta-guarnicion-price">2,5€</span>
+                            <span className="carta-guarnicion-price">2,50€</span>
                           </li>
                           <li className="carta-guarnicion-item">
                             <span className="carta-guarnicion-name">
@@ -389,6 +402,22 @@ export default function CartaPage() {
                             <span className="carta-guarnicion-price">3€</span>
                           </li>
                         </ul>
+                      </div>
+                    )}
+
+                    {/* Kebabs: disponibilidad */}
+                    {slide.key === 'Kebabs' && (
+                      <div className="carta-guarnicion">
+                        <div className="carta-guarnicion-title">
+                          De domingo a jueves
+                        </div>
+                        <p className="carta-guarnicion-name carta-guarnicion-nota">
+                          Elaboración limitada, consulta disponibilidad con
+                          nuestro equipo.
+                          <span className="carta-guarnicion-destacado">
+                            A elegir entre carne madurada o pollo de corral.
+                          </span>
+                        </p>
                       </div>
                     )}
 

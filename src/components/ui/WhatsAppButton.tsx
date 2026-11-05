@@ -23,14 +23,15 @@ function isInShopFlow(pathname: string): boolean {
 export default function ReservasButton() {
   const pathname = usePathname();
 
-  if (isInShopFlow(pathname)) return null;
+  // La portada ya incluye sus propios accesos a reservas.
+  if (pathname === '/' || isInShopFlow(pathname)) return null;
 
   return (
     <Link
       href="/reservas"
       aria-label="Reservar mesa"
       className="
-        fixed bottom-8 right-5 z-[1000]
+        fixed bottom-8 right-5 z-40
         flex items-center gap-2
         px-5 py-3
         rounded-full

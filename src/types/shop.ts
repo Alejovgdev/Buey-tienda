@@ -42,6 +42,11 @@ export type ProductDetailData = {
   variants: ProductVariantData[];
 };
 
+export type HomeProductData = Pick<
+  ProductDetailData,
+  'slug' | 'name' | 'allergens' | 'images' | 'variants'
+>;
+
 export type ShopSettingsData = {
   acceptingOrders: boolean;
   noticeMessage: string | null;

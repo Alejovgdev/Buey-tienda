@@ -12,9 +12,8 @@ const GOOGLE_REVIEWS_URL =
 const WRITE_REVIEW_URL =
   "https://www.google.com/search?sca_esv=2e0ce5bd22b7d86a&rlz=1C1UEAD_esES1083ES1083&si=AL3DRZEsmMGCryMMFSHJ3StBhOdZ2-6yYkXd_doETEE1OR-qOZQSB00aZ9I88OJyJo2CaVn39NapAOp2oRtRFPSbooL-VkyvtQ4Aj3t2f9UyQEvOI7IyvclMC-FVOZ18KA_xjmI4EhBRdN1gAUgChJ6eZhUQ7Tu0EQ%3D%3D&q=Restaurante+el+buey+madurado+Rese%C3%B1as&sa=X&ved=2ahUKEwiB7ua3_v6RAxXuVKQEHU-dHooQ0bkNegQINRAE&biw=1536&bih=695&dpr=1.25&aic=0&zx=1767979934420&no_sw_cr=1";
 
-const MAPS_DIRECTIONS_URL = "https://maps.app.goo.gl/PFgL2Ww84fGHULMp6";
 
-const ContactSection = () => {
+const ContactSection = ({ restaurantHome = false }: { restaurantHome?: boolean }) => {
   return (
     <section id="contact" className="max-w-6xl mx-auto px-6 pt-10 pb-20 fade-in">
       <div className="flex flex-col gap-2 mb-8">
@@ -33,19 +32,8 @@ const ContactSection = () => {
           <div className="flex items-start justify-between gap-4 mb-6">
             <div>
               <h3 className="text-2xl font-semibold text-amber-600">Hablemos</h3>
-              <p className="text-sm text-gray-400 mt-1">
-                Respuesta rápida por WhatsApp, teléfono o email.
-              </p>
             </div>
 
-            <a
-              href={MAPS_DIRECTIONS_URL}
-              target="_blank"
-              rel="noreferrer"
-              className="shrink-0 px-4 py-2 text-sm font-semibold text-amber-500 border border-amber-600 rounded-md hover:bg-amber-600 hover:text-black transition"
-            >
-              Cómo llegar →
-            </a>
           </div>
 
           {/* Contenido */}
@@ -105,7 +93,7 @@ const ContactSection = () => {
 
             <p>
               <strong className="text-gray-200">Dirección:</strong>{" "}
-              Calle Reina, 41. Xátiva, Valencia
+              Calle Reina, 41. {restaurantHome ? 'Xàtiva' : 'Xátiva'}, Valencia
             </p>
 
             {/* Bloque reseñas */}

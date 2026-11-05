@@ -89,7 +89,7 @@ export default function MuseoCarne() {
           breed="Buey gallego"
           aging="+60 días"
           description="Corte jugoso y con carácter, perfecto para disfrutar del sabor y la textura en su punto."
-          image="/assets/images/carneSobreNosotros1.jpg"
+          image="/assets/images/carneSobreNosotros1.webp"
         />
 
         <PiezaCarne
@@ -99,7 +99,7 @@ export default function MuseoCarne() {
           breed="Vaca rubia gallega"
           aging="+ 45 días"
           description="Más fino y equilibrado, con una mordida suave y un sabor redondo que engancha."
-          image="/assets/images/carneSobreNosotros2.jpg"
+          image="/assets/images/carneSobreNosotros2.webp"
         />
 
         <PiezaCarne
@@ -108,7 +108,7 @@ export default function MuseoCarne() {
           breed="Tajima-gyu"
           aging="Seleccionada"
           description="Grasa increíblemente fina y sabor intenso: una pieza para probar sin prisas y disfrutar."
-          image="/assets/images/carneSobreNosotros3.png"
+          image="/assets/images/carneSobreNosotros3.webp"
         />
       </div>
     </section>

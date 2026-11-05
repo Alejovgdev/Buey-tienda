@@ -6,9 +6,9 @@ import Link from 'next/link';
 import Button from '../ui/Button';
 
 
-export default function HeroSectionHome() {
+export default function HeroSectionHome({ restaurantHome = false }: { restaurantHome?: boolean }) {
   return (
-    <section className="relative w-full flex items-center justify-start overflow-hidden" style={{ height: 'calc(100vh - 80px)' }}>
+    <section className="relative w-full flex items-center justify-start overflow-hidden" style={{ height: restaurantHome ? 'calc(100vh - var(--site-header-height))' : 'calc(100vh - 80px)' }}>
       {/* Video de fondo */}
       <div className="absolute top-0 left-0 w-full h-full z-0">
         <video
@@ -17,9 +17,10 @@ export default function HeroSectionHome() {
           loop
           playsInline
           preload="metadata"
+          poster={restaurantHome ? '/hero-poster.webp' : undefined}
           className="absolute inset-0 w-full h-full object-cover"
         >
-          <source src="/hero.mp4" type="video/mp4" />
+          <source src={restaurantHome ? '/hero-restaurante.mp4' : '/hero.mp4'} type="video/mp4" />
         </video>
         {/* Overlay oscuro */}
         <div className="absolute inset-0 bg-black/50" />

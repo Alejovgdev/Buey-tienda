@@ -3,10 +3,12 @@ const AV_SMARTECH_LOGO = "assets/images/avsmartech_logo_circle_masked.png";
 
 type AvSmartechSignatureProps = {
   variant?: "footer" | "contact";
+  logoSrc?: string;
 };
 
 export default function AvSmartechSignature({
   variant = "footer",
+  logoSrc = AV_SMARTECH_LOGO,
 }: AvSmartechSignatureProps) {
   const text =
     variant === "contact"
@@ -25,7 +27,7 @@ export default function AvSmartechSignature({
         className="inline-flex items-center opacity-80 transition hover:opacity-100"
       >
         <img
-          src={AV_SMARTECH_LOGO}
+          src={logoSrc}
           alt="AV Smartech"
           className={`${logoSize} object-contain`}
           loading="lazy"

@@ -3,6 +3,7 @@ import { supabase } from './supabase';
 import type {
   CategorySummary,
   CategoryWithProducts,
+  HomeProductData,
   ProductCardData,
   ProductDetailData,
 } from '@/types/shop';
@@ -37,6 +38,40 @@ const PRODUCT_CARD_SELECT = `
   product_variants ( price, stock ),
   product_images ( url, alt_text, is_main )
 `;
+
+export async function getHomeProducts(limit = 3): Promise<HomeProductData[]> {
+  const { data, error } = await supabase
+    .from('products')
+    .select(`
+      slug, name, allergens,
+      categories!inner ( sort_order ),
+      product_variants ( id, name, price, stock ),
+      product_images ( url, alt_text, is_main )
+    `)
+    .eq('is_active', true)
+    .eq('categories.is_active', true)
+    .order('categories(sort_order)')
+    .order('sort_order')
+    .order('id')
+    .order('sort_order', { referencedTable: 'product_variants' })
+    .order('is_main', { referencedTable: 'product_images', ascending: false })
+    .order('sort_order', { referencedTable: 'product_images' })
+    .limit(limit);
+
+  if (error || !data) return [];
+
+  return data.map((product) => ({
+    slug: product.slug,
+    name: product.name,
+    allergens: product.allergens ?? [],
+    variants: product.product_variants,
+    images: product.product_images.map((image) => ({
+      url: image.url,
+      altText: image.alt_text,
+      isMain: image.is_main,
+    })),
+  }));
+}
 
 export async function getActiveCategories(): Promise<CategorySummary[]> {
   const { data, error } = await supabase

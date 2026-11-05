@@ -70,6 +70,8 @@ En [la notificación Redsys](../src/app/api/pagos/notificacion/route.ts), línea
 
 Acción: distinguir errores transitorios de ausencia real del pedido, tratar adecuadamente el fallo y definir recuperación/conciliación. Reproducción aislada con servicios simulados realizada. Revisar también los UPDATE e INSERT de las ramas de error cuyo resultado no se comprueba.
 
+**Corrección en código, 2026-11-04:** T2 seguía reproducible. El handler distingue el error de consulta (HTTP 500) del pedido ausente tras consulta correcta (acuse con revisión requerida), comprueba las escrituras relevantes y conserva la RPC atómica de T1. El 500 no presupone reintentos automáticos de Redsys. Documentación consultada, límites, recuperación manual mediante la misma RPC y requisitos de despliegue en [T2_RECUPERACION_REDSYS.md](./T2_RECUPERACION_REDSYS.md). Sin cambios remotos ni recuperación automática de emails.
+
 ### T3 — Prioridad alta: dependencias con avisos actuales de seguridad
 
 `npm audit --omit=dev` señala Next.js como crítico, además de avisos altos en Zod, next-cloudinary y dependencias transitivas. La versión instalada de Next.js es 16.1.4. El [aviso oficial de Next.js sobre AVIF](https://github.com/vercel/next.js/security/advisories/GHSA-2xp9-vwfh-vxw4) incluye esa versión en el rango afectado.

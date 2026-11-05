@@ -3,12 +3,15 @@ export default function Propietarios() {
     {
       name: "Josep Roca",
       title: "Owner",
-      image: "/assets/images/josep.jpeg",
+      image: "/assets/images/josep.webp",
+      // Fotos más altas que el hueco 3:4: subimos el encuadre para no cortar la cabeza
+      imagePosition: "object-[center_20%]",
     },
     {
       name: "Miguel Arcos",
       title: "Owner",
-      image: "/assets/images/miguel.jpeg",
+      image: "/assets/images/miguel.webp",
+      imagePosition: "object-top",
     },
   ];
 
@@ -37,11 +40,11 @@ export default function Propietarios() {
               {/* Contenedor de imagen con efecto */}
               <div className="relative mb-8 overflow-hidden w-full max-w-xs">
                 {/* Imagen principal */}
-                <div className="relative w-full aspect-[2.5/2.5] rounded-lg overflow-hidden shadow-xl">
+                <div className="relative w-full aspect-[3/4] rounded-lg overflow-hidden shadow-xl">
                   <img
                     src={owner.image}
                     alt={owner.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                    className={`w-full h-full object-cover ${owner.imagePosition} group-hover:scale-105 transition-transform duration-700`}
                   />
 
                   {/* Overlay con degradado sutil */}

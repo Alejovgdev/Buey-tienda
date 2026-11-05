@@ -2,7 +2,7 @@
 
 export interface MenuItem {
   id: string;
-  categoria: "Entrantes" | "Carnes" | "Hamburguesas" | "Postres" | "Bebidas";
+  categoria: "Entrantes" | "Carnes" | "Hamburguesas" | "Kebabs" | "Postres" | "Bebidas";
   nombre: string;
   descripcion: string;
   alergenos?: string;
@@ -26,17 +26,8 @@ export const menuItems: MenuItem[] = [
     tipo: "Frío",
     nombre: "Tartar de auténtico buey gallego LYO",
     descripcion:
-      "Carne de auténtico buey gallego selección LYO con maduración extrema, fusionado con emulsión de yema y grasa de buey.",
+      "Carne de auténtico buey gallego selección LYO con maduración extrema, fusionada con emulsión de yema y grasa de buey.",
     precio: "24€",
-  },
-  {
-    id: "ent-2",
-    categoria: "Entrantes",
-    tipo: "Frío",
-    nombre: "Trilogía del buey",
-    descripcion:
-      "Secreto de buey gallego selección LYO con 200 días de maduración, picaña de buey gallego selección LYO con 500 días de maduración y cecina de wagyu.",
-    precio: "28€",
   },
   {
     id: "ent-3",
@@ -51,9 +42,18 @@ export const menuItems: MenuItem[] = [
     id: "ent-4",
     categoria: "Entrantes",
     tipo: "Frío",
-    nombre: "Tabla de cecina de wagyu",
-    descripcion: "Cecina de auténtico wagyu.",
+    nombre: "Tabla de cecina",
+    descripcion: "Cecina de auténtico buey.",
     precio: "20€",
+  },
+  {
+    id: "ent-2",
+    categoria: "Entrantes",
+    tipo: "Frío",
+    nombre: "Tabla mixta",
+    descripcion:
+      "Combinación de picaña y cecina de buey.",
+    precio: "26€",
   },
   {
     id: "ent-5",
@@ -68,7 +68,7 @@ export const menuItems: MenuItem[] = [
     id: "ent-7",
     categoria: "Entrantes",
     tipo: "Frío",
-    nombre: "Trinchado de wagyu japonés A5 (máxima infiltración)",
+    nombre: "Trinchado de wagyu (máxima infiltración)",
     descripcion: "Trinchado de wagyu japonés A5.",
     precio: "27€",
     detalle: "100 g",
@@ -157,9 +157,9 @@ export const menuItems: MenuItem[] = [
     id: "ent-16",
     categoria: "Entrantes",
     tipo: "Entrante",
-    nombre: "Cesta de panes gourmet.",
+    nombre: "Cesta de pan",
     descripcion:
-      "Pan de tomate. Pan de cereales. Pan tradicional. Pan de aceitunas.",
+      "4 unidades.",
     precio: "6€",
   },
 
@@ -170,7 +170,7 @@ export const menuItems: MenuItem[] = [
     id: "ham-0",
     categoria: "Hamburguesas",
     tipo: "Suplemento",
-    nombre: "Mejora a Carne de Buey 500 Días",
+    nombre: "Mejora a carne de buey (500 días)",
     descripcion:
       "Sustituye la carne de vaca de la hamburguesa por carne de buey madurada 500 días LYO.",
     precio: "5€",
@@ -196,76 +196,94 @@ export const menuItems: MenuItem[] = [
     precio: "8€",
     unidad: true,
   },
-    {
+  {
     id: "ham-11",
     categoria: "Hamburguesas",
     tipo: "Hamburguesa",
-    nombre: "CP Barber",
+    nombre: "La Navarra",
     descripcion:
-      "Burger del mes en colaboración con CP Barber.\n\n 180 g de carne de vaca rubia gallega con más de 150 días de maduración, salsa casera de bits elaborada con quesos, carne desmechada de vaca y mermelada de cecina.\n\nEl pan va untado con grasa de buey para potenciar el sabor y la jugosidad. Para terminar, se corona con bits crujientes y queso parmesano por encima.",
-    precio: "18€",
+      "Burger del mes de noviembre: carne de chuletón de vaca frisona madurada, queso Idiazábal de oveja ahumado, pimientos del piquillo y mayonesa de chistorra.",
+    precio: "17€",
+  },
+  {
+    id: "ham-14",
+    categoria: "Hamburguesas",
+    tipo: "Hamburguesa",
+    nombre: "La Carbonara",
+    descripcion:
+      "180 g de carne de vaca rubia gallega con más de 150 días de maduración, emulsión de yema con aceite de guanciale, guanciale fundido sobre la hamburguesa, queso trufado, chips de guanciale, queso pecorino rallado por encima del pan.",
+    precio: "17€",
+  },
+  {
+    id: "ham-15",
+    categoria: "Hamburguesas",
+    tipo: "Hamburguesa",
+    nombre: "Boss",
+    descripcion:
+      "180 g de carne de vaca rubia gallega con más de 150 días de maduración, queso brie, mermelada de bacon, queso cheddar y demiglace de salsa barbacoa.",
+    precio: "17€",
   },
   {
     id: "ham-8",
     categoria: "Hamburguesas",
     tipo: "Hamburguesa",
-    nombre: "LOS CUÑAOS",
+    nombre: "Los Cuñaos",
     descripcion:
-      "Carne de vaca 150 días y carne de buey 500 días. Mayonesa de tuétano. Secreto de buey gallego 200 días de maduración. Demiglace de buey caramelizada. Queso chedar madurado picante.",
+      "180 g de carne mitad buey nacional mitad rubia gallega. Mayonesa de tuétano. Secreto de buey gallego 200 días de maduración. Demiglace de buey caramelizada. Queso cheddar madurado picante.",
     precio: "20€",
   },
   {
     id: "ham-1",
     categoria: "Hamburguesas",
     tipo: "Hamburguesa",
-    nombre: "BÚFALO",
+    nombre: "Búfalo",
     descripcion:
-      "180gr de carne de vaca rubia gallega con +150 días de maduración (selección especial LYO), costilla de vaca rubia gallega, queso ahumado y glaseado de barbacoa de Coca-Cola.",
+      "180 g de carne de vaca rubia gallega con +150 días de maduración (selección especial LYO), costilla de vaca rubia gallega, queso ahumado y glaseado de barbacoa de Coca-Cola.",
     precio: "18€",
   },
   {
     id: "ham-2",
     categoria: "Hamburguesas",
     tipo: "Hamburguesa",
-    nombre: "EsMMY BUEY",
+    nombre: "EsMMY Buey",
     descripcion:
-      "180gr de carne de vaca rubia gallega con +150 días de maduración (selección especial LYO), cebolla caramelizada, queso ahumado, salsa EMMY, envuelta en picaña de buey gallego con 500 días de maduración.",
+      "180 g de carne de vaca rubia gallega con +150 días de maduración (selección especial LYO), cebolla caramelizada, queso ahumado, salsa EMMY, envuelta en picaña de buey gallego con 500 días de maduración.",
     precio: "18€",
   },
   {
     id: "ham-3",
     categoria: "Hamburguesas",
     tipo: "Hamburguesa",
-    nombre: "LA SUPREMA",
+    nombre: "La Suprema",
     descripcion:
-      "180gr de carne de vaca rubia gallega con +150 días de maduración (selección especial LYO), cecina de buey, queso de tetilla estilo raclette y mayonesa de ajo puerro y cecina.",
+      "180 g de carne de vaca rubia gallega con +150 días de maduración (selección especial LYO), cecina de buey, queso de tetilla estilo raclette y mayonesa de ajo puerro y cecina.",
     precio: "18€",
   },
   {
     id: "ham-4",
     categoria: "Hamburguesas",
     tipo: "Hamburguesa",
-    nombre: "BUEY",
+    nombre: "Buey",
     descripcion:
-      "180gr de carne de vaca rubia gallega con +150 días de maduración (selección especial LYO), pastrami de vaca selección LYO, queso cheddar inglés madurado y crema de trufa negra.",
+      "180 g de carne de vaca rubia gallega con +150 días de maduración (selección especial LYO), pastrami de vaca selección LYO, queso cheddar inglés madurado y crema de trufa negra.",
     precio: "18€",
   },
   {
     id: "ham-5",
     categoria: "Hamburguesas",
     tipo: "Hamburguesa",
-    nombre: "DORITOS CHEESE LOVER",
+    nombre: "Doritos Cheese Lover",
     descripcion:
-      "180gr de carne de vaca rubia gallega con +150 días de maduración (selección especial LYO), tortita de queso mozzarella, queso ahumado, crema de queso azul, mayonesa de chili dulce y topping de doritos.",
+      "180 g de carne de vaca rubia gallega con +150 días de maduración (selección especial LYO), tortita de queso mozzarella, queso ahumado, crema de queso azul, mayonesa de chili dulce y topping de doritos.",
     precio: "16€",
   },
   {
     id: "ham-6",
     categoria: "Hamburguesas",
     tipo: "Hamburguesa",
-    nombre: "CARLOS CATALÁ",
+    nombre: "Carlos Catalá",
     descripcion:
-      "180gr de carne de vaca rubia gallega con +150 días de maduración (selección especial LYO), panceta cocinada a baja temperatura y ahumada, queso ahumado, salsa hotney y relish de pepinillo.",
+      "180 g de carne de vaca rubia gallega con +150 días de maduración (selección especial LYO), panceta cocinada a baja temperatura y ahumada, queso ahumado, salsa hotney y relish de pepinillo.",
     precio: "18€",
     detalle: "200 g",
   },
@@ -275,7 +293,7 @@ export const menuItems: MenuItem[] = [
     tipo: "Hamburguesa",
     nombre: "👑 The Golden Burger",
     descripcion:
-      "180gr de auténtico buey gallego (cárnicas LYO) con maduración extrema de 500 días, auténtico wagyu japonés A5, queso ahumado, toque de mayonesa yakitori con grasa de vaca madurada, brioche envuelto en oro de 24k.",
+      "180 g de auténtico buey gallego (cárnicas LYO) con maduración extrema de 500 días, auténtico wagyu japonés A5, queso ahumado, toque de mayonesa yakitori con grasa de vaca madurada, brioche envuelto en oro de 24k.",
     precio: "28€",
     detalle: "200 g",
   },
@@ -298,22 +316,45 @@ export const menuItems: MenuItem[] = [
       "",
     precio: "6€",
     detalle: "200 g",
-  }, 
+  },
+  // =========================
+  // KEBABS
+  // =========================
+  {
+    id: "kebab-1",
+    categoria: "Kebabs",
+    tipo: "Kebab",
+    nombre: "Tradicional",
+    descripcion:
+      "Lechuga, tomate, cebolla, salsa de ajo y salsa de yogur.",
+    precio: "12€",
+  },
+  {
+    id: "kebab-2",
+    categoria: "Kebabs",
+    tipo: "Kebab",
+    nombre: "Calixto XIII",
+    descripcion:
+      "Patatas fritas, cebolla caramelizada, queso cheddar inglés ahumado y salsa curry española de pimientos asados.",
+    precio: "13€",
+  },
+  {
+    id: "kebab-3",
+    categoria: "Kebabs",
+    tipo: "Kebab",
+    nombre: "Sultán",
+    descripcion:
+      "Patatas fritas, pastrami de carne madurada, queso cheddar inglés madurado y salsa de trufa.",
+    precio: "13€",
+  },
   // =========================
   // CARNES
   // =========================
-    {
-    id: "car-8",
-    categoria: "Carnes",
-    nombre: "★ Edición especial · Tomahawk Wagyu",
-    descripcion: "Tomahawk de buey Wagyu con un marmoleado de escándalo. Piezas limitadas.\nCortes de 2kg aprox.\nNo te lo pierdas.",
-    precio: "60€/kg",
-    detalle: "",
-  },
+
   {
     id: "car-1",
     categoria: "Carnes",
-    nombre: "Entrecot de vaca rubia gallega (50 días de maduración)",
+    nombre: "Entrecot de vaca rubia gallega",
     descripcion: "Entrecot de vaca rubia gallega con 50 días de maduración.",
     precio: "28€",
     detalle: "300–350 g",
@@ -321,57 +362,73 @@ export const menuItems: MenuItem[] = [
   {
     id: "car-2",
     categoria: "Carnes",
-    nombre: "Entrecot Old Especial Beef PREMIUM (70 días de maduración)",
+    nombre: "Entrecot Old Special Beef PREMIUM",
     descripcion:
       "Entrecot Old Especial Beef PREMIUM con 70 días de maduración.",
     precio: "38€",
     detalle: "300–350 g",
   },
   {
+    id: "car-8",
+    categoria: "Carnes",
+    nombre: "★ Edición especial · Tomahawk Vaca",
+    descripcion: "Tomahawk de vaca madurada con un marmoleado de escándalo. Piezas limitadas.\nNo te lo pierdas.",
+    precio: "60€/kg",
+    detalle: "",
+  },
+  {
     id: "car-3",
     categoria: "Carnes",
-    nombre: "Entrecot buey de wagyu",
-    descripcion: "Entrecot exclusivo hasta fin de existencias. 500gr aprox.",
-    precio: "50€",
+    nombre: "Chuletón VACA WAGYU",
+    descripcion: "Chuletón de vaca Wagyu con +180 días de maduración. Pieza exclusiva hasta fin de existencias.",
+    precio: "100€/kg",
     detalle: "50€",
   },
   {
     id: "car-4",
     categoria: "Carnes",
-    nombre: "Chuletón GOLD (50 días)",
+    nombre: "Chuletón GOLD",
     descripcion:
-      "Chuletón de vaca Simmental con 50 días de maduración. Selección especial Juan Navarro.",
+      "Chuletón de vaca Simmental con +50 días de maduración. Selección especial Juan Navarro.",
     precio: "80€/kg",
     detalle: "€/kg",
   },
   {
     id: "car-5",
     categoria: "Carnes",
-    nombre: "Chuletón ESMERALDA (90 días)",
+    nombre: "Chuletón ESMERALDA",
     descripcion:
-      "Chuletón de vaca rubia gallega con 90 días de maduración. Selección especial Juan Navarro.",
+      "Chuletón de vaca rubia gallega con +90 días de maduración. Selección especial Juan Navarro.",
     precio: "100€/kg",
     detalle: "€/kg",
   },
   {
     id: "car-6",
     categoria: "Carnes",
-    nombre: "Chuletón DIAMANTE TOP (150 días)",
+    nombre: "Chuletón DIAMANTE TOP",
     descripcion:
-      "Chuletón de vaca Simmental con 150 días de maduración. Selección especial Juan Navarro.",
+      "Chuletón de vaca Simmental con +150 días de maduración. Selección especial Juan Navarro.",
     precio: "120€/kg",
     detalle: "€/kg",
   },
   {
     id: "car-7",
     categoria: "Carnes",
-    nombre: "Chuletón BUEY NACIONAL (+250 días)",
+    nombre: "Chuletón BUEY NACIONAL",
     descripcion:
-      "Chuletón de buey nacional con más de 250 días de maduración, otro nivel.",
+      "Chuletón de buey nacional con más de +250 días de maduración, otro nivel.",
     precio: "150€/kg",
     detalle: "€/kg",
   },
-
+  {
+    id: "car-9",
+    categoria: "Carnes",
+    nombre: "🔥 Chuletón de vaca\n MADURACIÓN EXTREMA",
+    descripcion:
+      "Chuletón de vaca nacional con más de 500 días de maduración.\n Una vez que lo pruebes, entenderás por qué la espera de meses vale la pena. Porque la verdadera excelencia nunca tiene prisa.",
+    precio: "150€/kg",
+    detalle: "€/kg",
+  },
   // POSTRES
   // =========================
   {
@@ -380,17 +437,23 @@ export const menuItems: MenuItem[] = [
     nombre: "Postre carnívoro",
     descripcion:
       "Helado de queso parmesano con picaña de buey con 500 días de maduración y Peta Zetas de chocolate.",
-    precio: "7.5€",
+    precio: "7,50€",
   },
   {
-    id: "pos-6",
+    id: "pos-12",
     categoria: "Postres",
-    nombre: "Carrot Cake / Tarta de Zanahoria",
+    nombre: "Torrija brioche caramelizada",
     descripcion:
-      "Base de bizcocho de zanahoria bañada en nuestro sirope de la casa, cubierta con una crema de chocolate blanco y un toque de mascarpone, finalizada con nueces por encima.",
-    alergenos:
-      "contiene gluten, leche, huevo, soja y nueces. Puede contener otros frutos de cáscara.",
-    precio: "7.5€",
+      "Torrija de pan brioche caramelizada con helado de vainilla.",
+    precio: "7,50€",
+  },
+  {
+    id: "pos-13",
+    categoria: "Postres",
+    nombre: "Cookie de chocolate",
+    descripcion:
+      "Cookie de chocolate con helado de vainilla y sirope a elegir (chocolate blanco, Kinder o pistacho).",
+    precio: "7€",
   },
   {
     id: "pos-2",
@@ -398,34 +461,31 @@ export const menuItems: MenuItem[] = [
     nombre: "Tarta de queso Kinder",
     descripcion:
       "Tarta de queso cremosa con el sabor inconfundible de Kinder, suave, dulce y perfecta para los más golosos.",
-    precio: "7.5€",
+    precio: "7,50€",
   },
   {
-    id: "pos-3",
+    id: "pos-14",
     categoria: "Postres",
-    nombre: "Red Velvet",
+    nombre: "Tarta de la abuela",
     descripcion:
-      "Base de bizcocho Red Velvet bañada en nuestro sirope de la casa, cubierta con una crema trufada de chocolate blanco, queso crema y un toque de limón.",
-    alergenos: "contiene gluten, leche, huevo, soja y nueces.",
-    precio: "7.5€",
+      "Vainilla, galleta y chocolate.",
+    precio: "6€",
   },
   {
     id: "pos-4",
     categoria: "Postres",
-    nombre: "Flan Casero",
+    nombre: "Flan casero",
     descripcion:
       "Flan cremoso elaborado a base de huevos, nata y leche condensada, con una textura suave y un sabor tradicional.",
-    alergenos: "contiene huevo y leche. Sin gluten.",
     precio: "6€",
   },
   {
-    id: "pos-10",
+    id: "pos-15",
     categoria: "Postres",
-    nombre: "Tiramisú",
+    nombre: "Tarta crujiente de almendras",
     descripcion:
-      "Base de bizcocho de cacao bañada en sirope de café, cubierta con una suave crema de mascarpone y chocolate blanco, finalizada con cacao en polvo.",
-    alergenos: "contiene gluten, leche, huevo y soja.",
-    precio: "7.5€",
+      "Tarta crujiente de almendras con caramelo.",
+    precio: "6€",
   },
   {
     id: "pos-11",
@@ -433,32 +493,64 @@ export const menuItems: MenuItem[] = [
     nombre: "Tarta de queso de coco y maracuyá",
     descripcion:
       "Tarta de queso cremosa con coco y maracuyá, una combinación tropical, fresca y equilibrada entre dulzor y acidez.",
-    precio: "7.5€",
+    precio: "7,50€",
   },
     {
     id: "pos-7",
     categoria: "Postres",
     nombre: "Coulant de Lotus",
     descripcion:
-      "Cremoso coulant con sabor a lotus con una bola de helado a elegir (Vainilla o nata con nueces).",
-    precio: "7.5€",
+      "Cremoso coulant con sabor a lotus con una bola de helado a elegir (vainilla, nata o chocolate).",
+    precio: "7,50€",
   },
   {
     id: "pos-8",
     categoria: "Postres",
     nombre: "Coulant de Baileys",
     descripcion:
-      "Cremoso coulant con sabor a Baileys con una bola de helado a elegir (Vainilla o nata con nueces).",
-    precio: "7.5€",
+      "Cremoso coulant con sabor a Baileys con una bola de helado a elegir (vainilla, nata o chocolate).",
+    precio: "7,50€",
   },
-    {
-    id: "pos-9",
-    categoria: "Postres",
-    nombre: "Helado",
-    descripcion:
-      "2 bolas de helado a elegir (Vainilla o nata con nueces), combínalas como quieras.",
-    precio: "6€",
-  },
+  {
+  id: "pos-16",
+  categoria: "Postres",
+  nombre: "Tarta Dubái",
+  descripcion:
+    "Tarta de chocolate con crema de pistacho y crujiente de kataifi, inspirada en el irresistible chocolate Dubái.",
+  precio: "7€",
+},
+{
+  id: "pos-17",
+  categoria: "Postres",
+  nombre: "Tarta de leche merengada",
+  descripcion:
+    "Suave y cremosa tarta de leche merengada con toques de canela y limón.",
+  precio: "7€",
+},
+{
+  id: "pos-18",
+  categoria: "Postres",
+  nombre: "Tiramisú de pistacho",
+  descripcion:
+    "Una versión del clásico tiramisú con suave crema de mascarpone y el intenso sabor del pistacho.",
+  precio: "7€",
+},
+{
+  id: "pos-19",
+  categoria: "Postres",
+  nombre: "Tarta de queso donostiarra con turrón",
+  descripcion:
+    "Cremosa tarta de queso al estilo donostiarra con el sabor tradicional del turrón.",
+  precio: "7€",
+},
+{
+  id: "pos-9",
+  categoria: "Postres",
+  nombre: "Helado",
+  descripcion:
+    "2 bolas de helado a elegir (vainilla, nata o chocolate), combínalas como quieras.",
+  precio: "6€",
+},
   // =========================
   // BEBIDAS
   // =========================
@@ -593,7 +685,7 @@ export const menuItems: MenuItem[] = [
   subcategoria: "Cafes",
   nombre: "Solo",
   descripcion: "",
-  precio: "1,6€",
+  precio: "1,60€",
 },
 {
   id: "beb-caf-2",
@@ -601,7 +693,7 @@ export const menuItems: MenuItem[] = [
   subcategoria: "Cafes",
   nombre: "Cortado",
   descripcion: "",
-  precio: "1,8€",
+  precio: "1,80€",
 },
 {
   id: "beb-caf-3",
@@ -609,7 +701,7 @@ export const menuItems: MenuItem[] = [
   subcategoria: "Cafes",
   nombre: "Bombón",
   descripcion: "",
-  precio: "1,9€",
+  precio: "1,90€",
 },
 {
   id: "beb-caf-4",
@@ -617,7 +709,7 @@ export const menuItems: MenuItem[] = [
   subcategoria: "Cafes",
   nombre: "Café con leche",
   descripcion: "",
-  precio: "2,2€",
+  precio: "2,20€",
 },
 {
   id: "beb-caf-5",
@@ -625,7 +717,7 @@ export const menuItems: MenuItem[] = [
   subcategoria: "Cafes",
   nombre: "Carajillo",
   descripcion: "",
-  precio: "2,4€",
+  precio: "2,40€",
 },
 {
   id: "beb-caf-6",
@@ -633,7 +725,7 @@ export const menuItems: MenuItem[] = [
   subcategoria: "Cafes",
   nombre: "Infusión",
   descripcion: "",
-  precio: "1,5€",
+  precio: "1,50€",
 },
 {
   id: "beb-caf-7",
@@ -657,7 +749,7 @@ export const menuItems: MenuItem[] = [
   subcategoria: "Cafes",
   nombre: "Chupito",
   descripcion: "",
-  precio: "2,5€",
+  precio: "2,50€",
 },
 {
   id: "beb-cav-1",
@@ -693,7 +785,7 @@ export const menuItems: MenuItem[] = [
     subcategoria: "Vinos",
     tipo: "Copa",
     nombre: "Vino Mucho Más",
-    descripcion: "Copa, tinto",
+    descripcion: "Copa, tinto.",
     precio: "3,50€",
   },
   {
@@ -702,7 +794,7 @@ export const menuItems: MenuItem[] = [
     subcategoria: "Vinos",
     tipo: "Copa",
     nombre: "Copa Ribera/Rioja",
-    descripcion: "Copa, tinto",
+    descripcion: "Copa, tinto.",
     precio: "4€",
   },
   // Botella - Blanco
@@ -822,7 +914,7 @@ export const menuItems: MenuItem[] = [
     subcategoria: "Vinos",
     tipo: "Tinto",
     nombre: "El Nido 2023",
-    descripcion: "Juan Gil Jumilla· Botella, tinto.",
+    descripcion: "Juan Gil Jumilla · Botella, tinto.",
     precio: "180€",
   },
   {

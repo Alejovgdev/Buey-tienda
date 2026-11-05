@@ -7,7 +7,7 @@ export default function HeroSectionSobreNosotros() {
     <section className="relative h-screen w-full overflow-hidden flex flex-col items-center justify-start pt-16 pb-10">
       {/* Background imagen */}
       <img
-        src="/assets/images/hero-Sobre-Nosotros.jpeg"
+        src="/assets/images/hero-Sobre-Nosotros.webp"
         alt="Sobre nosotros - fondo"
         className="absolute inset-0 w-full h-full object-cover"
       />

@@ -77,6 +77,14 @@ type StockRpcResult = {
   available?: number;
 };
 
+type HistoryEvent = {
+  order_id: string;
+  event_type: string;
+  previous_status?: string;
+  new_status?: string;
+  metadata?: Json;
+};
+
 export async function POST(request: Request) {
   const rawBody = await request.text();
   const params = new URLSearchParams(rawBody);
@@ -87,8 +95,7 @@ export async function POST(request: Request) {
     Ds_Signature: params.get('Ds_Signature') ?? '',
   };
 
-  // 1. Firma invalida = alguien suplantando a Redsys. Unico caso que no
-  // responde el acuse de recibo esperado.
+  // 1. No acceder a la BD sin verificar antes la firma.
   let result: ReturnType<typeof redsys.processRestNotification>;
   try {
     result = redsys.processRestNotification(notification);
@@ -96,15 +103,48 @@ export async function POST(request: Request) {
     return new NextResponse('Firma inválida', { status: 400 });
   }
 
+  try {
+    return await processVerifiedNotification(result);
+  } catch (err) {
+    // Incluye rechazos de promesas/transporte, no solo errores devueltos por
+    // PostgREST. La RPC puede haber confirmado antes de perder la conexion:
+    // recuperar siempre por la misma RPC idempotente, nunca con otro cobro.
+    console.error('[pagos/notificacion] Notificacion no procesada: excepcion', {
+      stage: 'unexpected', dsOrder: result.Ds_Order, dsResponse: result.Ds_Response,
+      dsAmount: result.Ds_Amount, dsAuthorisationCode: result.Ds_AuthorisationCode ?? null, err,
+    });
+    return new NextResponse('Error interno', { status: 500 });
+  }
+}
+
+async function processVerifiedNotification(result: ReturnType<typeof redsys.processRestNotification>) {
   const dsOrder = result.Ds_Order;
   const dsResponse = result.Ds_Response;
   const dsAmount = result.Ds_Amount;
   const dsAuthorisationCode = result.Ds_AuthorisationCode ?? null;
+  const paymentContext = { dsOrder, dsResponse, dsAmount, dsAuthorisationCode };
+  const processingFailure = (stage: string, err: unknown, orderId?: string) => {
+    console.error('[pagos/notificacion] Notificacion no procesada; requiere recuperacion manual', {
+      ...paymentContext, stage, orderId, err,
+    });
+    return new NextResponse('Error interno', { status: 500 });
+  };
+  const recordHistory = async (events: HistoryEvent | HistoryEvent[]) => {
+    try {
+      const { error } = await supabaseAdmin.from('order_status_history').insert(events);
+      if (error) throw error;
+      return true;
+    } catch (err) {
+      console.error('[pagos/notificacion] Fallo al guardar historico', {
+        ...paymentContext, stage: 'history_insert', events, err,
+      });
+      return false;
+    }
+  };
 
-  // 2. Pedido no encontrado: no hay nada que Redsys pueda reintentar que
-  // vaya a arreglar esto, asi que se responde el acuse igual (evita
-  // reintentos infinitos de Redsys), pero se deja constancia en los logs del
-  // servidor porque es una anomalia real (dsOrder que no existe en BD).
+  // 2. Un fallo de consulta NO demuestra que el pedido no exista.
+  // El 500 expresa fallo de procesamiento; no presupone reintentos de Redsys.
+  // Ver docs/T2_RECUPERACION_REDSYS.md para documentacion y recuperacion manual.
   const { data: order, error: orderError } = await supabaseAdmin
     .from('orders')
     .select(
@@ -113,13 +153,12 @@ export async function POST(request: Request) {
     .eq('redsys_ds_order', dsOrder)
     .maybeSingle<OrderRow>();
 
-  if (orderError || !order) {
+  if (orderError) return processingFailure('order_lookup', orderError);
+  if (!order) {
     console.error('[pagos/notificacion] Pedido no encontrado para Ds_Order', {
-      dsOrder,
-      dsResponse,
-      supabaseError: orderError?.message,
+      ...paymentContext, stage: 'order_missing',
     });
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ ok: false, review_required: true });
   }
 
   // 3. Allowlist de Ds_Response.
@@ -129,20 +168,27 @@ export async function POST(request: Request) {
     // notificacion de rechazo tardia o duplicada no debe pisar ese estado.
     const previousStatus = order.status;
     if (previousStatus === 'PENDING_PAYMENT') {
-      await supabaseAdmin
+      const { data: updatedOrder, error: updateError } = await supabaseAdmin
         .from('orders')
         .update({ status: 'PAYMENT_FAILED', updated_at: new Date().toISOString() })
         .eq('id', order.id)
-        .eq('status', 'PENDING_PAYMENT');
+        .eq('status', 'PENDING_PAYMENT')
+        .select('id')
+        .maybeSingle<{ id: string }>();
+      if (updateError) return processingFailure('rejection_update', updateError, order.id);
+      // Otra notificacion o el operador avanzo el estado: no inventar una
+      // transicion a PAYMENT_FAILED en el historico ni sobrescribirlo.
+      if (!updatedOrder) return NextResponse.json({ ok: true });
     }
 
-    await supabaseAdmin.from('order_status_history').insert({
+    const historySaved = await recordHistory({
       order_id: order.id,
       event_type: 'PAGO_FALLIDO',
       previous_status: previousStatus,
       new_status: previousStatus === 'PENDING_PAYMENT' ? 'PAYMENT_FAILED' : previousStatus,
       metadata: { ds_response: dsResponse, ds_order: dsOrder, ds_amount: dsAmount },
     });
+    if (!historySaved) return new NextResponse('Error interno', { status: 500 });
 
     return NextResponse.json({ ok: true });
   }
@@ -163,12 +209,7 @@ export async function POST(request: Request) {
     .returns<OrderItemRow[]>();
 
   if (itemsError || !itemRows || itemRows.length === 0) {
-    console.error('[pagos/notificacion] No se pudieron leer las lineas del pedido', {
-      orderId: order.id,
-      dsOrder,
-      supabaseError: itemsError?.message,
-    });
-    return new NextResponse('Error interno', { status: 500 });
+    return processingFailure('items_lookup', itemsError ?? new Error('Pedido sin lineas'), order.id);
   }
 
   // item_type viaja a la RPC (migracion 0011) para que pueda distinguir la
@@ -199,12 +240,14 @@ export async function POST(request: Request) {
     if (error || !data) throw error ?? new Error('RPC sin datos');
     rpcResult = data as StockRpcResult;
   } catch (err) {
-    console.error('[pagos/notificacion] Error inesperado llamando a la RPC de stock', {
-      orderId: order.id,
-      dsOrder,
-      err,
-    });
-    return new NextResponse('Error interno', { status: 500 });
+    return processingFailure('payment_rpc', err, order.id);
+  }
+
+  // No aceptar una respuesta vacia/mal formada como confirmacion persistida.
+  if (typeof rpcResult.ok !== 'boolean' ||
+      (rpcResult.already_processed !== undefined && typeof rpcResult.already_processed !== 'boolean') ||
+      (rpcResult.already_processed && !rpcResult.ok)) {
+    return processingFailure('payment_rpc_result', rpcResult, order.id);
   }
 
   // Duplicado confirmado en BD, con independencia del estado operativo.
@@ -214,28 +257,24 @@ export async function POST(request: Request) {
   }
 
   if (!rpcResult.ok) {
+    if (!rpcResult.review_required && !rpcResult.paid_at) {
+      return processingFailure('payment_rpc_result', rpcResult, order.id);
+    }
     // La RPC ya ha resuelto el fallo de stock dentro de la transaccion.
     // Las inconsistencias historicas se dejan intactas para conciliacion.
     console.error('[pagos/notificacion] Pago pendiente de revision', {
-      orderId: order.id, dsOrder, rpcResult,
+      ...paymentContext, stage: 'payment_review', orderId: order.id, rpcResult,
     });
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ ok: false, review_required: true });
   }
 
   // La fecha procede de la misma transaccion que payments y orders.paid_at.
   if (!rpcResult.paid_at) {
-    console.error('[pagos/notificacion] RPC sin fecha de pago', { orderId: order.id });
-    return new NextResponse('Error interno', { status: 500 });
+    return processingFailure('payment_rpc_result', new Error('RPC sin fecha de pago'), order.id);
   }
   const paidAt = rpcResult.paid_at;
 
-  const historyEvents: Array<{
-    order_id: string;
-    event_type: string;
-    previous_status?: string;
-    new_status?: string;
-    metadata?: Json;
-  }> = [
+  const historyEvents: HistoryEvent[] = [
     {
       order_id: order.id,
       event_type: 'PAGO_CONFIRMADO',
@@ -294,14 +333,9 @@ export async function POST(request: Request) {
     }
   }
 
-  const { error: historyEventsError } = await supabaseAdmin.from('order_status_history').insert(historyEvents);
-  if (historyEventsError) {
-    console.error('[pagos/notificacion] Fallo el INSERT de los eventos de exito en order_status_history', {
-      orderId: order.id,
-      dsOrder,
-      err: historyEventsError,
-    });
-  }
+  // El pago ya esta guardado atomicamente. Un fallo de este historico auxiliar
+  // se registra para revision manual y no se presenta como fallo del cobro.
+  await recordHistory(historyEvents);
 
   // 5. Emails: nunca deben romper el acuse a Redsys. Cada uno en su propio
   // try/catch - si el del cliente falla se intenta igual el interno.
@@ -344,13 +378,13 @@ export async function POST(request: Request) {
 
   try {
     await sendCustomerConfirmationEmail(emailData);
-    await supabaseAdmin.from('order_status_history').insert({
+    await recordHistory({
       order_id: order.id,
       event_type: 'EMAIL_CLIENTE_ENVIADO',
     });
   } catch (err) {
     console.error('[pagos/notificacion] Error enviando email al cliente', { orderId: order.id, err });
-    await supabaseAdmin.from('order_status_history').insert({
+    await recordHistory({
       order_id: order.id,
       event_type: 'EMAIL_CLIENTE_ERROR',
       metadata: { error: err instanceof Error ? err.message : String(err) },
@@ -359,13 +393,13 @@ export async function POST(request: Request) {
 
   try {
     await sendInternalOrderNotification(emailData);
-    await supabaseAdmin.from('order_status_history').insert({
+    await recordHistory({
       order_id: order.id,
       event_type: 'EMAIL_INTERNO_ENVIADO',
     });
   } catch (err) {
     console.error('[pagos/notificacion] Error enviando email interno', { orderId: order.id, err });
-    await supabaseAdmin.from('order_status_history').insert({
+    await recordHistory({
       order_id: order.id,
       event_type: 'EMAIL_INTERNO_ERROR',
       metadata: { error: err instanceof Error ? err.message : String(err) },

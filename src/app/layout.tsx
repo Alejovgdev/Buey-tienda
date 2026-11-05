@@ -8,12 +8,20 @@ import { CartProvider } from '@/contexts/CartContext';
 import CookieBanner from '@/components/Cookies/CookieBanner';
 import CookiePanel from '@/components/Cookies/CookiePanel';
 import AnalyticsLoader from '@/components/Cookies/AnalyticsLoader';
+import RestaurantInstallPrompt from '@/components/InstallApp/RestaurantInstallPrompt';
+import { EARLY_INSTALL_PROMPT_SCRIPT } from '@/components/InstallApp/earlyInstallPrompt';
 
 export const metadata: Metadata = {
   title: 'El Buey Madurado - Carne Madurada Premium',
   description: 'Tienda online de carne madurada...',
   icons: {
     icon: '/logo-fondo-blanco.ico',
+    apple: [{ url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
+  },
+  appleWebApp: {
+    capable: true,
+    title: 'El Buey',
+    statusBarStyle: 'default',
   },
 };
 
@@ -29,6 +37,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es" data-scroll-behavior="smooth">
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: EARLY_INSTALL_PROMPT_SCRIPT }} />
+      </head>
       <body className="bg-[#160a00] text-white overflow-x-hidden">
         <ConsentProvider>
           <CartProvider>
@@ -40,6 +51,7 @@ export default function RootLayout({
             <WhatsAppButton />
             <CookieBanner />
             <CookiePanel />
+            <RestaurantInstallPrompt />
             <AnalyticsLoader />
           </CartProvider>
         </ConsentProvider>
