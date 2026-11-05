@@ -53,8 +53,13 @@ export default function Navbar() {
   const isActive = (href: string) => href === '/' ? pathname === '/' : pathname === href || pathname.startsWith(`${href}/`);
 
   useLayoutEffect(() => {
+    // Safari puede notificar posiciones fuera del documento durante el rebote.
+    const getScrollY = () => Math.min(
+      Math.max(0, window.scrollY),
+      Math.max(0, document.documentElement.scrollHeight - window.innerHeight)
+    );
     const handleScroll = () => {
-      const currentScrollY = window.scrollY;
+      const currentScrollY = getScrollY();
       const scrollDelta = currentScrollY - lastScrollY.current;
       const nextScrolled = currentScrollY > 50;
       if (scrollState.current.scrolled !== nextScrolled) {
@@ -71,7 +76,7 @@ export default function Navbar() {
       }
       lastScrollY.current = currentScrollY;
     };
-    lastScrollY.current = window.scrollY;
+    lastScrollY.current = getScrollY();
     handleScroll();
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
