@@ -1,3 +1,5 @@
+import type { CartItem } from './cart';
+
 export interface RedsysRedirectPayload {
   actionUrl: string;
   Ds_SignatureVersion: string;
@@ -20,10 +22,19 @@ export interface StockIssueItem {
   isGift: boolean;
 }
 
+export interface CheckoutReview {
+  items: CartItem[];
+  subtotal: number;
+  shippingCost: number;
+  total: number;
+  pricesChanged: boolean;
+}
+
 export type CreateSessionError =
   | { error: 'CHECKOUT_DESHABILITADO'; message: string }
   | { error: 'DATOS_INVALIDOS'; message: string; fieldErrors?: Record<string, string[]> }
   | { error: 'STOCK_INSUFICIENTE'; message: string; items: StockIssueItem[] }
+  | { error: 'PRECIOS_ACTUALIZADOS'; message: string; review: CheckoutReview }
   | { error: 'ERROR_INTERNO'; message: string };
 
 // Endpoint no autenticado y consultado por order_number (adivinable/enumerable) -

@@ -44,12 +44,12 @@ export default function OrderSummary({ items }: OrderSummaryProps) {
       </dl>
 
       <div className="mt-4 flex justify-between border-t border-white/10 pt-4 text-base font-bold text-white">
-        <span>Total estimado</span>
+        <span>Total revisado</span>
         <span>{formatPriceFromCents(total)}</span>
       </div>
 
       <p className="mt-3 text-xs text-white/40">
-        Total orientativo. El importe final se calcula y se confirma en el servidor al pagar.
+        Precios y disponibilidad comprobados. Se vuelven a validar al pulsar «Pagar con tarjeta».
       </p>
     </div>
   );

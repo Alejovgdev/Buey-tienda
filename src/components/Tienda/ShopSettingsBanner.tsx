@@ -7,7 +7,7 @@ interface ShopSettingsBannerProps {
 export default function ShopSettingsBanner({ settings }: ShopSettingsBannerProps) {
   const message = settings.acceptingOrders
     ? settings.noticeMessage
-    : settings.checkoutDisabledMessage;
+    : settings.checkoutDisabledMessage ?? 'En este momento no podemos aceptar pedidos online.';
 
   if (!message) return null;
 

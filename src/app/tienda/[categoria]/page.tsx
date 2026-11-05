@@ -4,6 +4,7 @@ import { getActiveCategories, getCategoryBySlug, getProductCardsByCategory } fro
 import CategoryNav from '@/components/Tienda/CategoryNav';
 import ProductGrid from '@/components/Tienda/ProductGrid';
 import ShippingNotice from '@/components/Tienda/ShippingNotice';
+import ShopAvailabilityBanner from '@/components/Tienda/ShopAvailabilityBanner';
 
 interface CategoriaPageProps {
   params: Promise<{ categoria: string }>;
@@ -36,6 +37,7 @@ export default async function CategoriaPage({ params }: CategoriaPageProps) {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-12 md:px-6 md:py-16">
+      <ShopAvailabilityBanner />
       <div className="mb-8 md:mb-12">
         <CategoryNav categories={categories} activeSlug={category.slug} />
       </div>

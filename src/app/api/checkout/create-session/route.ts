@@ -1,15 +1,14 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
-import { getShopSettings } from '@/lib/shop-settings';
-import { calculateShippingCost } from '@/lib/shipping';
 import { createSessionRequestSchema } from '@/lib/checkout-schema';
+import { getCheckoutAvailability, type CheckoutVariant as VariantRow } from '@/lib/checkout-availability';
 import { generateOrderNumber } from '@/lib/order-number';
 import { redsys } from '@/lib/redsys';
 import { TERMS_VERSION } from '@/lib/legal';
 import { buildMarketingConsentEvidence } from '@/lib/marketing-consent';
 import { toLabelProfileRules } from '@/lib/labels/label-snapshot';
 import type { Json, Tables } from '@/supabase/types';
-import type { CreateSessionSuccess, StockIssueItem } from '@/types/checkout';
+import type { CreateSessionSuccess } from '@/types/checkout';
 
 // Fase 4, Unidad 2. Nucleo del checkout: nada de lo que llega del frontend es
 // fiable. Precios, stock y disponibilidad de la promocion se recalculan aqui
@@ -21,30 +20,6 @@ export const dynamic = 'force-dynamic';
 // Privacidad afirma que Vercel los trata dentro del EEE. Si alguien cambia la
 // region en el panel, esto la sigue fijando aqui. cdg1 = Paris.
 export const preferredRegion = 'cdg1';
-
-type VariantRow = {
-  id: string;
-  name: string;
-  price: number;
-  stock: number;
-  is_active: boolean;
-  product: {
-    name: string;
-    allergens: string[] | null;
-    allergens_notes: string | null;
-    // Sistema de etiquetado alimentario (docs/FOOD_LABEL_ADMIN_DESIGN.md, §6.4):
-    // se congelan aquí, no se leen en vivo cuando se genere la etiqueta.
-    ingredients: string | null;
-    storage_conditions: string | null;
-    prep_instructions: string | null;
-    cooking_method: string | null;
-    country_of_origin: string | null;
-    label_display_name: string | null;
-    label_profile_id: string | null;
-    usual_units_per_package: number;
-    suggested_package_count: number;
-  } | null;
-};
 
 type PromotionCandidate = {
   id: string;
@@ -183,80 +158,23 @@ export async function POST(request: Request) {
       { status: 400 }
     );
   }
-  const { customer, items } = parsed.data;
+  const { customer, items, expectedTotal } = parsed.data;
 
-  // 2. accepting_orders es el primer paso antes de tocar nada mas.
-  const shopSettings = await getShopSettings();
-  if (!shopSettings?.acceptingOrders) {
-    return NextResponse.json(
-      {
-        error: 'CHECKOUT_DESHABILITADO',
-        message:
-          shopSettings?.checkoutDisabledMessage ??
-          'En este momento no podemos aceptar pedidos online.',
-      },
-      { status: 503 }
-    );
+  // Releer siempre, aunque el cliente acabe de revisar el checkout. La revisión
+  // no reserva stock ni autoriza un cobro con precios que hayan cambiado.
+  const availability = await getCheckoutAvailability(items);
+  if (!availability.ok) {
+    return NextResponse.json(availability.error, { status: availability.status });
   }
-
-  // 3. Precio y stock reales de cada variante — el precio del body se ignora.
-  const variantIds = [...new Set(items.map((line) => line.variantId))];
-  const { data: variantRows, error: variantsError } = await supabaseAdmin
-    .from('product_variants')
-    .select(
-      'id, name, price, stock, is_active, product:products(name, allergens, allergens_notes, ingredients, storage_conditions, prep_instructions, cooking_method, country_of_origin, label_display_name, label_profile_id, usual_units_per_package, suggested_package_count)'
-    )
-    .in('id', variantIds);
-
-  if (variantsError) {
-    return genericErrorResponse();
+  const { variantMap, requestedQuantityByVariant, review } = availability;
+  if (review.pricesChanged || expectedTotal !== review.total) {
+    return NextResponse.json({
+      error: 'PRECIOS_ACTUALIZADOS',
+      message: 'Los precios han cambiado. Revisa el nuevo total y vuelve a pulsar «Pagar con tarjeta» si quieres continuar.',
+      review,
+    }, { status: 409 });
   }
-
-  const variantMap = new Map(
-    ((variantRows as unknown as VariantRow[]) ?? []).map((row) => [row.id, row])
-  );
-
-  // Cantidad agregada por variante, por si el body repite el mismo variantId
-  // en varias lineas — evita un hueco de sobreventa en la comprobacion de stock.
-  const requestedQuantityByVariant = new Map<string, number>();
-  for (const line of items) {
-    requestedQuantityByVariant.set(
-      line.variantId,
-      (requestedQuantityByVariant.get(line.variantId) ?? 0) + line.quantity
-    );
-  }
-
-  const stockIssues: StockIssueItem[] = [];
-  let subtotal = 0;
-
-  for (const [variantId, quantity] of requestedQuantityByVariant) {
-    const variant = variantMap.get(variantId);
-    if (!variant || !variant.is_active) {
-      stockIssues.push({
-        variantId,
-        productName: variant?.product?.name ?? 'Producto no disponible',
-        variantName: variant?.name ?? '',
-        requestedQuantity: quantity,
-        availableStock: 0,
-        isGift: false,
-      });
-      continue;
-    }
-    if (variant.stock < quantity) {
-      stockIssues.push({
-        variantId: variant.id,
-        productName: variant.product?.name ?? '',
-        variantName: variant.name,
-        requestedQuantity: quantity,
-        availableStock: variant.stock,
-        isGift: false,
-      });
-    }
-    subtotal += variant.price * quantity;
-  }
-
-  // 5. Envio: misma regla que el carrito (10 €/gratis desde 150 €).
-  const shippingCost = calculateShippingCost(subtotal);
+  const { subtotal, shippingCost, total } = review;
 
   // 6. Promocion — los mismos 4 criterios que el endpoint publico, mas el
   // ORDER BY determinista que la auditoria de Fase 3 encontro que faltaba.
@@ -305,29 +223,13 @@ export async function POST(request: Request) {
       if (!giftVariant || !giftVariant.is_active || giftVariant.stock < 1) {
         // Regla fundamental (seccion 13 del MVP doc): si el regalo no se
         // puede aplicar por cualquier motivo, el pedido continua sin el
-        // regalo. Nunca se bloquea el checkout por esto - no se añade a
-        // stockIssues, que es lo que dispara el 409 mas abajo.
+        // regalo. Nunca se bloquea el checkout por falta de stock del regalo.
         giftUnavailable = true;
       } else {
         giftLine = { variant: giftVariant, promotionId: promoCandidate.id };
       }
     }
   }
-
-  // 7. Si falta stock en un producto real del carrito -> 409, nada se crea.
-  // El regalo de una promocion NUNCA entra en stockIssues (ver arriba).
-  if (stockIssues.length > 0) {
-    return NextResponse.json(
-      {
-        error: 'STOCK_INSUFICIENTE',
-        message: 'Uno o más productos de tu carrito ya no tienen el stock disponible que muestran.',
-        items: stockIssues,
-      },
-      { status: 409 }
-    );
-  }
-
-  const total = subtotal + shippingCost;
 
   try {
     // 8. order_number y redsys_ds_order, generados atomicamente en BD.

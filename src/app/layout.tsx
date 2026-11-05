@@ -10,6 +10,7 @@ import CookiePanel from '@/components/Cookies/CookiePanel';
 import AnalyticsLoader from '@/components/Cookies/AnalyticsLoader';
 import RestaurantInstallPrompt from '@/components/InstallApp/RestaurantInstallPrompt';
 import { EARLY_INSTALL_PROMPT_SCRIPT } from '@/components/InstallApp/earlyInstallPrompt';
+import CommerceHistoryRefresh from '@/components/Tienda/CommerceHistoryRefresh';
 
 export const metadata: Metadata = {
   title: 'El Buey Madurado - Carne Madurada Premium',
@@ -52,6 +53,7 @@ export default function RootLayout({
             <CookieBanner />
             <CookiePanel />
             <RestaurantInstallPrompt />
+            <CommerceHistoryRefresh />
             <AnalyticsLoader />
           </CartProvider>
         </ConsentProvider>

@@ -68,12 +68,22 @@ const uuidLikeRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]
 
 export const cartLineItemSchema = z.object({
   variantId: z.string().regex(uuidLikeRegex, { message: 'Identificador de producto no válido' }),
+  productSlug: z.string().min(1).max(200),
   quantity: z.number().int().min(1).max(50),
+  // Solo sirve para detectar un cambio respecto a lo que vio el cliente.
+  // Nunca se usa como precio de venta ni para calcular el cobro.
+  expectedUnitPrice: z.number().int().nonnegative().safe(),
+});
+
+export const cartReviewRequestSchema = z.object({
+  items: z.array(cartLineItemSchema).min(1).max(50),
 });
 
 export const createSessionRequestSchema = z.object({
   customer: customerDataSchema,
   items: z.array(cartLineItemSchema).min(1).max(50),
+  expectedTotal: z.number().int().nonnegative().safe(),
 });
 
+export type CheckoutLine = z.infer<typeof cartLineItemSchema>;
 export type CreateSessionRequest = z.infer<typeof createSessionRequestSchema>;

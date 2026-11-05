@@ -2,11 +2,10 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { FaArrowRight } from 'react-icons/fa';
 import { getCategoriesWithProducts } from '@/lib/tienda';
-import { getShopSettings } from '@/lib/shop-settings';
 import CategoryNav from '@/components/Tienda/CategoryNav';
 import ProductGrid from '@/components/Tienda/ProductGrid';
 import ShippingNotice from '@/components/Tienda/ShippingNotice';
-import ShopSettingsBanner from '@/components/Tienda/ShopSettingsBanner';
+import ShopAvailabilityBanner from '@/components/Tienda/ShopAvailabilityBanner';
 
 export const metadata: Metadata = {
   title: 'Tienda Online | El Buey Madurado',
@@ -17,14 +16,11 @@ export const metadata: Metadata = {
 const PRODUCTS_PER_CATEGORY = 4;
 
 export default async function TiendaPage() {
-  const [categories, shopSettings] = await Promise.all([
-    getCategoriesWithProducts(PRODUCTS_PER_CATEGORY),
-    getShopSettings(),
-  ]);
+  const categories = await getCategoriesWithProducts(PRODUCTS_PER_CATEGORY);
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-12 md:px-6 md:py-16">
-      {shopSettings && <ShopSettingsBanner settings={shopSettings} />}
+      <ShopAvailabilityBanner />
 
       <header className="mb-10 max-w-2xl md:mb-14">
         <h1 className="text-3xl font-extrabold leading-tight text-white sm:text-4xl md:text-5xl">

@@ -50,6 +50,7 @@ export async function getHomeProducts(limit = 3): Promise<HomeProductData[]> {
     `)
     .eq('is_active', true)
     .eq('categories.is_active', true)
+    .eq('product_variants.is_active', true)
     .order('categories(sort_order)')
     .order('sort_order')
     .order('id')
@@ -77,6 +78,7 @@ export async function getActiveCategories(): Promise<CategorySummary[]> {
   const { data, error } = await supabase
     .from('categories')
     .select('id, slug, name, description')
+    .eq('is_active', true)
     .order('sort_order');
 
   if (error || !data) return [];
@@ -88,6 +90,7 @@ export const getCategoryBySlug = cache(async (slug: string): Promise<CategorySum
     .from('categories')
     .select('id, slug, name, description')
     .eq('slug', slug)
+    .eq('is_active', true)
     .maybeSingle();
 
   if (error || !data) return null;
@@ -101,6 +104,8 @@ export async function getProductCardsByCategory(
   let query = supabase
     .from('products')
     .select(PRODUCT_CARD_SELECT)
+    .eq('is_active', true)
+    .eq('product_variants.is_active', true)
     .eq('category_id', categoryId)
     .order('sort_order')
     .order('sort_order', { referencedTable: 'product_variants' })
@@ -154,6 +159,8 @@ export const getProductDetailBySlug = cache(async (slug: string): Promise<Produc
     `
     )
     .eq('slug', slug)
+    .eq('is_active', true)
+    .eq('product_variants.is_active', true)
     .order('sort_order', { referencedTable: 'product_variants' })
     .order('is_main', { referencedTable: 'product_images', ascending: false })
     .order('sort_order', { referencedTable: 'product_images' })
