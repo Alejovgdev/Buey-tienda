@@ -97,7 +97,7 @@
 .whatsapp:hover { background: #ffb921; }
 .whatsapp > span:first-child { display: flex; align-items: center; gap: 12px; font-size: 19px; }
 .whatsapp > span:last-child { font-size: 15px; }
-.whatsappIcon { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: #0000001a; font-size: 23px; }
+.whatsappIcon { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: #25d366; color: #fff; font-size: 26px; }
 .contactDetails { display: grid; gap: 16px; margin-top: 22px; font-size: 17px; line-height: 1.45; }
 .contactDetails > div { display: flex; gap: 14px; }
 .contactDetails > div > svg { flex-shrink: 0; margin-top: 4px; font-size: 21px; color: var(--home-gold); }

@@ -1,7 +1,8 @@
 import Image from 'next/image';
 import Link from 'next/link';
+import { FaWhatsapp } from 'react-icons/fa';
 import {
-  TbAward, TbClockHour4, TbHeart, TbMail, TbMapPin, TbMessageCircle,
+  TbAward, TbClockHour4, TbHeart, TbMail, TbMapPin,
   TbPhone, TbShoppingBag, TbToolsKitchen2,
 } from 'react-icons/tb';
 import ConditionalMap from '@/components/Cookies/ConditionalMap';
@@ -144,7 +145,7 @@ export default function HomeLanding({ products }: { products: HomeProductData[] 
             <h2 id="home-contact-title">Contacto y ubicación</h2>
             <p className={styles.contactIntro}>Reservas, pedidos de la tienda o dudas: escríbenos y te respondemos.</p>
             <a href="https://wa.me/34670775786" target="_blank" rel="noreferrer" className={styles.whatsapp}>
-              <span><span className={styles.whatsappIcon}><TbMessageCircle aria-hidden="true" /></span>WhatsApp</span>
+              <span><span className={styles.whatsappIcon}><FaWhatsapp aria-hidden="true" /></span>WhatsApp</span>
               <span>Escríbenos</span>
             </a>
             <dl className={styles.contactDetails}>
