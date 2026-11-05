@@ -209,7 +209,7 @@ describe('interfaz y consultas de pedidos y productos', () => {
         { id: 'event-1', event_type: 'PEDIDO_ETIQUETADO', created_at: '2026-10-29T12:00:00Z' },
         { id: 'event-2', event_type: 'IMPORTE_INCOHERENTE', created_at: '2026-10-29T12:00:00Z', metadata: {} },
       ],
-    }, { orders: {
+    }, { payments: { amount: 3400 }, orders: {
       id: 'order-1', order_number: 'BM-1', status: 'PAID', created_at: '2026-10-29T12:00:00Z',
       labeled_at: '2026-10-29T12:00:00Z', labeled_by: 'Trabajador histórico',
       subtotal: 2400, shipping_cost: 1000, total: 3400, admin_notes: 'Preparar con cuidado',
