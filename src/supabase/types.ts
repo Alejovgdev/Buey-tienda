@@ -207,6 +207,9 @@ export type Database = {
       }
       order_items: {
         Row: {
+          vat_rate: number | null
+          tax_base: number | null
+          vat_amount: number | null
           allergens_notes_snapshot: string | null
           allergens_snapshot: string[] | null
           cooking_method_snapshot: string | null
@@ -231,6 +234,9 @@ export type Database = {
           variant_name_snapshot: string
         }
         Insert: {
+          vat_rate?: number | null
+          tax_base?: number | null
+          vat_amount?: number | null
           allergens_notes_snapshot?: string | null
           allergens_snapshot?: string[] | null
           cooking_method_snapshot?: string | null
@@ -255,6 +261,9 @@ export type Database = {
           variant_name_snapshot: string
         }
         Update: {
+          vat_rate?: number | null
+          tax_base?: number | null
+          vat_amount?: number | null
           allergens_notes_snapshot?: string | null
           allergens_snapshot?: string[] | null
           cooking_method_snapshot?: string | null
@@ -352,6 +361,11 @@ export type Database = {
       }
       orders: {
         Row: {
+          shipping_vat_rate: number | null
+          shipping_tax_base: number | null
+          shipping_vat_amount: number | null
+          tax_base_total: number | null
+          vat_total: number | null
           admin_notes: string | null
           created_at: string
           customer_email: string
@@ -382,6 +396,11 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          shipping_vat_rate?: number | null
+          shipping_tax_base?: number | null
+          shipping_vat_amount?: number | null
+          tax_base_total?: number | null
+          vat_total?: number | null
           admin_notes?: string | null
           created_at?: string
           customer_email: string
@@ -412,6 +431,11 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          shipping_vat_rate?: number | null
+          shipping_tax_base?: number | null
+          shipping_vat_amount?: number | null
+          tax_base_total?: number | null
+          vat_total?: number | null
           admin_notes?: string | null
           created_at?: string
           customer_email?: string
@@ -689,6 +713,7 @@ export type Database = {
       }
       products: {
         Row: {
+          vat_rate: number
           allergens: string[] | null
           allergens_notes: string | null
           category_id: string
@@ -711,6 +736,7 @@ export type Database = {
           usual_units_per_package: number
         }
         Insert: {
+          vat_rate?: number
           allergens?: string[] | null
           allergens_notes?: string | null
           category_id: string
@@ -733,6 +759,7 @@ export type Database = {
           usual_units_per_package?: number
         }
         Update: {
+          vat_rate?: number
           allergens?: string[] | null
           allergens_notes?: string | null
           category_id?: string
@@ -826,6 +853,7 @@ export type Database = {
       }
       shop_settings: {
         Row: {
+          shipping_vat_rate: number
           accepting_orders: boolean
           checkout_disabled_message: string | null
           id: string
@@ -840,6 +868,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          shipping_vat_rate?: number
           accepting_orders?: boolean
           checkout_disabled_message?: string | null
           id?: string
@@ -854,6 +883,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          shipping_vat_rate?: number
           accepting_orders?: boolean
           checkout_disabled_message?: string | null
           id?: string

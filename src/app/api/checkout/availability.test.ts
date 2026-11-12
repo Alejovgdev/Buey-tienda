@@ -20,11 +20,12 @@ const customer = {
 };
 const baseVariant = {
   id: variantId, product_id: productId, name: '1 kg', price: 2500, stock: 8, is_active: true,
-  product: { id: productId, slug: 'chuleton', name: 'Chuletón', is_active: true, allergens: [], label_profile_id: null },
+  product: { id: productId, slug: 'chuleton', name: 'Chuletón', is_active: true, allergens: [], label_profile_id: null, vat_rate: 10 },
 };
 let variant: typeof baseVariant | null;
 let promotions: { id: string; min_subtotal: null; max_redemptions: null; current_redemptions: number; gift_variant_id: string }[];
 let gift: typeof baseVariant;
+let vatSettings: { data: { shipping_vat_rate: number } | null; error: unknown };
 const insertOrder = vi.fn(), insertItems = vi.fn(), history = vi.fn(), readVariants = vi.fn();
 const request = (body: unknown) => new Request('http://localhost/api/checkout/test', {
   method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
@@ -44,6 +45,7 @@ beforeEach(() => {
   vi.spyOn(console, 'error').mockImplementation(() => {});
   variant = structuredClone(baseVariant);
   promotions = [];
+  vatSettings = { data: { shipping_vat_rate: 10 }, error: null };
   gift = { ...structuredClone(baseVariant), id: '44444444-4444-4444-8444-444444444444', name: 'Regalo' };
   mocks.settings.mockResolvedValue({ acceptingOrders: true, noticeMessage: null, checkoutDisabledMessage: null });
   readVariants.mockImplementation(async () => ({ data: variant ? [variant] : [], error: null }));
@@ -59,6 +61,7 @@ beforeEach(() => {
       const query = { select: () => query, eq: () => query, or: () => query, order: () => query, limit: async () => ({ data: promotions, error: null }) };
       return query;
     }
+    if (table === 'shop_settings') return { select: () => ({ maybeSingle: async () => vatSettings }) };
     if (table === 'orders') return { insert: insertOrder };
     if (table === 'order_items') return { insert: insertItems };
     if (table === 'order_status_history') return { insert: history };
@@ -173,6 +176,12 @@ describe('disponibilidad previa al pago, sin servicios reales', () => {
     expect(await response.json()).toMatchObject({ totalAmount: 6000 });
     expect(insertOrder).toHaveBeenCalledWith(expect.objectContaining({ subtotal: 5000, shipping_cost: 1000, total: 6000 }));
     expect(insertItems).toHaveBeenCalledWith([expect.objectContaining({ quantity: 2, unit_price_snapshot: 2500, line_total: 5000 })]);
+    // IVA (paso 3): 50,00 € → 45,45 + 4,55; envío 10,00 € → 9,09 + 0,91.
+    expect(insertItems).toHaveBeenCalledWith([expect.objectContaining({ vat_rate: 10, tax_base: 4545, vat_amount: 455 })]);
+    expect(insertOrder).toHaveBeenCalledWith(expect.objectContaining({
+      shipping_vat_rate: 10, shipping_tax_base: 909, shipping_vat_amount: 91,
+      tax_base_total: 5454, vat_total: 546,
+    }));
     expect(mocks.redirect).toHaveBeenCalledWith(expect.objectContaining({ DS_MERCHANT_AMOUNT: '6000' }));
     expect(mocks.rpc).toHaveBeenCalledWith('generate_redsys_ds_order');
     expect(variant!.stock).toBe(8);
@@ -195,7 +204,7 @@ describe('disponibilidad previa al pago, sin servicios reales', () => {
       expect(await response.json()).toMatchObject({ totalAmount: 6000 });
       const saved = insertItems.mock.calls[0][0] as { item_type: string; line_total: number }[];
       expect(saved).toHaveLength(stock > 0 ? 2 : 1);
-      if (stock > 0) expect(saved[1]).toMatchObject({ item_type: 'GIFT', line_total: 0 });
+      if (stock > 0) expect(saved[1]).toMatchObject({ item_type: 'GIFT', line_total: 0, vat_rate: null, tax_base: 0, vat_amount: 0 });
       else expect(history).toHaveBeenCalledWith(expect.objectContaining({ event_type: 'PROMOCION_NO_APLICADA' }));
       expect(gift.stock).toBe(stock);
       expect(variant!.stock).toBe(8);
@@ -203,4 +212,29 @@ describe('disponibilidad previa al pago, sin servicios reales', () => {
       expect(mocks.rpc).toHaveBeenCalledWith('generate_redsys_ds_order');
     });
   }
+
+  it('envío gratis: tipo vacío, base 0 e IVA 0, y los totales cuadran con lo cobrado', async () => {
+    const response = await pay(payRequest({ items: [{ ...line, quantity: 6 }], expectedTotal: 15000 }));
+    expect(response.status).toBe(200);
+    expect(insertOrder).toHaveBeenCalledWith(expect.objectContaining({
+      shipping_cost: 0, total: 15000,
+      shipping_vat_rate: null, shipping_tax_base: 0, shipping_vat_amount: 0,
+      tax_base_total: 13636, vat_total: 1364,
+    }));
+    expect(mocks.redirect).toHaveBeenCalledWith(expect.objectContaining({ DS_MERCHANT_AMOUNT: '15000' }));
+  });
+
+  it('usa el tipo de IVA configurado en el producto y en el envío', async () => {
+    variant!.product.vat_rate = 21;
+    vatSettings = { data: { shipping_vat_rate: 21 }, error: null };
+    expect((await pay(payRequest())).status).toBe(200);
+    expect(insertItems).toHaveBeenCalledWith([expect.objectContaining({ vat_rate: 21, tax_base: 4132, vat_amount: 868 })]);
+    expect(insertOrder).toHaveBeenCalledWith(expect.objectContaining({ shipping_vat_rate: 21, shipping_tax_base: 826, shipping_vat_amount: 174 }));
+  });
+
+  it('sin tipo de IVA del envío no se crea el pedido ni se inicia el pago', async () => {
+    vatSettings = { data: null, error: { message: 'Database unavailable' } };
+    expect((await pay(payRequest())).status).toBe(500);
+    noPayment();
+  });
 });

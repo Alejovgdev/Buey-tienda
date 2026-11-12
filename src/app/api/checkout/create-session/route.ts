@@ -8,6 +8,7 @@ import { TERMS_VERSION } from '@/lib/legal';
 import { buildMarketingConsentEvidence } from '@/lib/marketing-consent';
 import { createOrderStatusAccess, orderStatusCookieName, ORDER_STATUS_ACCESS_SECONDS } from '@/lib/order-status-access';
 import { toLabelProfileRules } from '@/lib/labels/label-snapshot';
+import { splitVatIncluded, sumVat, type OrderVatTotals, type VatBreakdown } from '@/lib/vat';
 import type { Json, Tables } from '@/supabase/types';
 import type { CreateSessionSuccess } from '@/types/checkout';
 
@@ -210,7 +211,7 @@ export async function POST(request: Request) {
       const { data: giftVariantRow, error: giftError } = await supabaseAdmin
         .from('product_variants')
         .select(
-      'id, name, price, stock, is_active, product:products(name, allergens, allergens_notes, ingredients, storage_conditions, prep_instructions, cooking_method, country_of_origin, label_display_name, label_profile_id, usual_units_per_package, suggested_package_count)'
+      'id, name, price, stock, is_active, product:products(name, allergens, allergens_notes, ingredients, storage_conditions, prep_instructions, cooking_method, country_of_origin, label_display_name, label_profile_id, usual_units_per_package, suggested_package_count, vat_rate)'
     )
         .eq('id', promoCandidate.gift_variant_id)
         .maybeSingle();
@@ -230,6 +231,37 @@ export async function POST(request: Request) {
         giftLine = { variant: giftVariant, promotionId: promoCandidate.id };
       }
     }
+  }
+
+  // 7bis. IVA (paso 3). Los importes son IVA incluido y no cambian: solo se
+  // desglosan en base + cuota por linea (src/lib/vat.ts). Tipo del producto
+  // (products.vat_rate) y del envio (shop_settings.shipping_vat_rate), leidos
+  // de BD en cada pedido. Regalo y envio gratis: tipo null, base 0, cuota 0.
+  const { data: vatSettings, error: vatSettingsError } = await supabaseAdmin
+    .from('shop_settings')
+    .select('shipping_vat_rate')
+    .maybeSingle();
+  if (vatSettingsError || !vatSettings) {
+    return genericErrorResponse();
+  }
+
+  let productLinesVat: Map<string, VatBreakdown>;
+  let shippingVat: VatBreakdown;
+  let orderVatTotals: OrderVatTotals;
+  try {
+    productLinesVat = new Map(
+      [...requestedQuantityByVariant].map(([variantId, quantity]) => {
+        const variant = variantMap.get(variantId)!;
+        return [variantId, splitVatIncluded(variant.price * quantity, Number(variant.product?.vat_rate))];
+      })
+    );
+    shippingVat = splitVatIncluded(shippingCost, Number(vatSettings.shipping_vat_rate));
+    orderVatTotals = sumVat([...productLinesVat.values(), shippingVat]);
+  } catch {
+    return genericErrorResponse();
+  }
+  if (orderVatTotals.taxBaseTotal + orderVatTotals.vatTotal !== total) {
+    return genericErrorResponse();
   }
 
   try {
@@ -263,6 +295,11 @@ export async function POST(request: Request) {
         subtotal,
         shipping_cost: shippingCost,
         total,
+        shipping_vat_rate: shippingVat.vatRate,
+        shipping_tax_base: shippingVat.taxBase,
+        shipping_vat_amount: shippingVat.vatAmount,
+        tax_base_total: orderVatTotals.taxBaseTotal,
+        vat_total: orderVatTotals.vatTotal,
         redsys_ds_order: dsOrder,
         // Paso 5. Prueba de que este cliente acepto el contrato y de QUE texto
         // acepto. La version sale de la constante del servidor, nunca del body:
@@ -332,6 +369,7 @@ export async function POST(request: Request) {
     const orderItemsPayload = [
       ...[...requestedQuantityByVariant].map(([variantId, quantity]) => {
         const variant = variantMap.get(variantId)!;
+        const lineVat = productLinesVat.get(variantId)!;
         return {
           order_id: order.id,
           product_variant_id: variant.id,
@@ -340,6 +378,9 @@ export async function POST(request: Request) {
           unit_price_snapshot: variant.price,
           quantity,
           line_total: variant.price * quantity,
+          vat_rate: lineVat.vatRate,
+          tax_base: lineVat.taxBase,
+          vat_amount: lineVat.vatAmount,
           allergens_snapshot: variant.product?.allergens ?? [],
           allergens_notes_snapshot: variant.product?.allergens_notes ?? null,
           item_type: 'PRODUCT',
@@ -357,6 +398,10 @@ export async function POST(request: Request) {
               unit_price_snapshot: 0,
               quantity: 1,
               line_total: 0,
+              // Regalo: linea a 0 € sin IVA propio.
+              vat_rate: null as number | null,
+              tax_base: 0,
+              vat_amount: 0,
               allergens_snapshot: giftLine.variant.product?.allergens ?? [],
               allergens_notes_snapshot: giftLine.variant.product?.allergens_notes ?? null,
               item_type: 'GIFT',

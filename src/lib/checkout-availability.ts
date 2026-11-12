@@ -30,13 +30,14 @@ export type CheckoutVariant = {
     label_profile_id: string | null;
     usual_units_per_package: number;
     suggested_package_count: number;
+    vat_rate: number;
   } | null;
 };
 
 // Los mismos datos actuales alimentan la revisión y el snapshot del pedido.
 // No hay reservas, descuentos de stock, RPC de pago ni escrituras aquí.
 const CHECKOUT_VARIANT_SELECT =
-  'id, product_id, name, price, stock, is_active, product:products(id, slug, is_active, name, allergens, allergens_notes, ingredients, storage_conditions, prep_instructions, cooking_method, country_of_origin, label_display_name, label_profile_id, usual_units_per_package, suggested_package_count)';
+  'id, product_id, name, price, stock, is_active, product:products(id, slug, is_active, name, allergens, allergens_notes, ingredients, storage_conditions, prep_instructions, cooking_method, country_of_origin, label_display_name, label_profile_id, usual_units_per_package, suggested_package_count, vat_rate)';
 
 type AvailabilityResult =
   | { ok: true; review: CheckoutReview; variantMap: Map<string, CheckoutVariant>; requestedQuantityByVariant: Map<string, number> }
