@@ -3,6 +3,7 @@ import { render } from '@react-email/components';
 import { resend } from '@/lib/resend';
 import { OrderConfirmationEmail } from '@/emails/OrderConfirmationEmail';
 import { InternalOrderNotificationEmail } from '@/emails/InternalOrderNotificationEmail';
+import { resolveEmailFrom, resolveReplyTo } from './email-config';
 
 // Fase 5, Unidad 4. Envio real con Resend + React Email. El llamador
 // (handler de notificacion, Unidad 3) ya envuelve cada funcion en su propio
@@ -48,14 +49,14 @@ export interface OrderEmailData {
   giftSkippedNoStock?: boolean;
 }
 
-const EMAIL_FROM = process.env.EMAIL_FROM ?? 'onboarding@resend.dev';
 const ADMIN_NOTIFICATION_EMAIL = process.env.ADMIN_NOTIFICATION_EMAIL;
 
 export async function sendCustomerConfirmationEmail(data: OrderEmailData): Promise<void> {
   const html = await render(OrderConfirmationEmail({ data }));
   const { error } = await resend.emails.send({
-    from: EMAIL_FROM,
+    from: resolveEmailFrom(),
     to: data.customerEmail,
+    replyTo: resolveReplyTo(),
     subject: `Pedido confirmado — El Buey Madurado #${data.orderNumber}`,
     html,
   });
@@ -70,7 +71,7 @@ export async function sendInternalOrderNotification(data: OrderEmailData): Promi
   }
   const html = await render(InternalOrderNotificationEmail({ data }));
   const { error } = await resend.emails.send({
-    from: EMAIL_FROM,
+    from: resolveEmailFrom(),
     to: ADMIN_NOTIFICATION_EMAIL,
     subject: `NUEVO PEDIDO #${data.orderNumber} — El Buey Madurado`,
     html,
