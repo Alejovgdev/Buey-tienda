@@ -6,6 +6,7 @@ import http from 'node:http';
 import os from 'node:os';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
+import { SignJWT } from 'jose';
 
 const root = process.cwd();
 const artifacts = path.join(root, '.seo-check.local');
@@ -49,9 +50,10 @@ const fixture = http.createServer((req, res) => {
   if (table === 'categories') rows = [category];
   else if (table === 'products') rows = [{ ...product, categories: category }];
   else if (table === 'shop_settings') rows = [{ accepting_orders: true, notice_message: 'VALIDACIÓN LOCAL', checkout_disabled_message: null }];
+  else if (['orders', 'order_events'].includes(table)) rows = [];
   else { unexpected.push('GET ' + table); res.writeHead(500); res.end('Unexpected fixture read'); return; }
   if (url.searchParams.has('slug')) rows = rows.filter(row => 'eq.' + row.slug === url.searchParams.get('slug'));
-  res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
+  res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', 'Content-Range': rows.length ? `0-${rows.length - 1}/${rows.length}` : '*/0' });
   res.end(JSON.stringify(rows));
 });
 const listen = server => new Promise((resolve, reject) => {
@@ -65,7 +67,7 @@ await new Promise(resolve => listener.close(resolve));
 const base = `http://127.0.0.1:${port}`;
 const origin = 'https://www.restauranteelbueymadurado.com';
 const env = {
-  ...process.env, NODE_ENV: 'production', NEXT_TELEMETRY_DISABLED: '1',
+  ...process.env, NODE_ENV: 'production', VERCEL_ENV: 'production', NEXT_TELEMETRY_DISABLED: '1',
   NEXT_PUBLIC_SUPABASE_URL: `http://127.0.0.1:${fixturePort}`, NEXT_PUBLIC_SUPABASE_ANON_KEY: 'local-only', SUPABASE_SERVICE_ROLE_KEY: 'local-only',
   // El origen operativo se mantiene local y distinto del SEO durante toda la prueba.
   NEXT_PUBLIC_BASE_URL: base, NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME: 'local-only',
@@ -98,9 +100,26 @@ function inspect(html) {
   };
 }
 const results = [];
-const get = async (route, agent = 'Mozilla/5.0') => {
-  const response = await fetch(base + route, { headers: { 'User-Agent': agent }, redirect: 'manual', signal: AbortSignal.timeout(15000) });
-  return { response, ...inspect(await response.text()) };
+const canonicalHost = new URL(origin).host;
+const get = async (route, agent = 'Mozilla/5.0', host = canonicalHost, { method = 'GET', headers = {} } = {}) => {
+  assert.ok(route.startsWith('/') && !route.startsWith('//'));
+  // Node fetch does not preserve a custom Host. Connect only to loopback and
+  // send the virtual host with node:http; never resolve/contact a real domain.
+  const { response, rawHeaders } = await new Promise((resolve, reject) => {
+    const request = http.request({ hostname: '127.0.0.1', port, path: route, method,
+      headers: { 'User-Agent': agent, ...headers, Host: host } }, incoming => {
+      (async () => {
+        const chunks = [];
+        for await (const chunk of incoming) chunks.push(chunk);
+        const received = new Headers();
+        for (let i = 0; i < incoming.rawHeaders.length; i += 2) received.append(incoming.rawHeaders[i], incoming.rawHeaders[i + 1]);
+        resolve({ response: new Response(method === 'HEAD' ? null : Buffer.concat(chunks), { status: incoming.statusCode, headers: received }), rawHeaders: incoming.rawHeaders });
+      })().catch(reject);
+    });
+    request.on('error', reject); request.setTimeout(15000, () => request.destroy(new Error('Local SEO request timed out'))); request.end();
+  });
+  const html = await response.text();
+  return { response, rawHeaders, html, ...inspect(html) };
 };
 async function check(route, expected, agent) {
   const page = await get(route, agent);
@@ -143,16 +162,91 @@ const pages = [
 ];
 let next;
 const stopNext = () => { if (next && !next.killed) next.kill(); };
+const stopServer = async () => {
+  if (next && next.exitCode === null) { const stopped = new Promise(resolve => next.once('exit', resolve)); next.kill(); await stopped; }
+};
+const startServer = async () => {
+  next = launch(['start', '--hostname', '127.0.0.1', '--port', String(port)]);
+  for (let i = 0; i < 100; i++) {
+    try { if ((await get('/')).response.status === 200) return; } catch {}
+    await new Promise(resolve => setTimeout(resolve, 100));
+  }
+  throw new Error('Servidor de producción local no disponible');
+};
+const domainResults = [];
+const jsonLd = html => [...html.matchAll(/<script\b[^>]*type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/g)].map(match => JSON.parse(match[1]));
+async function checkDomains() {
+  const baseline = new Map();
+  for (const page of pages) {
+    const { titles, descriptions, canonicals, h1, html } = await get(page.path, 'Googlebot');
+    baseline.set(page.path, { titles, descriptions, canonicals, h1, nodes: jsonLd(html) });
+  }
+  const hosts = [canonicalHost, 'restauranteelbueymadurado.com', 'buey-tienda.vercel.app', 'buey-tienda-git-preview-equipo.vercel.app', 'staging.example.test'];
+  const privatePaths = ['/carrito', '/carrito?pago=fallido', '/checkout', '/checkout?utm_source=local', '/pedido/confirmacion', '/pedido/confirmacion?order=BM-LOCAL', '/admin/login', '/admin/login?next=/admin/pedidos'];
+  const recordHeader = (page, host, route, expected) => {
+    const values = page.rawHeaders.filter((_, i) => i % 2 === 0).filter(key => key.toLowerCase() === 'x-robots-tag');
+    assert.equal(values.length, expected ? 1 : 0, host + route + ' cabecera única');
+    assert.equal(page.response.headers.get('x-robots-tag'), expected ? 'noindex' : null, host + route);
+    domainResults.push({ vercelEnv: env.VERCEL_ENV, host, route, status: page.response.status, xRobotsTag: page.response.headers.get('x-robots-tag') });
+  };
+  const token = await new SignJWT({ role: 'admin', workerName: 'Prueba local', sid: 'local-only' })
+    .setProtectedHeader({ alg: 'HS256' }).setIssuedAt().setExpirationTime('5m')
+    .sign(new TextEncoder().encode(env.ADMIN_JWT_SECRET));
+  for (const host of hosts) {
+    const staging = ![canonicalHost, 'restauranteelbueymadurado.com'].includes(host);
+    for (const expected of pages) for (const query of ['', '?utm_source=local&orden=sin-efecto']) {
+      const route = expected.path + query;
+      const page = await get(route, 'Googlebot', host);
+      assert.equal(page.response.status, 200);
+      recordHeader(page, host, route, staging);
+      const { titles, descriptions, canonicals, h1, html } = page;
+      assert.deepEqual({ titles, descriptions, canonicals, h1, nodes: jsonLd(html) }, baseline.get(expected.path), host + route + ' metadatos/JSON-LD intactos');
+    }
+    for (const route of privatePaths) {
+      const page = await get(route, 'Googlebot', host);
+      assert.equal(page.response.status, 200); recordHeader(page, host, route, true);
+      assert.ok(page.robots.some(meta => meta.content.includes('noindex')));
+    }
+    for (const cookie of ['', 'admin_session=invalid', 'admin_session=' + token]) {
+      const page = await get('/admin/pedidos?estado=PAID', 'Googlebot', host, { headers: { Cookie: cookie } });
+      recordHeader(page, host, '/admin/pedidos?estado=PAID', true);
+      assert.equal(page.response.status, cookie.endsWith(token) ? 200 : 307);
+      if (page.response.status === 307) assert.equal(new URL(page.response.headers.get('location'), base).pathname, '/admin/login');
+      else assert.ok(page.robots.some(meta => meta.content.includes('noindex') && meta.content.includes('nofollow')));
+    }
+    const sitemap = await get('/sitemap.xml', 'Googlebot', host);
+    assert.equal(sitemap.response.status, 200); recordHeader(sitemap, host, '/sitemap.xml', staging);
+    const urls = [...sitemap.html.matchAll(/<loc>(.*?)<\/loc>/g)].map(match => match[1]);
+    assert.equal(urls.length, pages.length);
+    for (const url of urls) { const parsed = new URL(url); assert.equal(parsed.origin, origin); assert.equal(parsed.search, ''); }
+    assert.ok(!urls.some(url => /carrito|checkout|\/admin|\/pedido\//.test(url)));
+    const robots = await get('/robots.txt', 'Googlebot', host);
+    assert.equal(robots.response.status, 200); recordHeader(robots, host, '/robots.txt', staging);
+    assert.match(robots.html, /^Allow: \/$/m); assert.match(robots.html, /^Disallow: \/api\/$/m);
+    assert.equal([...robots.html.matchAll(/^Disallow:/gm)].length, 1);
+    assert.ok(robots.html.includes('Sitemap: ' + origin + '/sitemap.xml'));
+    for (const route of ['/tienda?utm_source=head', '/checkout?utm_source=head']) {
+      const head = await get(route, 'Googlebot', host, { method: 'HEAD' });
+      assert.equal(head.response.status, 200); recordHeader(head, host, 'HEAD ' + route, staging || route.startsWith('/checkout'));
+    }
+  }
+  for (const [host, noindex] of [
+    ['WWW.RESTAURANTEELBUEYMADURADO.COM', false], [canonicalHost + ':443', false],
+    ['dev.restauranteelbueymadurado.com', true], [canonicalHost + '.example.test', true],
+    ['www.restauranteelbueymaduradoXcom', true], [canonicalHost + '.', true],
+    ['localhost:' + port, true], ['127.0.0.1:' + port, true],
+  ]) recordHeader(await get('/carta', 'Googlebot', host), host, '/carta', noindex);
+  for (const [host, forwarded, noindex] of [[hosts[2], canonicalHost, true], [canonicalHost, hosts[2], false]]) {
+    const page = await get('/', 'Googlebot', host, { headers: { 'X-Forwarded-Host': forwarded, 'X-Forwarded-Proto': 'https' } });
+    recordHeader(page, host, 'forwarded /', noindex);
+  }
+  const image = await get('/hero-poster.webp', 'Googlebot', hosts[2], { method: 'HEAD' });
+  assert.equal(image.response.status, 200); recordHeader(image, hosts[2], 'HEAD /hero-poster.webp', true);
+}
 process.once('exit', stopNext);
 try {
   await exited(launch(['build', '--webpack']));
-  next = launch(['start', '--hostname', '127.0.0.1', '--port', String(port)]);
-  let ready = false;
-  for (let i = 0; i < 100; i++) {
-    try { if ((await get('/')).response.status === 200) { ready = true; break; } } catch {}
-    await new Promise(resolve => setTimeout(resolve, 100));
-  }
-  assert.ok(ready, 'Servidor de producción local disponible');
+  await startServer();
   for (const expected of pages) {
     for (const agent of ['Mozilla/5.0', 'Googlebot', 'Twitterbot/1.0']) {
       const clean = await check(expected.path, expected, agent);
@@ -171,6 +265,11 @@ try {
   assert.match(contact.document, /<h2[^>]*>Hablemos<\/h2>/);
   const categoryPage = await get('/tienda/categoria-local');
   assert.match(categoryPage.document, /<h2[^>]*>Producto local<\/h2>/);
+
+  await checkDomains();
+  await stopServer(); env.VERCEL_ENV = 'preview'; await startServer();
+  await checkDomains();
+  await fs.writeFile(path.join(artifacts, 'domains.json'), JSON.stringify({ project, nodeEnv: env.NODE_ENV, checkedResponses: domainResults.length, results: domainResults }, null, 2));
 
   for (const [route, title, description] of [
     ['/carrito', 'Tu carrito | El Buey Madurado', 'Revisa los productos'],
@@ -205,14 +304,11 @@ try {
   assert.deepEqual(unexpected, []);
   await fs.writeFile(path.join(artifacts, 'results.json'), JSON.stringify({ project, base, fixturePort, menuEntries: names.length, checkedResponses: results.length, unexpected, results }, null, 2));
   console.log(`PASS SEO: ${results.length} respuestas HTML, ${names.length} fichas de Carta, metadatos dinámicos, parámetros, noindex y acceso privado.`);
+  console.log(`PASS dominios: ${domainResults.length} respuestas HTTP con Host real y el mismo build en VERCEL_ENV production/preview.`);
   console.log('Build ficticio aislado en ' + project + '. NO PUBLICAR. Informe: .seo-check.local/results.json');
 } finally {
   process.removeListener('exit', stopNext);
-  if (next && next.exitCode === null) {
-    const stopped = new Promise(resolve => next.once('exit', resolve));
-    next.kill();
-    await stopped;
-  }
+  await stopServer();
   fixture.closeAllConnections();
   await new Promise(resolve => fixture.close(resolve));
 }

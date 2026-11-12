@@ -33,6 +33,20 @@ const nextConfig: NextConfig = {
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
         ],
       },
+      {
+        source: "/:path*",
+        // El mismo build puede servirse en producción, vercel.app o una preview
+        // con dominio propio. Decidir por Host, nunca solo por NODE_ENV/VERCEL_ENV.
+        // Next compara el hostname completo, sin puerto y en minúsculas.
+        missing: [{ type: "host", value: "(?:www\\.)?restauranteelbueymadurado\\.com" }],
+        headers: [{ key: "X-Robots-Tag", value: "noindex" }],
+      },
+      // Mantener estas rutas fuera del índice también en el dominio definitivo.
+      // Se conservan sus metadatos y las comprobaciones de autenticación existentes.
+      ...["/carrito", "/checkout", "/pedido/confirmacion", "/admin/:path*"].map(source => ({
+        source,
+        headers: [{ key: "X-Robots-Tag", value: "noindex" }],
+      })),
     ];
   },
 };
