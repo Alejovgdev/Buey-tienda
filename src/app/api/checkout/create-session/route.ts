@@ -6,6 +6,7 @@ import { generateOrderNumber } from '@/lib/order-number';
 import { redsys } from '@/lib/redsys';
 import { TERMS_VERSION } from '@/lib/legal';
 import { buildMarketingConsentEvidence } from '@/lib/marketing-consent';
+import { createOrderStatusAccess, orderStatusCookieName, ORDER_STATUS_ACCESS_SECONDS } from '@/lib/order-status-access';
 import { toLabelProfileRules } from '@/lib/labels/label-snapshot';
 import type { Json, Tables } from '@/supabase/types';
 import type { CreateSessionSuccess } from '@/types/checkout';
@@ -241,6 +242,7 @@ export async function POST(request: Request) {
     if (dsOrderError || !dsOrder) {
       return genericErrorResponse();
     }
+    const statusAccess = await createOrderStatusAccess(orderNumber);
 
     // 9. INSERT orders.
     const { data: order, error: orderError } = await supabaseAdmin
@@ -430,7 +432,15 @@ export async function POST(request: Request) {
       },
     };
 
-    return NextResponse.json(response);
+    const result = NextResponse.json(response, { headers: { 'Cache-Control': 'no-store' } });
+    result.cookies.set(orderStatusCookieName(order.order_number), statusAccess, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/api/pedidos/estado',
+      maxAge: ORDER_STATUS_ACCESS_SECONDS,
+    });
+    return result;
   } catch {
     return genericErrorResponse();
   }

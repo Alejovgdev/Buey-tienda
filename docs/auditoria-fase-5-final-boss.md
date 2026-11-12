@@ -18,7 +18,7 @@ Confirmado antes de tocar nada. Es el mismo proyecto usado en las auditorías de
 ## Método
 
 - Servidor real levantado con `npm run dev` (Next.js 16.1.4 / Turbopack), notificación probada contra `http://localhost:3000/api/pagos/notificacion` real, no un mock.
-- Notificaciones de Redsys **forjadas con firma criptográficamente válida**: se importó `redsys-easy` (la misma librería que usa la app) con la clave pública de pruebas SIS-T (`sq7HjrUOBfKmC576ILgskD5srU870gJ7`, documentada en la sección 15 del MVP y en el propio `.env.local` de desarrollo) y se usó `createRedirectForm()` — la misma función que `create-session` usa para firmar *hacia* Redsys — para construir el body `{ Ds_SignatureVersion, Ds_MerchantParameters, Ds_Signature }` con cualquier contenido bajo control total (incluidos campos incoherentes a propósito, para el punto 5bis). Se verificó primero, con un roundtrip de auto-verificación (`processRestNotification`), que la firma generada es indistinguible de una firma real.
+- Notificaciones de Redsys **forjadas con firma criptográficamente válida**: se importó `redsys-easy` (la misma librería que usa la app) con la clave pública de pruebas SIS-T (`<REDSYS_SECRET_KEY_SOLO_SERVIDOR>`, documentada en la sección 15 del MVP y en el propio `.env.local` de desarrollo) y se usó `createRedirectForm()` — la misma función que `create-session` usa para firmar *hacia* Redsys — para construir el body `{ Ds_SignatureVersion, Ds_MerchantParameters, Ds_Signature }` con cualquier contenido bajo control total (incluidos campos incoherentes a propósito, para el punto 5bis). Se verificó primero, con un roundtrip de auto-verificación (`processRestNotification`), que la firma generada es indistinguible de una firma real.
 - Los pedidos de prueba de los puntos 1, 2, 3, 4, 5, 5bis y 5ter se insertaron **directamente en BD** con el cliente `service_role` (mismo esquema exacto que produce `create-session`: `orders` + `order_items` con snapshots), para tener control total sobre la concurrencia sin depender de la latencia de 5-10 llamadas HTTP reales a `create-session`. El punto 9 usó el **flujo real completo** (`POST /api/checkout/create-session` de verdad) para cerrar el círculo de extremo a extremo.
 - Todos los datos de prueba (pedidos, líneas, pagos, histórico) se borraron al terminar cada prueba. Todo el stock y la promoción tocados se restauraron a sus valores de seed originales — confirmado con una lectura final de comparación (ver sección de cierre). Dos variantes (`Pack Gourmet El Buey` y `Burger Wagyu Pack 4`, usadas en los puntos 3 y 9) quedaron con stock desincronizado tras las primeras pruebas por un descuido de limpieza en este mismo informe — se detectó y se corrigió antes de cerrar la auditoría (ver "Cierre y verificación final del entorno").
 
@@ -462,7 +462,7 @@ grep -rl "SUPABASE_SERVICE_ROLE_KEY"            .next/static → sin resultados
 grep -rl "REDSYS_SECRET_KEY"                    .next/static → sin resultados
 grep -rl "RESEND_API_KEY"                       .next/static → sin resultados
 grep -rl "<valor real de SUPABASE_SERVICE_ROLE_KEY>" .next/static → sin resultados
-grep -rl "sq7HjrUOBfKmC576ILgskD5srU870gJ7"     .next/static → sin resultados
+grep -rl "<REDSYS_SECRET_KEY_SOLO_SERVIDOR>"     .next/static → sin resultados
 grep -rl "<valor real de RESEND_API_KEY>"       .next/static → sin resultados
 ```
 

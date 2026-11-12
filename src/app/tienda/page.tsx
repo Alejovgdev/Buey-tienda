@@ -6,12 +6,14 @@ import CategoryNav from '@/components/Tienda/CategoryNav';
 import ProductGrid from '@/components/Tienda/ProductGrid';
 import ShippingNotice from '@/components/Tienda/ShippingNotice';
 import ShopAvailabilityBanner from '@/components/Tienda/ShopAvailabilityBanner';
+import { createPageMetadata } from '@/lib/seo';
 
-export const metadata: Metadata = {
-  title: 'Tienda Online | El Buey Madurado',
+export const metadata: Metadata = createPageMetadata({
+  path: '/tienda',
+  title: 'Comprar carne madurada online | Tienda El Buey Madurado',
   description:
-    'Carne madurada, hamburguesas artesanas, croquetas y productos gourmet de El Buey Madurado, directos a tu puerta.',
-};
+    'Consulta el catálogo de la tienda online de El Buey Madurado. Explora sus categorías y las fichas de productos para realizar tu compra.',
+});
 
 const PRODUCTS_PER_CATEGORY = 4;
 

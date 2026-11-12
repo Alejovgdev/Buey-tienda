@@ -22,6 +22,7 @@ const productId = '22222222-2222-4222-8222-222222222222';
 const variantId = '33333333-3333-4333-8333-333333333333';
 const state = { open: true, productActive: true, variantActive: true, categoryActive: true, stock: 8, price: 2500, name: 'Producto local inicial', fail: false };
 const writes = [];
+const privateReads = [];
 const category = () => ({ id: categoryId, slug: 'local', name: 'Categoría local', description: 'Categoría de prueba', is_active: state.categoryActive });
 const product = () => ({
   id: productId, slug: 'producto-local', name: state.name, description: 'Descripción comercial local en HTML',
@@ -38,6 +39,7 @@ const fixture = http.createServer(async (req, res) => {
     if (state.fail && req.method === 'GET') { res.writeHead(503, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ message: 'Simulated database outage' })); return; }
     let rows;
     if (req.method === 'GET') {
+      if (['orders', 'order_items', 'payments', 'order_status_history', 'order_box_labels'].includes(table)) privateReads.push(table);
       if (table === 'categories') rows = state.categoryActive ? [category()] : [];
       else if (table === 'products') {
         rows = state.productActive && (!url.searchParams.has('categories.is_active') || state.categoryActive) ? [{
@@ -48,6 +50,7 @@ const fixture = http.createServer(async (req, res) => {
       } else if (table === 'product_variants') rows = [{ ...variant(), product: product() }];
       else if (table === 'shop_settings') rows = [{ accepting_orders: state.open, notice_message: 'ABIERTO_LOCAL', checkout_disabled_message: 'CERRADO_LOCAL' }];
       else if (table === 'promotions') rows = [];
+      else if (table === 'orders') rows = { order_number: 'BM-LOCAL', status: 'PAID' };
       else throw new Error('Unexpected fixture read: ' + table);
     } else if (req.method === 'POST') {
       let raw = ''; for await (const chunk of req) raw += chunk;
@@ -86,7 +89,7 @@ const pass = name => console.log('PASS ' + name);
 const get = async route => { const response = await fetch(base + route); return { status: response.status, headers: response.headers, html: await response.text() }; };
 const line = { variantId, productSlug: 'producto-local', quantity: 2, expectedUnitPrice: 2500 };
 const customer = { customerName: 'Ana', customerLastName: 'García', customerEmail: 'ana@example.invalid', customerPhone: '+34670775786', shippingStreet: 'Calle Mayor, 1', shippingCity: 'Xàtiva', shippingProvince: 'València', shippingPostalCode: '46800', acceptTerms: true };
-const post = async (route, body) => { const response = await fetch(base + route, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }); return { status: response.status, data: await response.json() }; };
+const post = async (route, body) => { const response = await fetch(base + route, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }); return { status: response.status, headers: response.headers, data: await response.json() }; };
 let next;
 process.once('exit', () => next?.kill());
 try {
@@ -143,11 +146,78 @@ try {
   assert.equal(params.DS_MERCHANT_AMOUNT, String(state.price * 2 + 1000));
   assert.equal(state.stock, 8);
   pass('carrito válido: payload firmado con precio del servidor, sin contactar al banco ni descontar stock');
+  await checkAccess(accepted.headers.get('set-cookie'));
+  const spoofed = await fetch(base + '/api/checkout/create-session', {
+    method: 'POST', headers: { 'Content-Type': 'application/json', Host: 'attacker.example.invalid', 'x-forwarded-host': 'attacker.example.invalid' },
+    body: JSON.stringify({ customer, items: [{ ...line, expectedUnitPrice: state.price }], expectedTotal: state.price * 2 + 1000 }),
+  });
+  assert.equal(spoofed.status, 200);
+  const spoofedData = await spoofed.json();
+  const spoofedParams = JSON.parse(Buffer.from(spoofedData.redsys.Ds_MerchantParameters, 'base64').toString());
+  for (const key of ['DS_MERCHANT_MERCHANTURL', 'DS_MERCHANT_URLOK', 'DS_MERCHANT_URLKO']) {
+    assert.equal(new URL(spoofedParams[key]).origin, new URL(params[key]).origin, key + ' ignora cabeceras Host manipuladas');
+    assert.notEqual(new URL(spoofedParams[key]).hostname, 'attacker.example.invalid');
+  }
+  pass('URLs de retorno y notificación Redsys no aceptan Host manipulado');
   console.log('Validación local terminada. Este build contiene fixtures y debe recompilarse para publicar.');
 } finally {
   next?.kill();
   fixture.closeAllConnections();
   await new Promise(resolve => fixture.close(resolve));
+}
+
+async function checkAccess(setCookie) {
+  const readsBefore = privateReads.length;
+  const walk = async directory => (await Promise.all((await fs.readdir(directory, { withFileTypes: true })).map(entry => {
+    const full = path.join(directory, entry.name);
+    return entry.isDirectory() ? walk(full) : [full];
+  }))).flat();
+  for (const file of (await walk(path.join(root, 'src/app/api/admin'))).filter(file => file.endsWith('route.ts'))) {
+    const route = '/api/admin/' + path.relative(path.join(root, 'src/app/api/admin'), path.dirname(file)).replaceAll('\\', '/').replaceAll('[id]', productId);
+    if (['/api/admin/auth', '/api/admin/logout'].includes(route)) continue;
+    const source = await fs.readFile(file, 'utf8');
+    const method = source.match(/export async function (POST|PATCH|GET|DELETE|PUT)/)[1];
+    for (const cookie of ['', 'admin_session=invalid']) {
+      const response = await fetch(base + route, { method, headers: { Cookie: cookie, 'Content-Type': 'application/json' }, body: method === 'GET' ? undefined : '{}' });
+      assert.equal(response.status, 401, method + ' ' + route);
+    }
+  }
+  for (const file of (await walk(path.join(root, 'src/app/admin'))).filter(file => file.endsWith('page.tsx'))) {
+    const route = '/admin/' + path.relative(path.join(root, 'src/app/admin'), path.dirname(file)).replaceAll('\\', '/').replaceAll('[id]', productId).replaceAll('[labelId]', variantId);
+    if (route === '/admin/login') continue;
+    const response = await fetch(base + route, { redirect: 'manual', headers: { 'x-middleware-subrequest': 'middleware:middleware:middleware:middleware:middleware' } });
+    assert.equal(response.status, 307, route);
+    assert.equal(new URL(response.headers.get('location'), base).pathname, '/admin/login');
+  }
+  assert.equal(privateReads.length, readsBefore);
+  pass('todas las páginas y API administrativas, incluida caja: acceso anónimo/cookie inválida rechazados antes de leer pedidos');
+  const login = await post('/api/admin/auth', { password: 'local-only', workerName: 'Ana local' });
+  assert.equal(login.status, 200);
+  assert.match(login.headers.get('set-cookie'), /HttpOnly/i);
+  const signedSession = login.headers.get('set-cookie').split(';')[0];
+  const invalidNotes = await fetch(base + `/api/admin/pedidos/${productId}/notas`, {
+    method: 'PATCH', headers: { Cookie: signedSession, 'Content-Type': 'application/json' }, body: '{}',
+  });
+  assert.equal(invalidNotes.status, 400, 'la sesión válida pasa a validación del formulario');
+  assert.ok(setCookie);
+  assert.match(setCookie, /HttpOnly/i); assert.match(setCookie, /Secure/i); assert.match(setCookie, /SameSite=Lax/i);
+  const cookie = setCookie.split(';')[0];
+  for (const [number, access] of [['BM-LOCAL', ''], ['BM-LOCAL', 'order_status_BM-LOCAL=invalid'], ['BM-OTRO', cookie]]) {
+    const response = await fetch(base + '/api/pedidos/estado?order=' + number, { headers: { Cookie: access } });
+    assert.equal(response.status, 404);
+    assert.equal(response.headers.get('cache-control'), 'no-store');
+  }
+  assert.equal(privateReads.length, readsBefore);
+  const authorized = await fetch(base + '/api/pedidos/estado?order=BM-LOCAL', { headers: { Cookie: cookie } });
+  assert.equal(authorized.status, 200);
+  assert.deepEqual(await authorized.json(), { orderNumber: 'BM-LOCAL', status: 'PAID' });
+  assert.equal(privateReads.length, readsBefore + 1);
+  assert.equal(await (await fetch(base + '/api/pagos/notificacion', { method: 'POST', body: '' })).text(), 'Firma inválida');
+  assert.equal(privateReads.length, readsBefore + 1);
+  for (const route of ['/', '/carta', '/reservas', '/sobre-nosotros', '/contacto', '/pedido/confirmacion?order=BM-LOCAL']) {
+    assert.equal((await get(route)).status, 200, route);
+  }
+  pass('login, cookie limitada al pedido, confirmación y restaurante; webhook sin firma rechazado sin acceder a pedidos');
 }
 
 async function checkBrowser() {

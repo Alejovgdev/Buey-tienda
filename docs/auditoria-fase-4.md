@@ -7,7 +7,7 @@
 
 **Proyecto Supabase verificado:** `tienda-buey-dev` (`pwkpuvagoupvynamskmh`) — confirmado con `npx supabase projects list` antes de empezar.
 
-**Postura:** solo lectura sobre código. Las pruebas de comportamiento se hicieron contra la BD de desarrollo real: se levantó `npm run dev`, se crearon 3 pedidos de prueba reales vía `curl` (`BM-2026-00014`, `BM-2026-00015`, más el pedido preexistente `BM-2026-00013` de una sesión anterior) y los tres se borraron al terminar (ver punto 6). También se generaron notificaciones de Redsys firmadas a mano (HMAC-SHA256 + 3DES, replicando el algoritmo interno de `redsys-easy` con la clave pública de pruebas SIS-T `sq7HjrUOBfKmC576ILgskD5srU870gJ7`, documentada en la sección 15 del MVP) para probar el stub de notificación sin depender de una llamada real de Redsys.
+**Postura:** solo lectura sobre código. Las pruebas de comportamiento se hicieron contra la BD de desarrollo real: se levantó `npm run dev`, se crearon 3 pedidos de prueba reales vía `curl` (`BM-2026-00014`, `BM-2026-00015`, más el pedido preexistente `BM-2026-00013` de una sesión anterior) y los tres se borraron al terminar (ver punto 6). También se generaron notificaciones de Redsys firmadas a mano (HMAC-SHA256 + 3DES, replicando el algoritmo interno de `redsys-easy` con la clave pública de pruebas SIS-T `<REDSYS_SECRET_KEY_SOLO_SERVIDOR>`, documentada en la sección 15 del MVP) para probar el stub de notificación sin depender de una llamada real de Redsys.
 
 ---
 
@@ -140,7 +140,7 @@ src/app/api/pagos/notificacion/route.ts
 grep -rl "SUPABASE_SERVICE_ROLE_KEY" .next/static  → sin resultados
 grep -rl "<valor real de la key>"    .next/static  → sin resultados
 grep -rl "REDSYS_SECRET_KEY"         .next/static  → sin resultados
-grep -rl "sq7HjrUOBfKmC576ILgskD5srU870gJ7" .next/static → sin resultados
+grep -rl "<REDSYS_SECRET_KEY_SOLO_SERVIDOR>" .next/static → sin resultados
 ```
 
 Ninguno de los dos nombres de variable ni sus valores reales aparece en el código servido al cliente.

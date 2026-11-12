@@ -1390,7 +1390,7 @@ export async function POST(request: Request) {
 | URL | `https://sis-t.redsys.es:25443/sis/realizarPago` |
 | REDSYS_MERCHANT_CODE | `999008881` |
 | REDSYS_TERMINAL | `001` |
-| REDSYS_SECRET_KEY | `sq7HjrUOBfKmC576ILgskD5srU870gJ7` |
+| REDSYS_SECRET_KEY | `<REDSYS_SECRET_KEY_SOLO_SERVIDOR>` |
 
 **Tarjeta de prueba aprobada:** Pan `4548812049400004`, caducidad cualquier fecha futura, CVV `123`.  
 **Tarjeta de prueba denegada:** el mismo pan con CVV `999`, o cualquier importe cuyo valor en céntimos termine en `96` (ej: `1096`, `2996`).
@@ -1622,7 +1622,7 @@ SUPABASE_SERVICE_ROLE_KEY=eyJ...               # NUNCA en frontend — solo back
 # Redsys TPV Virtual
 REDSYS_MERCHANT_CODE=999008881                 # FUC del banco (dev: 999008881)
 REDSYS_TERMINAL=001                            # Terminal (dev: 001)
-REDSYS_SECRET_KEY=sq7HjrUOBfKmC576ILgskD5srU870gJ7  # NUNCA en frontend
+REDSYS_SECRET_KEY=<REDSYS_SECRET_KEY_SOLO_SERVIDOR>  # NUNCA en frontend
 REDSYS_ENVIRONMENT=test                        # "test" (SIS-T) | "production" (SIS)
 
 # Resend

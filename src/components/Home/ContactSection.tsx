@@ -13,13 +13,14 @@ const WRITE_REVIEW_URL =
   "https://www.google.com/search?sca_esv=2e0ce5bd22b7d86a&rlz=1C1UEAD_esES1083ES1083&si=AL3DRZEsmMGCryMMFSHJ3StBhOdZ2-6yYkXd_doETEE1OR-qOZQSB00aZ9I88OJyJo2CaVn39NapAOp2oRtRFPSbooL-VkyvtQ4Aj3t2f9UyQEvOI7IyvclMC-FVOZ18KA_xjmI4EhBRdN1gAUgChJ6eZhUQ7Tu0EQ%3D%3D&q=Restaurante+el+buey+madurado+Rese%C3%B1as&sa=X&ved=2ahUKEwiB7ua3_v6RAxXuVKQEHU-dHooQ0bkNegQINRAE&biw=1536&bih=695&dpr=1.25&aic=0&zx=1767979934420&no_sw_cr=1";
 
 
-const ContactSection = ({ restaurantHome = false }: { restaurantHome?: boolean }) => {
+const ContactSection = ({ restaurantHome = false, headingAs: Heading = 'h2' }: { restaurantHome?: boolean; headingAs?: 'h1' | 'h2' }) => {
+  const Subheading = Heading === 'h1' ? 'h2' : 'h3';
   return (
     <section id="contact" className="max-w-6xl mx-auto px-6 pt-10 pb-20 fade-in">
       <div className="flex flex-col gap-2 mb-8">
-        <h2 className="text-amber-600 text-4xl font-bold text-beige-100">
+        <Heading className="text-amber-600 text-4xl font-bold text-beige-100">
           Contacto y Localización
-        </h2>
+        </Heading>
         <p className="text-gray-400">
           Reserva, dudas o cómo llegar — te lo ponemos fácil.
         </p>
@@ -31,7 +32,7 @@ const ContactSection = ({ restaurantHome = false }: { restaurantHome?: boolean }
           {/* Encabezado */}
           <div className="flex items-start justify-between gap-4 mb-6">
             <div>
-              <h3 className="text-2xl font-semibold text-amber-600">Hablemos</h3>
+              <Subheading className="text-2xl font-semibold text-amber-600">Hablemos</Subheading>
             </div>
 
           </div>

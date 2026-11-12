@@ -1,11 +1,13 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { createPageMetadata } from '@/lib/seo';
 
-export const metadata: Metadata = {
+export const metadata: Metadata = createPageMetadata({
+  path: '/aviso-legal',
   title: 'Aviso Legal y Condiciones de Uso | El Buey Madurado',
   description:
     'Aviso legal, condiciones de uso y datos identificativos de EL BUEY MADURADO, S.L., titular del sitio web restauranteelbueymadurado.com y de su tienda online de carne madurada.',
-};
+});
 
 export default function AvisoLegalPage() {
   return (

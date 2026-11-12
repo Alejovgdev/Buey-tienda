@@ -6,9 +6,10 @@ import ShippingNotice from './ShippingNotice';
 
 interface ProductDetailProps {
   product: ProductDetailData;
+  acceptingOrders: boolean;
 }
 
-export default function ProductDetail({ product }: ProductDetailProps) {
+export default function ProductDetail({ product, acceptingOrders }: ProductDetailProps) {
   return (
     <div className="grid grid-cols-1 gap-10 lg:grid-cols-2 lg:gap-16">
       <ProductImageGallery images={product.images} productName={product.name} />
@@ -26,11 +27,8 @@ export default function ProductDetail({ product }: ProductDetailProps) {
         </div>
 
         <VariantSelector
-          variants={product.variants}
-          productSlug={product.slug}
-          productName={product.name}
-          imageUrl={product.images[0]?.url ?? null}
-          allergens={product.allergens}
+          product={product}
+          acceptingOrders={acceptingOrders}
         />
 
         <ShippingNotice variant="compact" />

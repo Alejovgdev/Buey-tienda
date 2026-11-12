@@ -1,5 +1,6 @@
 import { cache } from 'react';
 import { supabase } from './supabase';
+import { CatalogQueryError, queryCatalog } from './catalog-query';
 import type {
   CategorySummary,
   CategoryWithProducts,
@@ -40,7 +41,7 @@ const PRODUCT_CARD_SELECT = `
 `;
 
 export async function getHomeProducts(limit = 3): Promise<HomeProductData[]> {
-  const { data, error } = await supabase
+  const { data } = await queryCatalog(supabase
     .from('products')
     .select(`
       slug, name, allergens,
@@ -57,9 +58,9 @@ export async function getHomeProducts(limit = 3): Promise<HomeProductData[]> {
     .order('sort_order', { referencedTable: 'product_variants' })
     .order('is_main', { referencedTable: 'product_images', ascending: false })
     .order('sort_order', { referencedTable: 'product_images' })
-    .limit(limit);
+    .limit(limit));
 
-  if (error || !data) return [];
+  if (!data) throw new CatalogQueryError();
 
   return data.map((product) => ({
     slug: product.slug,
@@ -75,25 +76,25 @@ export async function getHomeProducts(limit = 3): Promise<HomeProductData[]> {
 }
 
 export async function getActiveCategories(): Promise<CategorySummary[]> {
-  const { data, error } = await supabase
+  const { data } = await queryCatalog(supabase
     .from('categories')
     .select('id, slug, name, description')
     .eq('is_active', true)
-    .order('sort_order');
+    .order('sort_order'));
 
-  if (error || !data) return [];
+  if (!data) throw new CatalogQueryError();
   return data;
 }
 
 export const getCategoryBySlug = cache(async (slug: string): Promise<CategorySummary | null> => {
-  const { data, error } = await supabase
+  const { data } = await queryCatalog(supabase
     .from('categories')
     .select('id, slug, name, description')
     .eq('slug', slug)
     .eq('is_active', true)
-    .maybeSingle();
+    .maybeSingle());
 
-  if (error || !data) return null;
+  if (!data) return null;
   return data;
 });
 
@@ -116,8 +117,8 @@ export async function getProductCardsByCategory(
     query = query.limit(limit);
   }
 
-  const { data, error } = await query;
-  if (error || !data) return [];
+  const { data } = await queryCatalog(query);
+  if (!data) throw new CatalogQueryError();
   return (data as unknown as ProductCardRow[]).map(mapProductCard);
 }
 
@@ -140,12 +141,13 @@ type ProductDetailRow = {
   description: string | null;
   allergens: string[] | null;
   allergens_notes: string | null;
+  categories: { slug: string; name: string; is_active: boolean };
   product_variants: { id: string; name: string; price: number; stock: number }[];
   product_images: { url: string; alt_text: string | null; is_main: boolean }[];
 };
 
 export const getProductDetailBySlug = cache(async (slug: string): Promise<ProductDetailData | null> => {
-  const { data, error } = await supabase
+  const { data } = await queryCatalog(supabase
     .from('products')
     .select(
       `
@@ -154,19 +156,21 @@ export const getProductDetailBySlug = cache(async (slug: string): Promise<Produc
       description,
       allergens,
       allergens_notes,
+      categories!inner ( slug, name, is_active ),
       product_variants ( id, name, price, stock ),
       product_images ( url, alt_text, is_main )
     `
     )
     .eq('slug', slug)
     .eq('is_active', true)
+    .eq('categories.is_active', true)
     .eq('product_variants.is_active', true)
     .order('sort_order', { referencedTable: 'product_variants' })
     .order('is_main', { referencedTable: 'product_images', ascending: false })
     .order('sort_order', { referencedTable: 'product_images' })
-    .maybeSingle();
+    .maybeSingle());
 
-  if (error || !data) return null;
+  if (!data) return null;
 
   const row = data as unknown as ProductDetailRow;
 
@@ -174,6 +178,7 @@ export const getProductDetailBySlug = cache(async (slug: string): Promise<Produc
     slug: row.slug,
     name: row.name,
     description: row.description,
+    category: { slug: row.categories.slug, name: row.categories.name },
     allergens: row.allergens ?? [],
     allergensNotes: row.allergens_notes,
     images: row.product_images.map((image) => ({

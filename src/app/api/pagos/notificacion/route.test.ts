@@ -274,6 +274,27 @@ describe('notificación Redsys (servicios simulados; concurrencia SQL en script 
     expect(mocks.internal).not.toHaveBeenCalled();
   });
 
+  it('conserva el código de BD sin registrar mensajes, detalles o credenciales del proveedor', async () => {
+    mocks.rpc.mockResolvedValue({ data: null, error: {
+      code: '08006', message: 'private-test-sentinel', details: 'Authorization: Bearer private-test-sentinel',
+    } });
+    const response = await POST(request());
+    expect(response.status).toBe(500);
+    expect(await response.text()).not.toContain('private-test-sentinel');
+    expect(JSON.stringify(vi.mocked(console.error).mock.calls)).not.toContain('private-test-sentinel');
+    expect(console.error).toHaveBeenCalledWith(expect.any(String), expect.objectContaining({ errorCode: '08006', stage: 'payment_rpc' }));
+  });
+
+  it('no guarda ni registra el mensaje privado de errores de correo', async () => {
+    mocks.customer.mockRejectedValue(new Error('private-test-sentinel'));
+    mocks.internal.mockRejectedValue(new Error('private-test-sentinel'));
+    expect((await POST(request())).status).toBe(200);
+    expect(JSON.stringify(vi.mocked(console.error).mock.calls)).not.toContain('private-test-sentinel');
+    expect(JSON.stringify(insert.mock.calls)).not.toContain('private-test-sentinel');
+    expect(insert).toHaveBeenCalledWith(expect.objectContaining({ event_type: 'EMAIL_CLIENTE_ERROR' }));
+    expect(insert).toHaveBeenCalledWith(expect.objectContaining({ event_type: 'EMAIL_INTERNO_ERROR' }));
+  });
+
   it('firma inválida: no accede a BD', async () => {
     mocks.notification.mockImplementation(() => { throw new Error('invalid signature'); });
     expect((await POST(request())).status).toBe(400);

@@ -9,6 +9,7 @@ import ConditionalMap from '@/components/Cookies/ConditionalMap';
 import type { HomeProductData } from '@/types/shop';
 import GallerySection from './GallerySection';
 import HomeProductCard from './HomeProductCard';
+import VisibleVideo from './VisibleVideo';
 import styles from './HomeLanding.module.css';
 
 const MEAT_IMAGE = '/assets/images/chuleton-corte.webp';
@@ -27,14 +28,12 @@ const shippingSteps = [
   { title: 'Te llega en frío', text: 'Lo recibes refrigerado en 24/48 horas.' },
 ];
 
-export default function HomeLanding({ products }: { products: HomeProductData[] }) {
+export default function HomeLanding({ products, catalogUnavailable = false }: { products: HomeProductData[]; catalogUnavailable?: boolean }) {
   return (
     <div className={styles.home}>
       <section className={styles.hero} aria-labelledby="home-title">
         <div className={styles.heroVideo} aria-hidden="true">
-          <video autoPlay muted loop playsInline preload="metadata" poster="/hero-poster.webp">
-            <source src="/hero-restaurante.mp4" type="video/mp4" />
-          </video>
+          <VisibleVideo src="/hero-restaurante.mp4" poster="/hero-poster.webp" media="(max-width: 767px) and (prefers-reduced-motion: no-preference)" />
         </div>
         <div className={`${styles.container} ${styles.heroGrid}`}>
           <div className={styles.heroContent}>
@@ -56,9 +55,7 @@ export default function HomeLanding({ products }: { products: HomeProductData[] 
             </div>
           </div>
           <div className={styles.heroPhoto}>
-            <video autoPlay muted loop playsInline preload="metadata" poster="/hero-poster.webp" aria-label="Preparación de nuestros platos en El Buey Madurado">
-              <source src="/hero-restaurante.mp4" type="video/mp4" />
-            </video>
+            <VisibleVideo src="/hero-restaurante.mp4" poster="/hero-poster.webp" media="(min-width: 768px) and (prefers-reduced-motion: no-preference)" aria-label="Preparación de nuestros platos en El Buey Madurado" />
           </div>
         </div>
       </section>
@@ -75,7 +72,9 @@ export default function HomeLanding({ products }: { products: HomeProductData[] 
               <HomeProductCard product={product} key={product.slug} />
             ))}
           </ul>
-          {products.length === 0 && <p className={styles.productsUnavailable}>Consulta los productos disponibles en la tienda.</p>}
+          {products.length === 0 && <p className={styles.productsUnavailable}>{catalogUnavailable
+            ? 'No se ha podido cargar el catálogo. Inténtalo de nuevo más tarde.'
+            : 'Consulta los productos disponibles en la tienda.'}</p>}
         </div>
       </section>
 

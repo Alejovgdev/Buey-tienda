@@ -3,25 +3,23 @@
 import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { FaCheck, FaMinus, FaPlus } from 'react-icons/fa';
-import type { ProductVariantData } from '@/types/shop';
+import type { ProductDetailData } from '@/types/shop';
 import { formatPriceFromCents } from '@/lib/format-price';
 import { useCart } from '@/contexts/CartContext';
+import { productJsonLd } from '@/lib/structured-data';
+import JsonLd from '@/components/Seo/JsonLd';
 
 interface VariantSelectorProps {
-  variants: ProductVariantData[];
-  productSlug: string;
-  productName: string;
-  imageUrl: string | null;
-  allergens: string[];
+  product: ProductDetailData;
+  acceptingOrders: boolean;
 }
 
 export default function VariantSelector({
-  variants,
-  productSlug,
-  productName,
-  imageUrl,
-  allergens,
+  product,
+  acceptingOrders,
 }: VariantSelectorProps) {
+  const { variants, slug: productSlug, name: productName, allergens } = product;
+  const imageUrl = product.images[0]?.url ?? null;
   const { addItem } = useCart();
   const [selectedId, setSelectedId] = useState(variants[0]?.id);
   const [quantity, setQuantity] = useState(1);
@@ -37,7 +35,9 @@ export default function VariantSelector({
     setQuantity(1);
   }, [selectedId]);
 
-  if (!selected) return null;
+  const jsonLd = <JsonLd id="product-jsonld" data={productJsonLd(product, selected?.id, acceptingOrders)} />;
+
+  if (!selected) return jsonLd;
 
   const soldOut = selected.stock <= 0;
   const atMinimum = quantity <= 1;
@@ -64,6 +64,8 @@ export default function VariantSelector({
   };
 
   return (
+    <>
+    {jsonLd}
     <div className="space-y-5">
       {variants.length > 1 && (
         <div>
@@ -79,6 +81,7 @@ export default function VariantSelector({
                   key={variant.id}
                   type="button"
                   onClick={() => setSelectedId(variant.id)}
+                  aria-pressed={isActive}
                   className={`rounded-full border px-4 py-2 text-sm font-medium transition-colors duration-200 ${
                     isActive
                       ? 'border-amber-500 bg-amber-500 text-[#1a1410]'
@@ -93,6 +96,8 @@ export default function VariantSelector({
           </div>
         </div>
       )}
+
+      {variants.length === 1 && selected.name && <p className="text-sm text-white/60">Formato: {selected.name}</p>}
 
       <p className="text-3xl font-bold text-white">{formatPriceFromCents(selected.price)}</p>
 
@@ -156,5 +161,6 @@ export default function VariantSelector({
         )}
       </motion.button>
     </div>
+    </>
   );
 }

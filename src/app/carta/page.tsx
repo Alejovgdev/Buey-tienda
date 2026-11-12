@@ -314,6 +314,7 @@ export default function CartaPage() {
 
   return (
     <>
+      <h1 className="sr-only">Carta de El Buey Madurado</h1>
       <nav ref={navRef} className="carta-nav-categorias carta-nav-grid">
         {slides.map((slide, index) => {
           const isBebidas = slide.key === 'Bebidas';

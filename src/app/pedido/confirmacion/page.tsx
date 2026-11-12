@@ -4,6 +4,7 @@ import ConfirmacionPolling from '@/components/Pedido/ConfirmacionPolling';
 export const metadata: Metadata = {
   title: 'Confirmando tu pedido | El Buey Madurado',
   description: 'Estamos confirmando el pago de tu pedido.',
+  robots: { index: false, follow: true },
 };
 
 interface ConfirmacionPageProps {

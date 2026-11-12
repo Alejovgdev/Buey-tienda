@@ -7,6 +7,7 @@ export const dynamic = 'force-dynamic';
 export const metadata: Metadata = {
   title: 'Finalizar compra | El Buey Madurado',
   description: 'Completa tus datos y paga tu pedido de forma segura.',
+  robots: { index: false, follow: true },
 };
 
 export default async function CheckoutPage() {

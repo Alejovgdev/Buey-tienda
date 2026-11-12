@@ -35,6 +35,7 @@ export type ProductImageData = {
 export type ProductDetailData = {
   slug: string;
   name: string;
+  category: Pick<CategorySummary, 'slug' | 'name'>;
   description: string | null;
   allergens: string[];
   allergensNotes: string | null;

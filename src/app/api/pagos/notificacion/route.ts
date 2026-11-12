@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { redsys } from '@/lib/redsys';
+import { safeErrorCode } from '@/lib/safe-error-code';
 import {
   sendCustomerConfirmationEmail,
   sendInternalOrderNotification,
@@ -111,7 +112,7 @@ export async function POST(request: Request) {
     // recuperar siempre por la misma RPC idempotente, nunca con otro cobro.
     console.error('[pagos/notificacion] Notificacion no procesada: excepcion', {
       stage: 'unexpected', dsOrder: result.Ds_Order, dsResponse: result.Ds_Response,
-      dsAmount: result.Ds_Amount, dsAuthorisationCode: result.Ds_AuthorisationCode ?? null, err,
+      dsAmount: result.Ds_Amount, dsAuthorisationCode: result.Ds_AuthorisationCode ?? null, errorCode: safeErrorCode(err),
     });
     return new NextResponse('Error interno', { status: 500 });
   }
@@ -125,7 +126,7 @@ async function processVerifiedNotification(result: ReturnType<typeof redsys.proc
   const paymentContext = { dsOrder, dsResponse, dsAmount, dsAuthorisationCode };
   const processingFailure = (stage: string, err: unknown, orderId?: string) => {
     console.error('[pagos/notificacion] Notificacion no procesada; requiere recuperacion manual', {
-      ...paymentContext, stage, orderId, err,
+      ...paymentContext, stage, orderId, errorCode: safeErrorCode(err),
     });
     return new NextResponse('Error interno', { status: 500 });
   };
@@ -136,7 +137,7 @@ async function processVerifiedNotification(result: ReturnType<typeof redsys.proc
       return true;
     } catch (err) {
       console.error('[pagos/notificacion] Fallo al guardar historico', {
-        ...paymentContext, stage: 'history_insert', events, err,
+        ...paymentContext, stage: 'history_insert', errorCode: safeErrorCode(err),
       });
       return false;
     }
@@ -383,11 +384,11 @@ async function processVerifiedNotification(result: ReturnType<typeof redsys.proc
       event_type: 'EMAIL_CLIENTE_ENVIADO',
     });
   } catch (err) {
-    console.error('[pagos/notificacion] Error enviando email al cliente', { orderId: order.id, err });
+    console.error('[pagos/notificacion] Error enviando email al cliente', { orderId: order.id, errorCode: safeErrorCode(err) });
     await recordHistory({
       order_id: order.id,
       event_type: 'EMAIL_CLIENTE_ERROR',
-      metadata: { error: err instanceof Error ? err.message : String(err) },
+      metadata: { error: 'No se pudo enviar el correo al cliente' },
     });
   }
 
@@ -398,11 +399,11 @@ async function processVerifiedNotification(result: ReturnType<typeof redsys.proc
       event_type: 'EMAIL_INTERNO_ENVIADO',
     });
   } catch (err) {
-    console.error('[pagos/notificacion] Error enviando email interno', { orderId: order.id, err });
+    console.error('[pagos/notificacion] Error enviando email interno', { orderId: order.id, errorCode: safeErrorCode(err) });
     await recordHistory({
       order_id: order.id,
       event_type: 'EMAIL_INTERNO_ERROR',
-      metadata: { error: err instanceof Error ? err.message : String(err) },
+      metadata: { error: 'No se pudo enviar el correo interno' },
     });
   }
 

@@ -5,6 +5,9 @@ import CategoryNav from '@/components/Tienda/CategoryNav';
 import ProductGrid from '@/components/Tienda/ProductGrid';
 import ShippingNotice from '@/components/Tienda/ShippingNotice';
 import ShopAvailabilityBanner from '@/components/Tienda/ShopAvailabilityBanner';
+import { createPageMetadata } from '@/lib/seo';
+import { categoryBreadcrumbs } from '@/lib/structured-data';
+import ShopBreadcrumbs from '@/components/Tienda/ShopBreadcrumbs';
 
 interface CategoriaPageProps {
   params: Promise<{ categoria: string }>;
@@ -16,12 +19,13 @@ export async function generateMetadata({ params }: CategoriaPageProps): Promise<
 
   if (!category) return {};
 
-  return {
+  return createPageMetadata({
+    path: `/tienda/${encodeURIComponent(category.slug)}`,
     title: `${category.name} | Tienda El Buey Madurado`,
     description:
-      category.description ??
-      `Descubre ${category.name} en la tienda online de El Buey Madurado.`,
-  };
+      category.description?.trim() ||
+      `Consulta los productos de ${category.name} en la tienda online de El Buey Madurado.`,
+  });
 }
 
 export default async function CategoriaPage({ params }: CategoriaPageProps) {
@@ -38,6 +42,7 @@ export default async function CategoriaPage({ params }: CategoriaPageProps) {
   return (
     <div className="mx-auto max-w-6xl px-4 py-12 md:px-6 md:py-16">
       <ShopAvailabilityBanner />
+      <ShopBreadcrumbs items={categoryBreadcrumbs(category)} />
       <div className="mb-8 md:mb-12">
         <CategoryNav categories={categories} activeSlug={category.slug} />
       </div>
@@ -53,6 +58,7 @@ export default async function CategoriaPage({ params }: CategoriaPageProps) {
 
       <ProductGrid
         products={products}
+        headingAs="h2"
         emptyMessage={`Todavía no hay productos disponibles en ${category.name}.`}
       />
 

@@ -202,7 +202,7 @@ export const menuItems: MenuItem[] = [
     tipo: "Hamburguesa",
     nombre: "La Navarra",
     descripcion:
-      "Burger del mes de noviembre: carne de chuletón de vaca frisona madurada, queso Idiazábal de oveja ahumado, pimientos del piquillo y mayonesa de chistorra.",
+      "Burger del mes de noviembre: 180 g de carne de chuletón de vaca frisona madurada, queso Idiazábal de oveja ahumado, pimientos del piquillo y mayonesa de chistorra.",
     precio: "17€",
   },
   {

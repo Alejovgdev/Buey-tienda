@@ -1,11 +1,13 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { createPageMetadata } from '@/lib/seo';
 
-export const metadata: Metadata = {
+export const metadata: Metadata = createPageMetadata({
+  path: '/politica-de-privacidad',
   title: 'Política de Privacidad | El Buey Madurado',
   description:
     'Política de privacidad de EL BUEY MADURADO, S.L. conforme al RGPD y la LOPDGDD. Cómo recogemos, usamos y protegemos tus datos personales en el restaurante y en la tienda online.',
-};
+});
 
 export default function PoliticaPrivacidadPage() {
   return (

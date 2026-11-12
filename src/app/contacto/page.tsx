@@ -19,9 +19,9 @@ export default function ContactoPage() {
 
   return (
     <>
-      <HeroSectionHome />
+      <HeroSectionHome headingAs="p" />
       <Marquee />
-      <ContactSection />
+      <ContactSection headingAs="h1" />
     </>
   );
 }

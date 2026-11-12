@@ -1,12 +1,14 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { TERMS_LABEL } from '@/lib/legal';
+import { createPageMetadata } from '@/lib/seo';
 
-export const metadata: Metadata = {
+export const metadata: Metadata = createPageMetadata({
+  path: '/condiciones-de-contratacion',
   title: 'Condiciones Generales de Contratación | El Buey Madurado',
   description:
     'Condiciones generales de contratación de la tienda online de EL BUEY MADURADO, S.L.: proceso de compra, precios, envíos con SEUR Frío, devoluciones, garantías y derecho de desistimiento.',
-};
+});
 
 export default function CondicionesDeContratacionPage() {
   return (

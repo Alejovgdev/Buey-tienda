@@ -11,10 +11,13 @@ import AnalyticsLoader from '@/components/Cookies/AnalyticsLoader';
 import RestaurantInstallPrompt from '@/components/InstallApp/RestaurantInstallPrompt';
 import { EARLY_INSTALL_PROMPT_SCRIPT } from '@/components/InstallApp/earlyInstallPrompt';
 import CommerceHistoryRefresh from '@/components/Tienda/CommerceHistoryRefresh';
+import { SEO_ORIGIN } from '@/lib/seo';
 
 export const metadata: Metadata = {
-  title: 'El Buey Madurado - Carne Madurada Premium',
-  description: 'Tienda online de carne madurada...',
+  metadataBase: new URL(SEO_ORIGIN),
+  title: 'El Buey Madurado | Restaurante de carne madurada en Xàtiva',
+  description: 'Restaurante de carne madurada en Xàtiva. Consulta la carta, reserva mesa y conoce la tienda online de El Buey Madurado.',
+  // El canonical se define en cada página indexable, nunca en este layout.
   icons: {
     icon: '/logo-fondo-blanco.ico',
     apple: [{ url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],

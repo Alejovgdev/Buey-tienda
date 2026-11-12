@@ -2,6 +2,7 @@ import 'server-only';
 import { supabaseAdmin } from './supabase-admin';
 import { getShopSettings } from './shop-settings';
 import { calculateShippingCost } from './shipping';
+import { safeErrorCode } from './safe-error-code';
 import type { CheckoutLine } from './checkout-schema';
 import type { CartItem } from '@/types/cart';
 import type { CheckoutReview, CreateSessionError, StockIssueItem } from '@/types/checkout';
@@ -101,7 +102,7 @@ export async function getCheckoutAvailability(lines: CheckoutLine[]): Promise<Av
     return { ok: true, variantMap, requestedQuantityByVariant,
       review: { items, subtotal, shippingCost, total: subtotal + shippingCost, pricesChanged } };
   } catch (error) {
-    console.error('[checkout] No se pudo comprobar la disponibilidad', error);
+    console.error('[checkout] No se pudo comprobar la disponibilidad', { errorCode: safeErrorCode(error) });
     return { ok: false, status: 503, error: {
       error: 'ERROR_INTERNO', message: 'No se ha podido comprobar la disponibilidad. Inténtalo de nuevo antes de pagar.',
     } };

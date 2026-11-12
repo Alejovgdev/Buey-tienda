@@ -8,9 +8,10 @@ import { formatPriceFromCents } from '@/lib/format-price';
 
 interface ProductCardProps {
   product: ProductCardData;
+  headingAs?: 'h2' | 'h3';
 }
 
-export default function ProductCard({ product }: ProductCardProps) {
+export default function ProductCard({ product, headingAs: Heading = 'h3' }: ProductCardProps) {
   const priceLabel =
     product.minPrice === null
       ? null
@@ -51,9 +52,9 @@ export default function ProductCard({ product }: ProductCardProps) {
         </div>
 
         <div className="mt-3 space-y-1">
-          <h3 className="line-clamp-1 text-base font-semibold text-white group-hover:text-amber-400 transition-colors duration-200 md:text-lg">
+          <Heading className="line-clamp-1 text-base font-semibold text-white group-hover:text-amber-400 transition-colors duration-200 md:text-lg">
             {product.name}
-          </h3>
+          </Heading>
           {priceLabel && (
             <p className="text-sm font-medium text-amber-400/90 md:text-base">{priceLabel}</p>
           )}

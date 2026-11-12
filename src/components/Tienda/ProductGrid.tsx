@@ -4,11 +4,13 @@ import ProductCard from './ProductCard';
 interface ProductGridProps {
   products: ProductCardData[];
   emptyMessage?: string;
+  headingAs?: 'h2' | 'h3';
 }
 
 export default function ProductGrid({
   products,
   emptyMessage = 'Todavía no hay productos disponibles en esta categoría.',
+  headingAs = 'h3',
 }: ProductGridProps) {
   if (products.length === 0) {
     return (
@@ -21,7 +23,7 @@ export default function ProductGrid({
   return (
     <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-6 lg:grid-cols-4">
       {products.map((product) => (
-        <ProductCard key={product.slug} product={product} />
+        <ProductCard key={product.slug} product={product} headingAs={headingAs} />
       ))}
     </div>
   );

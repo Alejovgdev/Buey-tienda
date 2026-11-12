@@ -40,6 +40,7 @@ const noPayment = () => {
 
 beforeEach(() => {
   vi.resetAllMocks();
+  vi.stubEnv('ADMIN_JWT_SECRET', 'clave-local-solo-para-pruebas-de-checkout');
   vi.spyOn(console, 'error').mockImplementation(() => {});
   variant = structuredClone(baseVariant);
   promotions = [];
@@ -64,7 +65,7 @@ beforeEach(() => {
     throw new Error(`No debe acceder a ${table}`);
   });
 });
-afterEach(() => vi.restoreAllMocks());
+afterEach(() => { vi.restoreAllMocks(); vi.unstubAllEnvs(); });
 
 describe('disponibilidad previa al pago, sin servicios reales', () => {
   it('relee precio, stock y apertura en cada revisión, sin crear pedidos ni reservar stock', async () => {
@@ -165,12 +166,24 @@ describe('disponibilidad previa al pago, sin servicios reales', () => {
   it('un carrito válido cobra el precio del servidor, ignora importes adicionales y no descuenta stock', async () => {
     const response = await pay(payRequest({ total: 1, price: 1, shippingCost: 0 }));
     expect(response.status).toBe(200);
+    expect(response.headers.get('set-cookie')).toMatch(/order_status_BM-LOCAL=.*HttpOnly/i);
+    expect(response.headers.get('set-cookie')).toContain('SameSite=lax');
+    expect(response.headers.get('set-cookie')).toContain('Path=/api/pedidos/estado');
+    expect(response.headers.get('cache-control')).toBe('no-store');
     expect(await response.json()).toMatchObject({ totalAmount: 6000 });
     expect(insertOrder).toHaveBeenCalledWith(expect.objectContaining({ subtotal: 5000, shipping_cost: 1000, total: 6000 }));
     expect(insertItems).toHaveBeenCalledWith([expect.objectContaining({ quantity: 2, unit_price_snapshot: 2500, line_total: 5000 })]);
     expect(mocks.redirect).toHaveBeenCalledWith(expect.objectContaining({ DS_MERCHANT_AMOUNT: '6000' }));
     expect(mocks.rpc).toHaveBeenCalledWith('generate_redsys_ds_order');
     expect(variant!.stock).toBe(8);
+  });
+
+  it('no filtra errores de proveedores en respuestas ni logs de disponibilidad', async () => {
+    readVariants.mockRejectedValue(new Error('Authorization: Bearer private-test-sentinel'));
+    const response = await review(reviewRequest());
+    expect(response.status).toBe(503);
+    expect(await response.text()).not.toContain('private-test-sentinel');
+    expect(JSON.stringify(vi.mocked(console.error).mock.calls)).not.toContain('private-test-sentinel');
   });
 
   for (const stock of [0, 3]) {

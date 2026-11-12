@@ -245,7 +245,7 @@ export default function GallerySection({ embedded = false }: { embedded?: boolea
                 .hide-scrollbar::-webkit-scrollbar { display: none; }
               `}</style>
 
-              {images.map((img, i) => (
+              {images.map((img) => (
                 <div key={img.src} className="hide-scrollbar w-full flex-none snap-center">
                   <div className="relative w-full aspect-[3/4] bg-black">
                     <Image
@@ -253,7 +253,6 @@ export default function GallerySection({ embedded = false }: { embedded?: boolea
                       alt=""
                       fill
                       sizes="100vw"
-                      priority={i === 0}
                       className="object-cover blur-2xl scale-110 opacity-55"
                     />
                     <Image
@@ -261,7 +260,6 @@ export default function GallerySection({ embedded = false }: { embedded?: boolea
                       alt={img.alt}
                       fill
                       sizes="100vw"
-                      priority={i === 0}
                       className={`object-cover ${img.position ?? 'object-center'}`}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent" />

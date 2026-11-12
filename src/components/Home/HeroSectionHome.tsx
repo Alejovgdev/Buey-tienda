@@ -4,24 +4,19 @@
 
 import Link from 'next/link';
 import Button from '../ui/Button';
+import VisibleVideo from './VisibleVideo';
 
 
-export default function HeroSectionHome({ restaurantHome = false }: { restaurantHome?: boolean }) {
+export default function HeroSectionHome({ restaurantHome = false, headingAs: Heading = 'h1' }: { restaurantHome?: boolean; headingAs?: 'h1' | 'p' }) {
   return (
     <section className="relative w-full flex items-center justify-start overflow-hidden" style={{ height: restaurantHome ? 'calc(100vh - var(--site-header-height))' : 'calc(100vh - 80px)' }}>
       {/* Video de fondo */}
       <div className="absolute top-0 left-0 w-full h-full z-0">
-        <video
-          autoPlay
-          muted
-          loop
-          playsInline
-          preload="metadata"
-          poster={restaurantHome ? '/hero-poster.webp' : undefined}
+        <VisibleVideo
+          src="/hero-restaurante.mp4"
+          poster="/hero-poster.webp"
           className="absolute inset-0 w-full h-full object-cover"
-        >
-          <source src={restaurantHome ? '/hero-restaurante.mp4' : '/hero.mp4'} type="video/mp4" />
-        </video>
+        />
         {/* Overlay oscuro */}
         <div className="absolute inset-0 bg-black/50" />
       </div>
@@ -31,13 +26,13 @@ export default function HeroSectionHome({ restaurantHome = false }: { restaurant
       <div className="relative z-10 w-full flex flex-col justify-between md:justify-start items-start space-y-0 md:space-y-6 max-w-xl px-4 md:px-0 md:pl-20 h-full py-6 md:py-8">
         {/* Textos arriba */}
         <div className="space-y-3 md:space-y-6 pt-6 md:pt-12">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold text-white leading-tight">
+          <Heading className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold text-white leading-tight">
             No hablamos de <br />
             comida rápida
             <br />
             <span className="text-amber-500">…hablamos de <br />
             alta cocina</span>
-          </h1>
+          </Heading>
 
 
           <p className="text-sm sm:text-base md:text-lg text-gray-200 max-w-md md:hidden">

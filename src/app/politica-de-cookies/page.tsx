@@ -1,12 +1,14 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import CookiePanelTrigger from '@/components/Cookies/CookiePanelTrigger';
+import { createPageMetadata } from '@/lib/seo';
 
-export const metadata: Metadata = {
+export const metadata: Metadata = createPageMetadata({
+  path: '/politica-de-cookies',
   title: 'Política de Cookies | El Buey Madurado',
   description:
     'Política de cookies de restauranteelbueymadurado.com conforme a las directrices de la AEPD. Qué cookies usamos, cómo gestionarlas y tus derechos.',
-};
+});
 
 export default function PoliticaDeCookiesPage() {
   return (
