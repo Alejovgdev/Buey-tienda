@@ -7,3 +7,11 @@
 - **Solo lectura, sin preguntar:** consultas `SELECT`, `supabase migration list`, cualquier comando con `--dry-run`.
 - **Cambios en la BD, siempre con OK previo:** `db push`, `migration repair`, `INSERT`, `UPDATE`, `DELETE`, DDL o cualquier otra escritura. Antes de ejecutarlo, explicar qué hace y esperar la aprobación explícita.
 - **Producción:** nunca usar ni pedir credenciales de producción.
+
+## Tests
+
+- Ejecutar los tests (`npx vitest run`) desde la ruta con la unidad en mayúscula: `C:\Proyectos\ElBueyMadurado-main-tienda`. Desde `c:\...` (minúscula) fallan todos los archivos de test con «Cannot read properties of undefined (reading 'config')».
+
+## Pedidos de prueba
+
+- Usar siempre el email `delivered@resend.dev` (dirección de pruebas de Resend, no rebota) en cualquier pedido de prueba.

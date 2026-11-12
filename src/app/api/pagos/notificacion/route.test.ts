@@ -1,8 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mocks = vi.hoisted(() => ({
-  from: vi.fn(), rpc: vi.fn(), notification: vi.fn(), customer: vi.fn(), internal: vi.fn(),
+  from: vi.fn(), rpc: vi.fn(), notification: vi.fn(), customer: vi.fn(), internal: vi.fn(), invoice: vi.fn(),
 }));
+vi.mock('@/lib/invoices', () => ({ issueSimplifiedInvoice: mocks.invoice }));
 vi.mock('@/lib/supabase-admin', () => ({ supabaseAdmin: { from: mocks.from, rpc: mocks.rpc } }));
 vi.mock('@/lib/redsys', () => ({ redsys: { processRestNotification: mocks.notification } }));
 vi.mock('@/lib/email/send-order-notifications', () => ({
@@ -36,6 +37,14 @@ beforeEach(() => {
   updateOrder.mockResolvedValue({ data: { id: order.id }, error: null });
   update.mockReturnValue({ eq: () => ({ eq: () => ({ select: () => ({ maybeSingle: updateOrder }) }) }) });
   mocks.rpc.mockResolvedValue({ data: { ok: true, already_processed: false, paid_at: paidAt }, error: null });
+  // Factura simulada con persistencia: la primera llamada la emite y las
+  // siguientes la encuentran ya emitida (como issue_simplified_invoice).
+  let invoiceIssued = false;
+  mocks.invoice.mockImplementation(async () => {
+    const alreadyIssued = invoiceIssued;
+    invoiceIssued = true;
+    return { ok: true, invoiceNumber: 'T2026-0001', alreadyIssued };
+  });
   mocks.from.mockImplementation((table: string) => {
     if (table === 'orders') return {
       select: () => ({ eq: () => ({ maybeSingle: readOrder }) }),
@@ -128,6 +137,8 @@ describe('notificación Redsys (servicios simulados; concurrencia SQL en script 
     mocks.rpc.mockRejectedValueOnce(new Error('connection lost after commit'));
     expect((await POST(request())).status).toBe(500);
     // La BD confirmo, aunque el handler no recibio la respuesta.
+    // ...y emitio la factura en esa misma ejecucion.
+    mocks.invoice.mockResolvedValue({ ok: true, invoiceNumber: 'T2026-0001', alreadyIssued: true });
     order.status = 'PREPARING';
     mocks.rpc.mockResolvedValue({ data: { ok: true, already_processed: true }, error: null });
     expect((await POST(request())).status).toBe(200);
@@ -212,6 +223,7 @@ describe('notificación Redsys (servicios simulados; concurrencia SQL en script 
   for (const status of ['PAID', 'PREPARING', 'CANCELLED']) {
     it(`no repite efectos ni modifica ${status} cuando la BD confirma un duplicado`, async () => {
       order.status = status;
+      mocks.invoice.mockResolvedValue({ ok: true, invoiceNumber: 'T2026-0001', alreadyIssued: true });
       mocks.rpc.mockResolvedValue({ data: { ok: true, already_processed: true }, error: null });
       expect((await POST(request())).status).toBe(200);
       expect(mocks.rpc).toHaveBeenCalledOnce();
@@ -293,6 +305,68 @@ describe('notificación Redsys (servicios simulados; concurrencia SQL en script 
     expect(JSON.stringify(insert.mock.calls)).not.toContain('private-test-sentinel');
     expect(insert).toHaveBeenCalledWith(expect.objectContaining({ event_type: 'EMAIL_CLIENTE_ERROR' }));
     expect(insert).toHaveBeenCalledWith(expect.objectContaining({ event_type: 'EMAIL_INTERNO_ERROR' }));
+  });
+
+  describe('factura simplificada (paso 4)', () => {
+    const events = () => insert.mock.calls.flat(2) as { event_type: string; metadata?: Record<string, unknown> }[];
+
+    it('se emite al confirmar el pago, antes de los emails, y queda en el histórico', async () => {
+      const sequence: string[] = [];
+      mocks.invoice.mockImplementationOnce(async () => {
+        sequence.push('factura');
+        return { ok: true, invoiceNumber: 'T2026-0007', alreadyIssued: false };
+      });
+      mocks.customer.mockImplementationOnce(async () => { sequence.push('email'); });
+      expect((await POST(request())).status).toBe(200);
+      expect(mocks.invoice).toHaveBeenCalledExactlyOnceWith('order-1');
+      expect(sequence).toEqual(['factura', 'email']);
+      expect(events()).toContainEqual(expect.objectContaining({
+        event_type: 'FACTURA_EMITIDA', metadata: { invoice_number: 'T2026-0007', reintento: false },
+      }));
+    });
+
+    it('un aviso duplicado no crea otra factura ni escribe histórico', async () => {
+      expect((await POST(request())).status).toBe(200);
+      const writes = insert.mock.calls.length;
+      mocks.rpc.mockResolvedValue({ data: { ok: true, already_processed: true }, error: null });
+      expect((await POST(request())).status).toBe(200);
+      expect(mocks.invoice).toHaveBeenCalledTimes(2);
+      expect(insert).toHaveBeenCalledTimes(writes);
+      expect(events().filter((event) => event.event_type === 'FACTURA_EMITIDA')).toHaveLength(1);
+    });
+
+    it('si la factura falla, el pago sigue confirmado, se envían los emails y queda FACTURA_ERROR', async () => {
+      mocks.invoice.mockResolvedValueOnce({ ok: false, error: 'ERROR_INTERNO' });
+      expect((await POST(request())).status).toBe(200);
+      expect(events()).toContainEqual(expect.objectContaining({ event_type: 'PAGO_CONFIRMADO' }));
+      expect(events()).toContainEqual(expect.objectContaining({
+        event_type: 'FACTURA_ERROR', metadata: { error: 'ERROR_INTERNO', reintento: false },
+      }));
+      expect(mocks.customer).toHaveBeenCalledOnce();
+      expect(mocks.internal).toHaveBeenCalledOnce();
+    });
+
+    it('un aviso repetido reintenta la factura que falló', async () => {
+      mocks.invoice.mockResolvedValueOnce({ ok: false, error: 'ERROR_INTERNO' });
+      expect((await POST(request())).status).toBe(200);
+      mocks.invoice.mockResolvedValueOnce({ ok: true, invoiceNumber: 'T2026-0008', alreadyIssued: false });
+      mocks.rpc.mockResolvedValue({ data: { ok: true, already_processed: true }, error: null });
+      expect((await POST(request())).status).toBe(200);
+      expect(events()).toContainEqual(expect.objectContaining({
+        event_type: 'FACTURA_EMITIDA', metadata: { invoice_number: 'T2026-0008', reintento: true },
+      }));
+      expect(mocks.customer).toHaveBeenCalledOnce();
+    });
+
+    it('no se emite factura si el pago queda pendiente de revisión o falla', async () => {
+      mocks.rpc.mockResolvedValueOnce({ data: { ok: false, error: 'STOCK_INSUFICIENTE', paid_at: paidAt }, error: null });
+      await POST(request());
+      mocks.rpc.mockResolvedValueOnce({ data: null, error: { message: 'payment insert failed' } });
+      await POST(request());
+      mocks.notification.mockReturnValue({ Ds_Order: '26000001', Ds_Response: '0101', Ds_Amount: '1000' });
+      await POST(request());
+      expect(mocks.invoice).not.toHaveBeenCalled();
+    });
   });
 
   it('firma inválida: no accede a BD', async () => {

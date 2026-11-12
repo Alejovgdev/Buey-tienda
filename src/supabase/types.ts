@@ -72,6 +72,119 @@ export type Database = {
         }
         Relationships: []
       }
+      invoice_counters: {
+        Row: {
+          last_number: number
+          series: string
+          year: number
+        }
+        Insert: {
+          last_number: number
+          series: string
+          year: number
+        }
+        Update: {
+          last_number?: number
+          series?: string
+          year?: number
+        }
+        Relationships: []
+      }
+      invoices: {
+        Row: {
+          correction_reason: string | null
+          currency: string
+          customer_address: string | null
+          customer_name: string | null
+          customer_tax_id: string | null
+          id: string
+          invoice_number: string
+          invoice_type: string
+          issue_date: string
+          issued_at: string
+          issuer_address: string
+          issuer_country: string
+          issuer_legal_name: string
+          issuer_tax_id: string
+          lines: Json
+          number: number
+          operation_date: string
+          order_id: string
+          rectifies_invoice_id: string | null
+          replaces_invoice_id: string | null
+          series: string
+          tax_base_total: number
+          total: number
+          vat_breakdown: Json
+          vat_total: number
+          year: number
+        }
+        Insert: {
+          correction_reason?: string | null
+          currency?: string
+          customer_address?: string | null
+          customer_name?: string | null
+          customer_tax_id?: string | null
+          id?: string
+          invoice_number: string
+          invoice_type: string
+          issue_date: string
+          issued_at?: string
+          issuer_address: string
+          issuer_country: string
+          issuer_legal_name: string
+          issuer_tax_id: string
+          lines: Json
+          number: number
+          operation_date: string
+          order_id: string
+          rectifies_invoice_id?: string | null
+          replaces_invoice_id?: string | null
+          series: string
+          tax_base_total: number
+          total: number
+          vat_breakdown: Json
+          vat_total: number
+          year: number
+        }
+        Update: {
+          correction_reason?: string | null
+          currency?: string
+          customer_address?: string | null
+          customer_name?: string | null
+          customer_tax_id?: string | null
+          id?: string
+          invoice_number?: string
+          invoice_type?: string
+          issue_date?: string
+          issued_at?: string
+          issuer_address?: string
+          issuer_country?: string
+          issuer_legal_name?: string
+          issuer_tax_id?: string
+          lines?: Json
+          number?: number
+          operation_date?: string
+          order_id?: string
+          rectifies_invoice_id?: string | null
+          replaces_invoice_id?: string | null
+          series?: string
+          tax_base_total?: number
+          total?: number
+          vat_breakdown?: Json
+          vat_total?: number
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       label_print_events: {
         Row: {
           id: string
@@ -901,7 +1014,38 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      invoices_with_status: {
+        Row: {
+          correction_reason: string | null
+          currency: string | null
+          customer_address: string | null
+          customer_name: string | null
+          customer_tax_id: string | null
+          id: string | null
+          invoice_number: string | null
+          invoice_type: string | null
+          issue_date: string | null
+          issued_at: string | null
+          issuer_address: string | null
+          issuer_country: string | null
+          issuer_legal_name: string | null
+          issuer_tax_id: string | null
+          lines: Json | null
+          number: number | null
+          operation_date: string | null
+          order_id: string | null
+          rectifies_invoice_id: string | null
+          replaces_invoice_id: string | null
+          series: string | null
+          status: string | null
+          tax_base_total: number | null
+          total: number | null
+          vat_breakdown: Json | null
+          vat_total: number | null
+          year: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       decrement_stock_and_confirm_order: {
@@ -918,6 +1062,8 @@ export type Database = {
       }
       generate_order_number: { Args: never; Returns: string }
       generate_redsys_ds_order: { Args: never; Returns: string }
+      issue_simplified_invoice: { Args: { p_order_id: string }; Returns: Json }
+      madrid_date: { Args: { p_ts: string }; Returns: string }
     }
     Enums: {
       [_ in never]: never

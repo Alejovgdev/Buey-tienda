@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { redsys } from '@/lib/redsys';
 import { safeErrorCode } from '@/lib/safe-error-code';
+import { issueSimplifiedInvoice } from '@/lib/invoices';
 import {
   sendCustomerConfirmationEmail,
   sendInternalOrderNotification,
@@ -142,6 +143,31 @@ async function processVerifiedNotification(result: ReturnType<typeof redsys.proc
       return false;
     }
   };
+  // Paso 4. Factura simplificada, en su propia transaccion: el pago ya esta
+  // confirmado y un fallo aqui no lo deshace. Se deja rastro en el historico
+  // para poder reintentarlo. Si la factura ya existia no se escribe nada.
+  const issueInvoice = async (orderId: string, retry: boolean): Promise<boolean> => {
+    const outcome = await issueSimplifiedInvoice(orderId);
+    if (outcome.ok) {
+      if (!outcome.alreadyIssued) {
+        await recordHistory({
+          order_id: orderId,
+          event_type: 'FACTURA_EMITIDA',
+          metadata: { invoice_number: outcome.invoiceNumber, reintento: retry },
+        });
+      }
+      return true;
+    }
+    console.error('[pagos/notificacion] Factura no emitida; pago confirmado igualmente', {
+      ...paymentContext, stage: 'invoice', orderId, error: outcome.error,
+    });
+    await recordHistory({
+      order_id: orderId,
+      event_type: 'FACTURA_ERROR',
+      metadata: { error: outcome.error, reintento: retry },
+    });
+    return false;
+  };
 
   // 2. Un fallo de consulta NO demuestra que el pedido no exista.
   // El 500 expresa fallo de procesamiento; no presupone reintentos de Redsys.
@@ -252,8 +278,11 @@ async function processVerifiedNotification(result: ReturnType<typeof redsys.proc
   }
 
   // Duplicado confirmado en BD, con independencia del estado operativo.
-  // No repetir stock, regalos, historico ni intentos de email.
+  // No repetir stock, regalos, historico ni intentos de email. Si la factura
+  // fallo en el primer aviso, se reintenta aqui (idempotente: si ya existe no
+  // se crea otra ni se escribe historico).
   if (rpcResult.already_processed) {
+    await issueInvoice(order.id, true);
     return NextResponse.json({ ok: true });
   }
 
@@ -337,6 +366,10 @@ async function processVerifiedNotification(result: ReturnType<typeof redsys.proc
   // El pago ya esta guardado atomicamente. Un fallo de este historico auxiliar
   // se registra para revision manual y no se presenta como fallo del cobro.
   await recordHistory(historyEvents);
+
+  // Paso 4. Factura simplificada, justo despues de confirmar y antes de los
+  // emails.
+  await issueInvoice(order.id, false);
 
   // 5. Emails: nunca deben romper el acuse a Redsys. Cada uno en su propio
   // try/catch - si el del cliente falla se intenta igual el interno.
