@@ -1,7 +1,7 @@
 # Política de Privacidad
 
-**Versión:** 1.1
-**Fecha:** 4 de agosto de 2026
+**Versión:** 1.2
+**Fecha:** 12 de noviembre de 2026
 **Estado:** pendiente de validación jurídica
 
 ---
@@ -53,7 +53,7 @@ Tratamos los datos que el usuario nos facilita de forma voluntaria a través de 
   - Envío refrigerado del pedido y coordinación de la entrega con la empresa de transporte, que podrá contactar directamente con el destinatario.
   - Gestión de incidencias alimentarias, reclamaciones y garantías, así como la tramitación de los reembolsos que procedan.
   - Facturación y cumplimiento de las obligaciones contables, fiscales y de trazabilidad alimentaria.
-  - Comunicaciones necesarias sobre el estado del pedido (confirmación, expedición y seguimiento logístico).
+  - Comunicaciones necesarias sobre el pedido (confirmación, factura e incidencias).
 
 ### e) Navegación y cookies
 
@@ -159,7 +159,7 @@ En el caso de la tienda online, el usuario únicamente recibirá comunicaciones 
 
 El usuario podrá revocar dicho consentimiento en cualquier momento mediante el enlace de baja incluido en cada comunicación o escribiendo a elbueymaduradoxativa@gmail.com.
 
-Los correos electrónicos relativos a la gestión del pedido (confirmación, expedición, seguimiento e incidencias) no son comunicaciones comerciales, sino comunicaciones necesarias para la ejecución del contrato, y se envían con independencia de que se haya prestado o no el consentimiento comercial.
+Los correos electrónicos relativos a la gestión del pedido (confirmación, factura e incidencias) no son comunicaciones comerciales, sino comunicaciones necesarias para la ejecución del contrato, y se envían con independencia de que se haya prestado o no el consentimiento comercial.
 
 ## 10. Cambios en la Política de Privacidad
 
@@ -182,6 +182,11 @@ EL BUEY MADURADO, S.L. se reserva el derecho de modificar la presente Política 
 ---
 
 ## Changelog
+
+### v1.2 — 12 de noviembre de 2026
+
+- **Comunicaciones del pedido (§2.d y §9).** Se retira la referencia a correos de expedición y seguimiento logístico: la tienda no los envía, ya que los envíos de SEUR Frío se crean a mano en la web del transportista. Las comunicaciones necesarias pasan a ser «confirmación, factura e incidencias». Coherente con la v1.2 de las Condiciones Generales (§3.5 y §3.6).
+- Sin cambios en el resto de secciones. Se ha comprobado que el apartado de destinatarios ya recoge que SEUR Frío recibe el nombre, la dirección, el teléfono y el correo electrónico del destinatario.
 
 ### Implementación técnica — paso 7 — 4 de agosto de 2026
 

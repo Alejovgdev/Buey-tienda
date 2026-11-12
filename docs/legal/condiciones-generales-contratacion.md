@@ -1,7 +1,7 @@
 # Condiciones Generales de Contratación
 
-**Versión:** 1.1
-**Fecha:** 4 de agosto de 2026
+**Versión:** 1.3
+**Fecha:** 12 de noviembre de 2026
 **Estado:** pendiente de validación jurídica
 
 ---
@@ -84,7 +84,7 @@ Con carácter general, solo pueden formalizar contratos de compra personas mayor
 
 Una vez formalizado el pedido, el proceso de gestión se desarrollará de la siguiente forma:
 
-- **Confirmación y seguimiento:** El cliente recibirá un correo electrónico de confirmación con el resumen de la compra. Al iniciar la fase de preparación y expedición en frío, el sistema remitirá al cliente un correo electrónico con la información y el enlace de seguimiento logístico (tracking) proporcionado por **SEUR Frío.**
+- **Confirmación del pedido:** El cliente recibirá un correo electrónico de confirmación con el resumen de la compra. Una vez expedido el pedido, el transportista (**SEUR Frío**) podrá informar al cliente del estado del envío a través de sus propios canales.
 
 - **Contacto del transportista**: La empresa de mensajería refrigerada **(SEUR Frío)** podrá contactar directamente con el destinatario (vía email, SMS o teléfono) para coordinar la franja horaria de entrega o notificar incidencias logísticas. Por este motivo, es imprescindible que el cliente facilite datos de contacto válidos, exactos y actualizados.
 
@@ -92,9 +92,9 @@ Una vez formalizado el pedido, el proceso de gestión se desarrollará de la sig
 
 ### 3.6. Seguimiento del pedido
 
-El cliente podrá consultar el estado y realizar el seguimiento de su envío a través de los siguientes canales:
+El cliente podrá informarse del estado de su envío a través de los siguientes canales:
 
-- **Notificaciones automáticas**: En el momento en que el pedido sea expedido en camión refrigerado, se enviará automáticamente un correo electrónico con el número de seguimiento de **SEUR Frío** para monitorizar la entrega.
+- **Información del transportista**: **SEUR Frío** podrá informar al cliente del estado del envío por los medios que considere oportunos (email, SMS o teléfono).
 
 - **Atención al Cliente**: Ante cualquier duda, retraso o incidencia con el transporte en frío, el cliente puede ponerse en contacto directo a través del canal de soporte habilitado por **WhatsApp** al número **670 77 57 86** o al correo electrónico de ventas elbueymaduradoxativa@gmail.com
 
@@ -163,6 +163,10 @@ Las transacciones comerciales se gestionarán mediante plataformas seguras que g
 **Tarjetas Bancarias Aceptadas y Restricciones Territoriales de Cobro**
 
 La pasarela de pago seguro se encargará de validar de forma automatizada las tarjetas bancarias aceptadas. De acuerdo con las políticas de seguridad y prevención del fraude electrónico aplicadas por la pasarela, el sistema procesará los pagos con tarjetas autorizadas emitidas dentro de los marcos de seguridad compatibles con el comercio minorista nacional y de la Unión Europea.
+
+**Factura electrónica**
+
+La factura de cada compra se emite en formato electrónico y se envía al correo electrónico facilitado por el Cliente durante el pedido. Al aceptar estas Condiciones, el Cliente consiente recibirla por este medio. Si lo prefiere, puede solicitar una copia en papel escribiendo a elbueymaduradoxativa@gmail.com.
 
 ## 7. Normas Aplicables
 
@@ -293,6 +297,17 @@ Lo único que permanece aquí: el **§6** nombra a Redsys como pasarela, pero **
 ---
 
 ## Changelog
+
+### v1.3 — 12 de noviembre de 2026
+
+- **§6: nuevo bloque «Factura electrónica».** La factura se emite en formato electrónico y se envía al correo facilitado por el Cliente, que consiente recibirla por este medio al aceptar las Condiciones y puede pedir una copia en papel escribiendo a elbueymaduradoxativa@gmail.com.
+- **Pendiente antes de publicar en producción:** la tienda todavía no genera ni envía facturas. Esta versión no debe publicarse hasta que funcione el envío automático de facturas.
+- Sin cambios en el resto del articulado.
+
+### v1.2 — 12 de noviembre de 2026
+
+- **§3.5 y §3.6: retirada la promesa de seguimiento.** Los envíos de SEUR Frío se crean a mano en la web del transportista y la tienda no envía ningún correo de expedición ni enlace o número de seguimiento. §3.5: el punto «Confirmación y seguimiento» pasa a «Confirmación del pedido» e indica que el transportista podrá informar al cliente del estado del envío. §3.6: el punto «Notificaciones automáticas» se sustituye por «Información del transportista».
+- Sin cambios en el resto del articulado.
 
 ### v1.1 — 4 de agosto de 2026
 

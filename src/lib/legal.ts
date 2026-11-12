@@ -14,10 +14,10 @@
 // que texto acepto cada cliente.
 
 /** Version vigente de las Condiciones Generales de Contratacion. */
-export const TERMS_VERSION = '1.1';
+export const TERMS_VERSION = '1.3';
 
 /** Fecha de esa version, tal y como se muestra al usuario. */
-export const TERMS_DATE = '4 de agosto de 2026';
+export const TERMS_DATE = '12 de noviembre de 2026';
 
 /** Etiqueta para la cabecera de la pagina publicada: "Version 1.1 · 4 de agosto de 2026". */
 export const TERMS_LABEL = `Versión ${TERMS_VERSION} · ${TERMS_DATE}`;
@@ -45,6 +45,21 @@ export const MARKETING_CONSENT_TEXT =
 
 const ORDER_LEGAL_NOTICES_BY_TERMS_VERSION = {
   '1.1': {
+    withdrawal:
+      'De conformidad con el artículo 103 del Real Decreto Legislativo 1/2007, de 16 de noviembre, por el que se aprueba el texto refundido de la Ley General para la Defensa de los Consumidores y Usuarios, se informa de que NO SE ADMITIRÁ EL EJERCICIO DEL DERECHO DE DESISTIMIENTO ni la devolución voluntaria en los siguientes supuestos: Artículo 103.e): El suministro de bienes que puedan deteriorarse o caducar con rapidez. Esta excepción resulta directamente aplicable a toda la carne madurada, cortes selectos y productos cárnicos derivados frescos de la web, ya que son alimentos perecederos que exigen una cadena de frío estricta e ininterrumpida que no puede ser garantizada una vez entregados. El derecho de desistimiento en la web será del 0% para estos productos.',
+    changeCutoff:
+      'El cliente podrá solicitar cambios en su pedido siempre que este no haya entrado en fase de preparación o corte. El almacén opera con horarios de corte estrictos a las 9:00 h y a las 15:00 h de días laborables. Una vez superadas estas horas de corte, el producto fresco pasa a fase de corte y envasado, por lo que no se podrá realizar ninguna modificación o cancelación.',
+  },
+  // v1.2 solo cambia §3.5 (seguimiento) y §3.6; los extractos de §3.5 (cambios)
+  // y §5.5 (desistimiento) son idénticos a la v1.1.
+  '1.2': {
+    withdrawal:
+      'De conformidad con el artículo 103 del Real Decreto Legislativo 1/2007, de 16 de noviembre, por el que se aprueba el texto refundido de la Ley General para la Defensa de los Consumidores y Usuarios, se informa de que NO SE ADMITIRÁ EL EJERCICIO DEL DERECHO DE DESISTIMIENTO ni la devolución voluntaria en los siguientes supuestos: Artículo 103.e): El suministro de bienes que puedan deteriorarse o caducar con rapidez. Esta excepción resulta directamente aplicable a toda la carne madurada, cortes selectos y productos cárnicos derivados frescos de la web, ya que son alimentos perecederos que exigen una cadena de frío estricta e ininterrumpida que no puede ser garantizada una vez entregados. El derecho de desistimiento en la web será del 0% para estos productos.',
+    changeCutoff:
+      'El cliente podrá solicitar cambios en su pedido siempre que este no haya entrado en fase de preparación o corte. El almacén opera con horarios de corte estrictos a las 9:00 h y a las 15:00 h de días laborables. Una vez superadas estas horas de corte, el producto fresco pasa a fase de corte y envasado, por lo que no se podrá realizar ninguna modificación o cancelación.',
+  },
+  // v1.3 solo añade la factura electrónica en §6; los extractos son idénticos a la v1.2.
+  '1.3': {
     withdrawal:
       'De conformidad con el artículo 103 del Real Decreto Legislativo 1/2007, de 16 de noviembre, por el que se aprueba el texto refundido de la Ley General para la Defensa de los Consumidores y Usuarios, se informa de que NO SE ADMITIRÁ EL EJERCICIO DEL DERECHO DE DESISTIMIENTO ni la devolución voluntaria en los siguientes supuestos: Artículo 103.e): El suministro de bienes que puedan deteriorarse o caducar con rapidez. Esta excepción resulta directamente aplicable a toda la carne madurada, cortes selectos y productos cárnicos derivados frescos de la web, ya que son alimentos perecederos que exigen una cadena de frío estricta e ininterrumpida que no puede ser garantizada una vez entregados. El derecho de desistimiento en la web será del 0% para estos productos.',
     changeCutoff:

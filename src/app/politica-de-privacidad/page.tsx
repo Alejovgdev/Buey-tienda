@@ -20,7 +20,7 @@ export default function PoliticaPrivacidadPage() {
         <h1 className="text-3xl md:text-4xl font-black text-white mb-3">
           Política de Privacidad
         </h1>
-        <p className="text-sm text-gray-500">Última actualización: agosto de 2026</p>
+        <p className="text-sm text-gray-500">Última actualización: noviembre de 2026</p>
         <div className="mt-6 h-px bg-gradient-to-r from-amber-500/40 via-amber-500/10 to-transparent" />
       </div>
 
@@ -174,8 +174,7 @@ export default function PoliticaPrivacidadPage() {
               alimentaria.
             </li>
             <li>
-              Comunicaciones necesarias sobre el estado del pedido (confirmación, expedición y
-              seguimiento logístico).
+              Comunicaciones necesarias sobre el pedido (confirmación, factura e incidencias).
             </li>
           </ul>
 
@@ -494,8 +493,8 @@ export default function PoliticaPrivacidadPage() {
             <a href="mailto:elbueymaduradoxativa@gmail.com">elbueymaduradoxativa@gmail.com</a>.
           </p>
           <p>
-            Los correos electrónicos relativos a la gestión del pedido (confirmación, expedición,
-            seguimiento e incidencias) no son comunicaciones comerciales, sino comunicaciones
+            Los correos electrónicos relativos a la gestión del pedido (confirmación, factura e
+            incidencias) no son comunicaciones comerciales, sino comunicaciones
             necesarias para la ejecución del contrato, y se envían con independencia de que se haya
             prestado o no el consentimiento comercial.
           </p>

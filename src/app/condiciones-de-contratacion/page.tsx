@@ -246,11 +246,10 @@ export default function CondicionesDeContratacionPage() {
           <p>Una vez formalizado el pedido, el proceso de gestión se desarrollará de la siguiente forma:</p>
           <ul>
             <li>
-              <strong>Confirmación y seguimiento:</strong> El cliente recibirá un correo electrónico
-              de confirmación con el resumen de la compra. Al iniciar la fase de preparación y
-              expedición en frío, el sistema remitirá al cliente un correo electrónico con la
-              información y el enlace de seguimiento logístico (tracking) proporcionado por{' '}
-              <strong>SEUR Frío.</strong>
+              <strong>Confirmación del pedido:</strong> El cliente recibirá un correo electrónico
+              de confirmación con el resumen de la compra. Una vez expedido el pedido, el
+              transportista (<strong>SEUR Frío</strong>) podrá informar al cliente del estado del
+              envío a través de sus propios canales.
             </li>
             <li>
               <strong>Contacto del transportista</strong>: La empresa de mensajería refrigerada{' '}
@@ -270,14 +269,13 @@ export default function CondicionesDeContratacionPage() {
 
           <h3>3.6. Seguimiento del pedido</h3>
           <p>
-            El cliente podrá consultar el estado y realizar el seguimiento de su envío a través de
-            los siguientes canales:
+            El cliente podrá informarse del estado de su envío a través de los siguientes canales:
           </p>
           <ul>
             <li>
-              <strong>Notificaciones automáticas</strong>: En el momento en que el pedido sea
-              expedido en camión refrigerado, se enviará automáticamente un correo electrónico con el
-              número de seguimiento de <strong>SEUR Frío</strong> para monitorizar la entrega.
+              <strong>Información del transportista</strong>: <strong>SEUR Frío</strong> podrá
+              informar al cliente del estado del envío por los medios que considere oportunos
+              (email, SMS o teléfono).
             </li>
             <li>
               <strong>Atención al Cliente</strong>: Ante cualquier duda, retraso o incidencia con el
@@ -481,6 +479,16 @@ export default function CondicionesDeContratacionPage() {
             electrónico aplicadas por la pasarela, el sistema procesará los pagos con tarjetas
             autorizadas emitidas dentro de los marcos de seguridad compatibles con el comercio
             minorista nacional y de la Unión Europea.
+          </p>
+          <p>
+            <strong>Factura electrónica</strong>
+          </p>
+          <p>
+            La factura de cada compra se emite en formato electrónico y se envía al correo
+            electrónico facilitado por el Cliente durante el pedido. Al aceptar estas Condiciones, el
+            Cliente consiente recibirla por este medio. Si lo prefiere, puede solicitar una copia en
+            papel escribiendo a{' '}
+            <a href="mailto:elbueymaduradoxativa@gmail.com">elbueymaduradoxativa@gmail.com</a>.
           </p>
         </section>
 
