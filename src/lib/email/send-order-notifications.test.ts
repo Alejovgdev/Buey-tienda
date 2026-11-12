@@ -36,6 +36,19 @@ describe('envío de emails del pedido', () => {
     }));
   });
 
+  it('adjunta la factura y solo entonces menciona el adjunto', async () => {
+    const content = Buffer.from('%PDF-prueba');
+    await sendCustomerConfirmationEmail(data, { filename: 'Factura-T2026-0001.pdf', content });
+    const withPdf = mocks.send.mock.calls[0][0];
+    expect(withPdf.attachments).toEqual([{ filename: 'Factura-T2026-0001.pdf', content, contentType: 'application/pdf' }]);
+    expect(withPdf.html).toContain('Te adjuntamos la factura de tu compra.');
+
+    await sendCustomerConfirmationEmail(data);
+    const withoutPdf = mocks.send.mock.calls[1][0];
+    expect(withoutPdf.attachments).toBeUndefined();
+    expect(withoutPdf.html).not.toContain('Te adjuntamos la factura');
+  });
+
   it('en producción sin EMAIL_FROM no se envía nada', async () => {
     vi.stubEnv('VERCEL_ENV', 'production');
     vi.stubEnv('EMAIL_FROM', '');

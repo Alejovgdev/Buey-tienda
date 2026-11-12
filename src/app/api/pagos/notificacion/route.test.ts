@@ -4,6 +4,9 @@ const mocks = vi.hoisted(() => ({
   from: vi.fn(), rpc: vi.fn(), notification: vi.fn(), customer: vi.fn(), internal: vi.fn(), invoice: vi.fn(),
 }));
 vi.mock('@/lib/invoices', () => ({ issueSimplifiedInvoice: mocks.invoice }));
+const invoicePdf = vi.hoisted(() => vi.fn());
+vi.mock('@/lib/invoice-pdf', () => ({ prepareInvoiceAttachment: invoicePdf }));
+const pdfContent = Buffer.from('%PDF-prueba');
 vi.mock('@/lib/supabase-admin', () => ({ supabaseAdmin: { from: mocks.from, rpc: mocks.rpc } }));
 vi.mock('@/lib/redsys', () => ({ redsys: { processRestNotification: mocks.notification } }));
 vi.mock('@/lib/email/send-order-notifications', () => ({
@@ -44,6 +47,10 @@ beforeEach(() => {
     const alreadyIssued = invoiceIssued;
     invoiceIssued = true;
     return { ok: true, invoiceNumber: 'T2026-0001', alreadyIssued };
+  });
+  invoicePdf.mockResolvedValue({
+    ok: true, invoiceNumber: 'T2026-0001',
+    attachment: { filename: 'Factura-T2026-0001.pdf', content: pdfContent, created: true },
   });
   mocks.from.mockImplementation((table: string) => {
     if (table === 'orders') return {
@@ -246,7 +253,7 @@ describe('notificación Redsys (servicios simulados; concurrencia SQL en script 
       ],
     });
     expect(update).not.toHaveBeenCalled();
-    expect(mocks.customer).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({ paidAt }));
+    expect(mocks.customer).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({ paidAt }), expect.objectContaining({ filename: 'Factura-T2026-0001.pdf' }));
     expect(mocks.internal).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({ paidAt }));
     expect(insert.mock.calls.flat(2).filter((event) => event.event_type === 'PAGO_CONFIRMADO')).toHaveLength(1);
   });
@@ -355,6 +362,42 @@ describe('notificación Redsys (servicios simulados; concurrencia SQL en script 
       expect(events()).toContainEqual(expect.objectContaining({
         event_type: 'FACTURA_EMITIDA', metadata: { invoice_number: 'T2026-0008', reintento: true },
       }));
+      expect(mocks.customer).toHaveBeenCalledOnce();
+    });
+
+    it('adjunta el PDF de la factura al email de confirmación (no al interno)', async () => {
+      expect((await POST(request())).status).toBe(200);
+      expect(invoicePdf).toHaveBeenCalledExactlyOnceWith('order-1');
+      expect(mocks.customer).toHaveBeenCalledWith(expect.anything(), {
+        filename: 'Factura-T2026-0001.pdf', content: pdfContent,
+      });
+      expect(mocks.internal).toHaveBeenCalledWith(expect.anything());
+      expect(mocks.internal.mock.calls[0]).toHaveLength(1);
+    });
+
+    it('si falla el PDF, el email sale sin adjunto y queda FACTURA_PDF_ERROR', async () => {
+      invoicePdf.mockResolvedValueOnce({ ok: false, error: 'ERROR_PDF' });
+      expect((await POST(request())).status).toBe(200);
+      expect(mocks.customer).toHaveBeenCalledWith(expect.anything(), undefined);
+      expect(events()).toContainEqual(expect.objectContaining({
+        event_type: 'FACTURA_PDF_ERROR', metadata: { error: 'ERROR_PDF' },
+      }));
+      expect(events()).toContainEqual(expect.objectContaining({ event_type: 'FACTURA_EMITIDA' }));
+    });
+
+    it('si no hay factura, no se intenta el PDF ni se apunta FACTURA_PDF_ERROR', async () => {
+      mocks.invoice.mockResolvedValueOnce({ ok: false, error: 'PEDIDO_SIN_IVA' });
+      expect((await POST(request())).status).toBe(200);
+      expect(invoicePdf).not.toHaveBeenCalled();
+      expect(mocks.customer).toHaveBeenCalledWith(expect.anything(), undefined);
+      expect(events().some((event) => event.event_type === 'FACTURA_PDF_ERROR')).toBe(false);
+    });
+
+    it('un aviso duplicado no regenera el PDF ni reenvía el email', async () => {
+      expect((await POST(request())).status).toBe(200);
+      mocks.rpc.mockResolvedValue({ data: { ok: true, already_processed: true }, error: null });
+      expect((await POST(request())).status).toBe(200);
+      expect(invoicePdf).toHaveBeenCalledOnce();
       expect(mocks.customer).toHaveBeenCalledOnce();
     });
 

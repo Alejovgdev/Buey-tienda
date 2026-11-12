@@ -25,7 +25,14 @@ const logoUrl = cloudName
   ? `https://res.cloudinary.com/${cloudName}/image/upload/w_240/Logo-Buey_t9mc4b.png`
   : undefined;
 
-export function OrderConfirmationEmail({ data }: { data: OrderEmailData }) {
+export function OrderConfirmationEmail({
+  data,
+  invoiceAttached = false,
+}: {
+  data: OrderEmailData;
+  /** Solo true cuando el PDF de la factura va realmente adjunto. */
+  invoiceAttached?: boolean;
+}) {
   const productItems = data.items.filter((item) => item.itemType === 'PRODUCT');
   const giftItems = data.items.filter((item) => item.itemType === 'GIFT');
   const itemsWithAllergens = data.items.filter(
@@ -57,6 +64,9 @@ export function OrderConfirmationEmail({ data }: { data: OrderEmailData }) {
           <Text style={styles.confirmationText}>
             Hemos recibido correctamente el pago y confirmamos tu pedido.
           </Text>
+          {invoiceAttached ? (
+            <Text style={styles.confirmationText}>Te adjuntamos la factura de tu compra.</Text>
+          ) : null}
 
           <Section>
             {productItems.map((item, idx) => (

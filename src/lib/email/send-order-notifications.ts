@@ -51,14 +51,24 @@ export interface OrderEmailData {
 
 const ADMIN_NOTIFICATION_EMAIL = process.env.ADMIN_NOTIFICATION_EMAIL;
 
-export async function sendCustomerConfirmationEmail(data: OrderEmailData): Promise<void> {
-  const html = await render(OrderConfirmationEmail({ data }));
+/** PDF de la factura para adjuntar al email de confirmación. */
+export type EmailAttachment = { filename: string; content: Buffer };
+
+export async function sendCustomerConfirmationEmail(
+  data: OrderEmailData,
+  invoicePdf?: EmailAttachment
+): Promise<void> {
+  // La frase de la factura depende del adjunto real, no de un flag aparte.
+  const html = await render(OrderConfirmationEmail({ data, invoiceAttached: Boolean(invoicePdf) }));
   const { error } = await resend.emails.send({
     from: resolveEmailFrom(),
     to: data.customerEmail,
     replyTo: resolveReplyTo(),
     subject: `Pedido confirmado — El Buey Madurado #${data.orderNumber}`,
     html,
+    ...(invoicePdf
+      ? { attachments: [{ filename: invoicePdf.filename, content: invoicePdf.content, contentType: 'application/pdf' }] }
+      : {}),
   });
   if (error) {
     throw new Error(`Resend error (cliente): ${error.message}`);

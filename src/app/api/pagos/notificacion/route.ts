@@ -3,9 +3,11 @@ import { supabaseAdmin } from '@/lib/supabase-admin';
 import { redsys } from '@/lib/redsys';
 import { safeErrorCode } from '@/lib/safe-error-code';
 import { issueSimplifiedInvoice } from '@/lib/invoices';
+import { prepareInvoiceAttachment } from '@/lib/invoice-pdf';
 import {
   sendCustomerConfirmationEmail,
   sendInternalOrderNotification,
+  type EmailAttachment,
   type OrderEmailData,
 } from '@/lib/email/send-order-notifications';
 import type { Json } from '@/supabase/types';
@@ -369,7 +371,27 @@ async function processVerifiedNotification(result: ReturnType<typeof redsys.proc
 
   // Paso 4. Factura simplificada, justo despues de confirmar y antes de los
   // emails.
-  await issueInvoice(order.id, false);
+  const invoiceIssued = await issueInvoice(order.id, false);
+
+  // Paso 5. PDF de la factura para adjuntarlo al email de confirmacion. Si
+  // falla, el email sale igual sin adjunto y queda FACTURA_PDF_ERROR para
+  // reintentarlo (el PDF se genera desde la copia guardada en la factura).
+  let invoicePdf: EmailAttachment | undefined;
+  if (invoiceIssued) {
+    const pdf = await prepareInvoiceAttachment(order.id);
+    if (pdf.ok) {
+      invoicePdf = { filename: pdf.attachment.filename, content: pdf.attachment.content };
+    } else {
+      console.error('[pagos/notificacion] PDF de factura no disponible; email sin adjunto', {
+        ...paymentContext, stage: 'invoice_pdf', orderId: order.id, error: pdf.error,
+      });
+      await recordHistory({
+        order_id: order.id,
+        event_type: 'FACTURA_PDF_ERROR',
+        metadata: { error: pdf.error },
+      });
+    }
+  }
 
   // 5. Emails: nunca deben romper el acuse a Redsys. Cada uno en su propio
   // try/catch - si el del cliente falla se intenta igual el interno.
@@ -411,7 +433,7 @@ async function processVerifiedNotification(result: ReturnType<typeof redsys.proc
   };
 
   try {
-    await sendCustomerConfirmationEmail(emailData);
+    await sendCustomerConfirmationEmail(emailData, invoicePdf);
     await recordHistory({
       order_id: order.id,
       event_type: 'EMAIL_CLIENTE_ENVIADO',
