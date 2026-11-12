@@ -127,17 +127,31 @@ export function OrderConfirmationEmail({
 
           {legalNotices || data.termsVersion ? (
             <Section style={styles.legalBox}>
-              <Text style={styles.boxTitle}>
-                {legalNotices
-                  ? 'Cambios, cancelaciones y desistimiento'
-                  : 'Condiciones de contratación'}
-              </Text>
-              {legalNotices ? (
+              {legalNotices && 'withdrawalLabel' in legalNotices ? (
+                // v1.3 en adelante: resumen corto con etiquetas, sin título.
                 <>
-                  <Text style={styles.smallText}>{legalNotices.changeCutoff}</Text>
-                  <Text style={styles.smallText}>{legalNotices.withdrawal}</Text>
+                  <Text style={styles.smallText}>
+                    <strong>{legalNotices.changeCutoffLabel}</strong> {legalNotices.changeCutoff}
+                  </Text>
+                  <Text style={styles.smallText}>
+                    <strong>{legalNotices.withdrawalLabel}</strong> {legalNotices.withdrawal}
+                  </Text>
                 </>
-              ) : null}
+              ) : (
+                <>
+                  <Text style={styles.boxTitle}>
+                    {legalNotices
+                      ? 'Cambios, cancelaciones y desistimiento'
+                      : 'Condiciones de contratación'}
+                  </Text>
+                  {legalNotices ? (
+                    <>
+                      <Text style={styles.smallText}>{legalNotices.changeCutoff}</Text>
+                      <Text style={styles.smallText}>{legalNotices.withdrawal}</Text>
+                    </>
+                  ) : null}
+                </>
+              )}
               {data.termsVersion ? (
                 <Text style={styles.smallText}>
                   Condiciones generales aceptadas: versión {data.termsVersion}.{' '}

@@ -394,7 +394,7 @@ export default function CondicionesDeContratacionPage() {
           <ul>
             <li>
               <strong>
-                Artículo 103.e): El suministro de bienes que puedan deteriorarse o caducar con
+                Artículo 103.d): El suministro de bienes que puedan deteriorarse o caducar con
                 rapidez.
               </strong>{' '}
               Esta excepción resulta directamente aplicable a toda la carne madurada, cortes selectos

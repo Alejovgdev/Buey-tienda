@@ -40,6 +40,7 @@ Nunca en `.env.local`, que es solo de desarrollo.
 ## 5. Legal
 
 - [ ] Validación jurídica de Condiciones, Política de privacidad y Aviso legal (todas «pendiente de validación jurídica»), incluidos los TODO de cada documento.
+  - [ ] Revisar si los errores de envío (§5.2: producto equivocado o que falta) deben seguir el mismo procedimiento de aviso que el §5.5 (plazo de 24 horas y fotos). Hoy el §5.5 solo lo exige para pérdida de vacío, rotura de caja o mal estado del producto.
 
 ## 6. Seguridad pendiente de la auditoría
 

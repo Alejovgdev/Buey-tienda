@@ -89,6 +89,20 @@ describe('emails del pedido', () => {
     expect(html).not.toContain('Condiciones generales aceptadas');
     expect(html).not.toContain('horarios de corte');
   });
+
+  it('en la versión 1.3 muestra el resumen corto con el art. 103.d', async () => {
+    const html = await render(OrderConfirmationEmail({ data: { ...emailData, termsVersion: '1.3' } }));
+
+    expect(html).toContain('<strong>Cambios y cancelaciones:</strong>');
+    expect(html).toContain('puedes pedir cambios o cancelar el pedido mientras no haya entrado en preparación.');
+    expect(html).toContain('<strong>Desistimiento:</strong>');
+    expect(html).toContain('art. 103.d de la Ley General para la Defensa de los Consumidores y Usuarios');
+    expect(html).toContain('Si hay algo incorrecto en tu pedido, escríbenos lo antes posible con unas fotos y lo solucionamos.');
+    expect(html).not.toContain('Cambios, cancelaciones y desistimiento');
+    expect(html).not.toContain('horarios de corte');
+    expect(html).not.toContain('103.e');
+    expect(html).toContain('Condiciones generales aceptadas: versión');
+  });
 });
 
 describe('getPublicSiteUrl', () => {

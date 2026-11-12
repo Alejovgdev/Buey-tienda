@@ -136,7 +136,7 @@ Solo se aceptarán reclamaciones e incidencias de transacciones comerciales form
 
 De conformidad con el **artículo 103 del Real Decreto Legislativo 1/2007, de 16 de noviembre**, por el que se aprueba el texto refundido de la Ley General para la Defensa de los Consumidores y Usuarios, se informa de que **NO SE ADMITIRÁ EL EJERCICIO DEL DERECHO DE DESISTIMIENTO ni la devolución voluntaria** en los siguientes supuestos:
 
-- **Artículo 103.e): El suministro de bienes que puedan deteriorarse o caducar con rapidez.** Esta excepción resulta directamente aplicable a toda la carne madurada, cortes selectos y productos cárnicos derivados frescos de la web, ya que son alimentos perecederos que exigen una cadena de frío estricta e ininterrumpida que no puede ser garantizada una vez entregados. El derecho de desistimiento en la web será del **0%** para estos productos.
+- **Artículo 103.d): El suministro de bienes que puedan deteriorarse o caducar con rapidez.** Esta excepción resulta directamente aplicable a toda la carne madurada, cortes selectos y productos cárnicos derivados frescos de la web, ya que son alimentos perecederos que exigen una cadena de frío estricta e ininterrumpida que no puede ser garantizada una vez entregados. El derecho de desistimiento en la web será del **0%** para estos productos.
 
 **PROCEDIMIENTO ESTRICTO PARA INCIDENCIAS COMERCIALES:**
 
@@ -302,6 +302,7 @@ Lo único que permanece aquí: el **§6** nombra a Redsys como pasarela, pero **
 
 - **§6: nuevo bloque «Factura electrónica».** La factura se emite en formato electrónico y se envía al correo facilitado por el Cliente, que consiente recibirla por este medio al aceptar las Condiciones y puede pedir una copia en papel escribiendo a elbueymaduradoxativa@gmail.com.
 - **Pendiente antes de publicar en producción:** la tienda todavía no genera ni envía facturas. Esta versión no debe publicarse hasta que funcione el envío automático de facturas.
+- **§5.5: corrección del artículo.** La excepción al desistimiento de los bienes que pueden deteriorarse o caducar con rapidez es el artículo **103.d)** del Real Decreto Legislativo 1/2007, no el 103.e). Corregido en esta misma versión porque la 1.2 y la 1.3 no se han publicado. Las versiones 1.0 y 1.1 conservan la cita original.
 - Sin cambios en el resto del articulado.
 
 ### v1.2 — 12 de noviembre de 2026
