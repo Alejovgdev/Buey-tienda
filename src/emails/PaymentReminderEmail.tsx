@@ -10,13 +10,10 @@ import {
   Preview,
   Text,
 } from '@react-email/components';
+import { EMAIL_LOGO_HEIGHT, EMAIL_LOGO_WIDTH, getEmailLogoUrl } from '@/emails/logo';
 
 // Recordatorio de pedido no terminado (Pendiente de pago o Pago fallido). Se
 // envía a mano desde el panel, una sola vez por pedido. Email corto.
-const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
-const logoUrl = cloudName
-  ? `https://res.cloudinary.com/${cloudName}/image/upload/w_240/Logo-Buey_t9mc4b.png`
-  : undefined;
 
 export type PaymentReminderItem = { productName: string; variantName: string; quantity: number };
 
@@ -35,9 +32,13 @@ export function PaymentReminderEmail({
       <Preview>Vimos que no terminaste tu pedido</Preview>
       <Body style={styles.body}>
         <Container style={styles.container}>
-          {logoUrl ? (
-            <Img src={logoUrl} alt="El Buey Madurado" width="120" style={styles.logo} />
-          ) : null}
+          <Img
+            src={getEmailLogoUrl()}
+            alt="El Buey Madurado"
+            width={EMAIL_LOGO_WIDTH}
+            height={EMAIL_LOGO_HEIGHT}
+            style={styles.logo}
+          />
 
           <Text style={styles.text}>{`Hola ${customerName},`}</Text>
           <Text style={styles.text}>

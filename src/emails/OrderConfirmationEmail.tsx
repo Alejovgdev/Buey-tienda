@@ -11,6 +11,7 @@ import {
   Section,
   Text,
 } from '@react-email/components';
+import { EMAIL_LOGO_HEIGHT, EMAIL_LOGO_WIDTH, getEmailLogoUrl } from '@/emails/logo';
 import { formatPriceFromCents } from '@/lib/format-price';
 import { getOrderLegalNotices } from '@/lib/legal';
 import { getPublicSiteUrl } from '@/lib/public-site-url';
@@ -20,10 +21,6 @@ import type { OrderEmailData } from '@/lib/email/send-order-notifications';
 // Fase 5, Unidad 4. Plantilla de confirmacion al cliente (seccion 16 del
 // MVP). Tablas simples con estilos inline - es lo que sobrevive de verdad en
 // clientes de correo (Gmail, Outlook), no flexbox/grid.
-const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
-const logoUrl = cloudName
-  ? `https://res.cloudinary.com/${cloudName}/image/upload/w_240/Logo-Buey_t9mc4b.png`
-  : undefined;
 
 export function OrderConfirmationEmail({
   data,
@@ -55,9 +52,13 @@ export function OrderConfirmationEmail({
       <Preview>{`Tu pedido ${data.orderNumber} está confirmado`}</Preview>
       <Body style={styles.body}>
         <Container style={styles.container}>
-          {logoUrl ? (
-            <Img src={logoUrl} alt="El Buey Madurado" width="120" style={styles.logo} />
-          ) : null}
+          <Img
+            src={getEmailLogoUrl()}
+            alt="El Buey Madurado"
+            width={EMAIL_LOGO_WIDTH}
+            height={EMAIL_LOGO_HEIGHT}
+            style={styles.logo}
+          />
 
           <Heading style={styles.h1}>¡Tu pedido está confirmado!</Heading>
           <Text style={styles.orderNumber}>Pedido {data.orderNumber}</Text>

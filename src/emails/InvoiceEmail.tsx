@@ -9,14 +9,11 @@ import {
   Preview,
   Text,
 } from '@react-email/components';
+import { EMAIL_LOGO_HEIGHT, EMAIL_LOGO_WIDTH, getEmailLogoUrl } from '@/emails/logo';
 
 // Paso 6. Email corto para enviar una factura suelta desde el panel. La
 // plantilla es la misma para todos los tipos de factura: solo cambia la frase
 // principal (`message`), que decide send-invoice-email.ts.
-const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
-const logoUrl = cloudName
-  ? `https://res.cloudinary.com/${cloudName}/image/upload/w_240/Logo-Buey_t9mc4b.png`
-  : undefined;
 
 export function InvoiceEmail({
   customerName,
@@ -33,9 +30,13 @@ export function InvoiceEmail({
       <Preview>{previewText}</Preview>
       <Body style={styles.body}>
         <Container style={styles.container}>
-          {logoUrl ? (
-            <Img src={logoUrl} alt="El Buey Madurado" width="120" style={styles.logo} />
-          ) : null}
+          <Img
+            src={getEmailLogoUrl()}
+            alt="El Buey Madurado"
+            width={EMAIL_LOGO_WIDTH}
+            height={EMAIL_LOGO_HEIGHT}
+            style={styles.logo}
+          />
 
           <Text style={styles.text}>{`Hola ${customerName},`}</Text>
           <Text style={styles.text}>{message}</Text>

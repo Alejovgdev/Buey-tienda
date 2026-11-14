@@ -70,7 +70,7 @@ const env = {
   ...process.env, NODE_ENV: 'production', VERCEL_ENV: 'production', NEXT_TELEMETRY_DISABLED: '1',
   NEXT_PUBLIC_SUPABASE_URL: `http://127.0.0.1:${fixturePort}`, NEXT_PUBLIC_SUPABASE_ANON_KEY: 'local-only', SUPABASE_SERVICE_ROLE_KEY: 'local-only',
   // El origen operativo se mantiene local y distinto del SEO durante toda la prueba.
-  NEXT_PUBLIC_BASE_URL: base, NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME: 'local-only',
+  NEXT_PUBLIC_BASE_URL: base,
   ADMIN_PASSWORD: 'local-only', ADMIN_JWT_SECRET: 'local-only-secret-for-isolated-tests',
   REDSYS_ENVIRONMENT: 'test', REDSYS_SECRET_KEY: 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', REDSYS_MERCHANT_CODE: '000000000', REDSYS_TERMINAL: '001',
   RESEND_API_KEY: 're_local_only', EMAIL_FROM: 'test@example.invalid', ADMIN_NOTIFICATION_EMAIL: 'test@example.invalid',

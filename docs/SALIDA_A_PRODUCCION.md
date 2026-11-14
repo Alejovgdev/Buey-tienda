@@ -14,10 +14,9 @@ Nunca en `.env.local`, que es solo de desarrollo.
 | `RESEND_API_KEY` | Clave de la cuenta con `restauranteelbueymadurado.com` verificado | |
 | `REDSYS_ENVIRONMENT` | `production` | |
 | `REDSYS_MERCHANT_CODE`, `REDSYS_TERMINAL`, `REDSYS_SECRET_KEY` | Credenciales reales del TPV Virtual del banco | Las actuales son de pruebas. |
-| `NEXT_PUBLIC_BASE_URL` | Dominio público definitivo | De aquí salen las URLs de aviso y retorno de Redsys y los enlaces de los emails (H-07). |
+| `NEXT_PUBLIC_BASE_URL` | Dominio público definitivo | De aquí salen las URLs de aviso y retorno de Redsys y los enlaces de los emails (H-07). También la URL del logo de los emails: tiene que ser un dominio público. |
 | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` | Proyecto Supabase de producción | No usar `tienda-buey-dev`. |
 | `ADMIN_PASSWORD`, `ADMIN_JWT_SECRET` | Valores nuevos y robustos | No reutilizar los de desarrollo. |
-| `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME` | Cuenta de Cloudinary de la tienda | |
 
 ## 2. Base de datos de producción
 

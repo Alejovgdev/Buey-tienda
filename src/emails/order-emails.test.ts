@@ -62,6 +62,15 @@ describe('emails del pedido', () => {
     expect(html).toContain('href="https://wa.me/34670775786"');
   });
 
+  it('carga el logo de la confirmación desde la propia web, sin Cloudinary', async () => {
+    vi.stubEnv('NEXT_PUBLIC_BASE_URL', 'https://tienda.example.com/');
+
+    const html = await render(OrderConfirmationEmail({ data: emailData }));
+
+    expect(html).toContain('src="https://tienda.example.com/assets/images/logo-buey-email.png"');
+    expect(html).not.toContain('cloudinary');
+  });
+
   it('usa en el email interno la hora real del pago y un enlace absoluto al pedido', async () => {
     vi.stubEnv('NEXT_PUBLIC_BASE_URL', 'https://tienda.example.com/');
     const formattedPaidAt = new Date(emailData.paidAt).toLocaleString('es-ES', {
