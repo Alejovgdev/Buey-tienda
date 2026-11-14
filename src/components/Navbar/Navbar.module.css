@@ -62,8 +62,8 @@
   .logo { flex: 0 0 160px; }
   .desktopNav { display: flex; justify-content: center; align-items: center; flex: 1; gap: 26px; list-style: none; font-size: 15px; font-weight: 550; white-space: nowrap; }
   .desktopLink { transition: color 180ms ease; }
-  .desktopLink:hover, .current, .shopLink { color: #f5a300; }
-  .shopLink, .current { font-weight: 700; }
+  .desktopLink:hover, .current { color: #f5a300; }
+  .current { font-weight: 700; }
   .desktopBooking { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 10px 22px; border-radius: 999px; background: #f5a300; color: #160d04; font-size: 15px; font-weight: 700; }
   .desktopBooking:hover { background: #ffb921; }
   .menuButton, .menuPanel, .menuOverlay { display: none; }

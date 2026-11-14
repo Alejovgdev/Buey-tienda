@@ -29,6 +29,7 @@ const menuGroups: { label: string; items: MenuItem[] }[] = [
 ];
 
 const desktopItems = [
+  { href: '/', label: 'Inicio' },
   { href: '/carta', label: 'Carta' },
   { href: '/reservas', label: 'Reservar' },
   { href: '/tienda', label: 'Tienda' },
@@ -137,7 +138,7 @@ export default function Navbar() {
         <div className={styles.logo} onClick={closeMenu}><Logo /></div>
         <ul className={styles.desktopNav}>
           {desktopItems.map(({ href, label }) => (
-            <li key={href}><Link href={href} className={`${styles.desktopLink} ${href === '/tienda' ? styles.shopLink : ''} ${isActive(href) ? styles.current : ''}`} aria-current={isActive(href) ? 'page' : undefined}>{label}</Link></li>
+            <li key={href}><Link href={href} className={`${styles.desktopLink} ${isActive(href) ? styles.current : ''}`} aria-current={isActive(href) ? 'page' : undefined}>{label}</Link></li>
           ))}
         </ul>
         <div className={styles.headerActions}>
