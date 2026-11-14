@@ -1,6 +1,8 @@
 import { getEventLabel } from '@/lib/admin/event-labels';
 import { formatDateTime } from '@/lib/admin/format-datetime';
 import { ORDER_STATUS_LABELS, isValidOrderStatus } from '@/lib/admin/order-status';
+import { getMetadataString } from '@/lib/admin/incidents';
+import type { Json } from '@/supabase/types';
 
 export type TimelineEvent = {
   id: string;
@@ -9,7 +11,15 @@ export type TimelineEvent = {
   new_status: string | null;
   notes: string | null;
   created_at: string;
+  metadata?: Json | null;
 };
+
+// Paso 6. Los eventos de factura del cobro no llevan notas: se muestra el
+// número (o el código de error) guardado en metadata.
+function invoiceDetail(event: TimelineEvent): string | null {
+  if (!event.event_type.startsWith('FACTURA_')) return null;
+  return getMetadataString(event.metadata ?? null, 'invoice_number') ?? getMetadataString(event.metadata ?? null, 'error');
+}
 
 function statusLabel(status: string | null): string {
   if (!status) return '';
@@ -39,7 +49,11 @@ export default function OrderTimeline({ events }: { events: TimelineEvent[] }) {
                 </span>
               )}
             </p>
-            {event.notes && <p className="whitespace-pre-wrap text-gray-600">{event.notes}</p>}
+            {event.notes ? (
+              <p className="whitespace-pre-wrap text-gray-600">{event.notes}</p>
+            ) : (
+              invoiceDetail(event) && <p className="text-gray-600">{invoiceDetail(event)}</p>
+            )}
           </div>
         </li>
       ))}

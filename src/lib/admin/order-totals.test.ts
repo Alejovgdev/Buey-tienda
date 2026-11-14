@@ -11,6 +11,10 @@ vi.mock('@/components/Admin/OrderStatusControl', () => ({ default: () => null })
 vi.mock('@/components/Admin/OrderNotesForm', () => ({ default: () => null }));
 vi.mock('@/components/Admin/OrderTimeline', () => ({ default: () => null }));
 vi.mock('@/components/Admin/IncidentBanner', () => ({ default: () => null }));
+vi.mock('@/components/Admin/OrderInvoices', () => ({ default: () => null }));
+vi.mock('@/lib/invoices-admin', () => ({
+  listOrderInvoices: async () => [], INVOICE_TYPE_LABELS: {}, INVOICE_STATUS_LABELS: {},
+}));
 
 import AdminPedidoDetailPage from '@/app/admin/pedidos/[id]/page';
 

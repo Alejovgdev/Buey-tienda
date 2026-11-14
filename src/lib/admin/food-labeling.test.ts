@@ -12,6 +12,9 @@ const mocks = vi.hoisted(() => ({
 vi.mock('@/lib/admin/features', () => ({ get FOOD_LABELING_ENABLED() { return mocks.enabled; } }));
 vi.mock('@/lib/admin-session', () => ({ isAdminAuthenticated: mocks.authenticated, getAdminSession: mocks.session }));
 vi.mock('@/lib/supabase-admin', () => ({ supabaseAdmin: { from: mocks.from } }));
+vi.mock('@/lib/invoices-admin', () => ({
+  listOrderInvoices: async () => [], INVOICE_TYPE_LABELS: {}, INVOICE_STATUS_LABELS: {},
+}));
 vi.mock('next/navigation', () => ({
   redirect: (url: string) => { throw new Error(`redirect:${url}`); },
   notFound: () => { throw new Error('notFound'); },

@@ -49,6 +49,14 @@ export const ORDER_STATUS_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
   NEEDS_REVIEW: ['PREPARING', 'CANCELLED'],
 };
 
+// Paso 6. Estados en los que se puede emitir la factura simplificada desde el
+// panel. La función SQL lo vuelve a comprobar (migración 0027).
+const INVOICEABLE_STATUSES: readonly string[] = ['PAID', 'PREPARING'];
+
+export function isInvoiceableStatus(status: string): boolean {
+  return INVOICEABLE_STATUSES.includes(status);
+}
+
 export function isValidTransition(from: OrderStatus, to: OrderStatus): boolean {
   return ORDER_STATUS_TRANSITIONS[from].includes(to);
 }

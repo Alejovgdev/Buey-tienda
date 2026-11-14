@@ -1,8 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const mocks = vi.hoisted(() => ({ authenticated: vi.fn(), from: vi.fn() }));
+const mocks = vi.hoisted(() => ({ authenticated: vi.fn(), from: vi.fn(), issueInvoice: vi.fn() }));
 vi.mock('@/lib/admin-session', () => ({ isAdminAuthenticated: mocks.authenticated }));
 vi.mock('@/lib/supabase-admin', () => ({ supabaseAdmin: { from: mocks.from } }));
+vi.mock('@/lib/invoices-admin', () => ({ issueInvoiceFromAdmin: mocks.issueInvoice }));
 
 import { PATCH as changeStatus } from '@/app/api/admin/pedidos/[id]/estado/route';
 import { PATCH as saveNotes } from '@/app/api/admin/pedidos/[id]/notas/route';
@@ -15,6 +16,7 @@ const request = (body: unknown) => new Request('http://localhost/api/admin/pedid
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.authenticated.mockResolvedValue(true);
+  mocks.issueInvoice.mockResolvedValue({ ok: true, invoiceNumber: 'T2026-0009', alreadyIssued: false });
 });
 
 function orderDatabase(status: string) {
@@ -46,8 +48,27 @@ describe('gestión normal de pedidos sin etiquetas', () => {
       expect(order.labeled_by).toBeNull();
       expect(update).toHaveBeenCalledWith({ status: next, updated_at: expect.any(String) });
       expect(insert).toHaveBeenCalledWith({ order_id: 'order-1', event_type: 'ESTADO_CAMBIADO', previous_status: previous, new_status: next });
+      // Paso 6: solo resolver una revisión (Revisión manual → Preparando) emite la factura.
+      if (previous === 'NEEDS_REVIEW' && next === 'PREPARING') {
+        expect(mocks.issueInvoice).toHaveBeenCalledWith('order-1', 'revision');
+      } else {
+        expect(mocks.issueInvoice).not.toHaveBeenCalled();
+      }
     });
   }
+
+  it('al resolver la revisión devuelve el número de factura, o el error sin deshacer el cambio de estado', async () => {
+    orderDatabase('NEEDS_REVIEW');
+    const ok = await changeStatus(request({ status: 'PREPARING' }), context);
+    expect(await ok.json()).toEqual({ ok: true, status: 'PREPARING', invoice: { ok: true, invoiceNumber: 'T2026-0009' } });
+
+    const { order } = orderDatabase('NEEDS_REVIEW');
+    mocks.issueInvoice.mockResolvedValue({ ok: false, error: 'PEDIDO_SIN_IVA' });
+    const failed = await changeStatus(request({ status: 'PREPARING' }), context);
+    expect(failed.status).toBe(200);
+    expect(order.status).toBe('PREPARING');
+    expect(await failed.json()).toEqual({ ok: true, status: 'PREPARING', invoice: { ok: false, error: 'PEDIDO_SIN_IVA' } });
+  });
 
   for (const [previous, next] of [['PENDING_PAYMENT', 'PAID'], ['PAYMENT_FAILED', 'PREPARING'], ['CANCELLED', 'PREPARING']]) {
     it(`sigue rechazando ${previous} → ${next}`, async () => {

@@ -13,6 +13,9 @@ import OrderStatusControl from '@/components/Admin/OrderStatusControl';
 import OrderNotesForm from '@/components/Admin/OrderNotesForm';
 import OrderTimeline, { type TimelineEvent } from '@/components/Admin/OrderTimeline';
 import IncidentBanner, { type IncidentEvent } from '@/components/Admin/IncidentBanner';
+import OrderInvoices, { type OrderInvoiceItem } from '@/components/Admin/OrderInvoices';
+import { INVOICE_STATUS_LABELS, INVOICE_TYPE_LABELS, listOrderInvoices } from '@/lib/invoices-admin';
+import { isInvoiceableStatus } from '@/lib/admin/order-status';
 import type { Json } from '@/supabase/types';
 
 export const dynamic = 'force-dynamic';
@@ -99,6 +102,29 @@ export default async function AdminPedidoDetailPage({ params }: AdminPedidoDetai
     .maybeSingle();
 
   const totalCollected = paymentError ? null : (payment?.amount ?? 0);
+
+  // Paso 6. Facturas del pedido. Si la consulta falla se muestra el aviso y
+  // no se ofrece "Emitir factura" (no se sabe si ya existe).
+  const invoiceList = await listOrderInvoices(order.id).then(
+    (list) => list,
+    () => null
+  );
+  const invoiceItems: OrderInvoiceItem[] = (invoiceList ?? []).map((invoice) => ({
+    id: invoice.id,
+    invoiceNumber: invoice.invoiceNumber,
+    typeLabel: INVOICE_TYPE_LABELS[invoice.invoiceType] ?? invoice.invoiceType,
+    statusLabel: INVOICE_STATUS_LABELS[invoice.status] ?? invoice.status,
+    status: invoice.status,
+    issueDate: invoice.issueDate,
+    total: invoice.total,
+  }));
+  // Solo pedidos resueltos (Pagado o Preparando): en Error de stock, Revisión
+  // manual o Cancelado la factura no se emite desde aquí.
+  const canIssueInvoice =
+    invoiceList !== null &&
+    Boolean(payment) &&
+    isInvoiceableStatus(order.status) &&
+    !invoiceList.some((invoice) => invoice.invoiceType === 'SIMPLIFIED');
 
   const { data: items } = await supabaseAdmin
     .from('order_items')
@@ -255,6 +281,21 @@ export default async function AdminPedidoDetailPage({ params }: AdminPedidoDetai
               <span>{totalCollected === null ? 'No disponible' : formatPriceFromCents(totalCollected)}</span>
             </div>
           </div>
+        </section>
+
+        <section className="rounded-lg border border-gray-300 bg-white p-4">
+          <h3 className="mb-3 text-sm font-bold uppercase tracking-wide text-gray-500">Factura</h3>
+          {invoiceList === null ? (
+            <p className="text-sm text-red-600">No se pudieron cargar las facturas. Recarga la página.</p>
+          ) : (
+            <OrderInvoices
+              orderId={order.id}
+              orderNumber={order.order_number}
+              customerEmail={order.customer_email}
+              invoices={invoiceItems}
+              canIssue={canIssueInvoice}
+            />
+          )}
         </section>
 
         <section className="rounded-lg border border-gray-300 bg-white p-4">

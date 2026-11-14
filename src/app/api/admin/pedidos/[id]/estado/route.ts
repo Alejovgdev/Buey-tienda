@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { isAdminAuthenticated } from '@/lib/admin-session';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { isValidOrderStatus, isValidTransition } from '@/lib/admin/order-status';
+import { issueInvoiceFromAdmin } from '@/lib/invoices-admin';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -56,6 +57,18 @@ export async function PATCH(request: Request, { params }: RouteParams) {
     previous_status: currentStatus,
     new_status: newStatus,
   });
+
+  // Paso 6. Un pedido cobrado que se quedó en revisión (Error de stock) no
+  // tiene factura: se emite al resolverlo. El cambio de estado ya está hecho;
+  // si la factura falla queda FACTURA_ERROR y el botón "Emitir factura".
+  if (currentStatus === 'NEEDS_REVIEW' && newStatus === 'PREPARING') {
+    const invoice = await issueInvoiceFromAdmin(id, 'revision');
+    return NextResponse.json({
+      ok: true,
+      status: newStatus,
+      invoice: invoice.ok ? { ok: true, invoiceNumber: invoice.invoiceNumber } : { ok: false, error: invoice.error },
+    });
+  }
 
   return NextResponse.json({ ok: true, status: newStatus });
 }

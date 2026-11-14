@@ -21,7 +21,7 @@ Nunca en `.env.local`, que es solo de desarrollo.
 
 ## 2. Base de datos de producción
 
-- [ ] Aplicar todas las migraciones de `supabase/migrations/` (incluidas 0024 IVA y 0025 facturas) y comprobar con `supabase migration list` que coinciden.
+- [ ] Aplicar todas las migraciones de `supabase/migrations/` (incluidas 0024 IVA, 0025 facturas, 0026 almacén de PDF y 0027 factura tras revisión de stock) y comprobar con `supabase migration list` que coinciden.
 - [ ] Vaciar o no aplicar los datos de ejemplo de `0006_seed_dev.sql` (y el relleno de desarrollo de `0013`).
 - [ ] Revisar en `shop_settings` los datos del emisor (razón social, NIF, dirección) y `shipping_vat_rate`.
 - [ ] Revisar `products.vat_rate` de todo el catálogo (10 % confirmado por el gestor para carne y embutidos).
@@ -30,6 +30,7 @@ Nunca en `.env.local`, que es solo de desarrollo.
 
 - [ ] No publicar las Condiciones v1.3 (cláusula de factura electrónica) hasta que el envío automático de la factura en PDF funcione en producción.
 - [ ] Comprobar en producción que el primer pago real genera `T<año>-0001` y que el cliente la recibe adjunta.
+- [ ] **Pregunta pendiente para el gestor: pedidos cobrados y luego cancelados.** Hoy, si el banco cobra pero el pedido se queda en «Error de stock» y el admin lo cancela (y devuelve el dinero), no se emite factura. Solo se factura si se resuelve pasándolo a «Preparando». Como el cobro es por adelantado, el IVA podría deberse ya en el momento del pago. ¿Hay que emitir la factura al cobrar y, si se cancela, una rectificativa (serie R)? ¿O basta con no facturar porque la venta no llega a hacerse? La respuesta decide cómo tratar las cancelaciones en el paso 8 (rectificativas). Lo mismo vale para un pedido «Pagado» que se cancela antes de enviarse: ya tiene factura y hoy no se rectifica.
 
 ## 4. Pagos
 

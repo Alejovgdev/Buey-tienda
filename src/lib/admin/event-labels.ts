@@ -20,6 +20,10 @@ const EVENT_TYPE_LABELS: Record<string, string> = {
   ESTADO_CAMBIADO: 'Estado cambiado',
   NOTA_INTERNA_AÑADIDA: 'Nota interna añadida',
   PEDIDO_ETIQUETADO: 'Pedido marcado como preparado/etiquetado',
+  FACTURA_EMITIDA: 'Factura emitida',
+  FACTURA_ERROR: 'Error al emitir la factura',
+  FACTURA_PDF_ERROR: 'Error al generar el PDF de la factura',
+  FACTURA_REENVIADA: 'Factura reenviada al cliente',
 };
 
 export function getEventLabel(eventType: string): string {
