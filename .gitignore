@@ -31,3 +31,6 @@ dist-ssr
     
 # Caché incremental de TypeScript
 tsconfig.tsbuildinfo
+
+# Reglas para agentes que genera next dev
+AGENTS.md
