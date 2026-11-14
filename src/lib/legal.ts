@@ -67,7 +67,7 @@ const ORDER_LEGAL_NOTICES_BY_TERMS_VERSION = {
       'puedes pedir cambios o cancelar el pedido mientras no haya entrado en preparación.',
     withdrawalLabel: 'Desistimiento:',
     withdrawal:
-      'al ser alimentos frescos que se deterioran con rapidez, estos productos no admiten derecho de desistimiento (art. 103.d de la Ley General para la Defensa de los Consumidores y Usuarios). Si hay algo incorrecto en tu pedido, escríbenos lo antes posible con unas fotos y lo solucionamos.',
+      'al ser alimentos frescos que se deterioran con rapidez, estos productos no admiten derecho de desistimiento (art. 103.d de la Ley General para la Defensa de los Consumidores y Usuarios). Si hay algo incorrecto en tu pedido, escríbenos y lo solucionamos.',
   },
 } as const;
 

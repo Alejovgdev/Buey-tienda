@@ -97,7 +97,7 @@ describe('emails del pedido', () => {
     expect(html).toContain('puedes pedir cambios o cancelar el pedido mientras no haya entrado en preparación.');
     expect(html).toContain('<strong>Desistimiento:</strong>');
     expect(html).toContain('art. 103.d de la Ley General para la Defensa de los Consumidores y Usuarios');
-    expect(html).toContain('Si hay algo incorrecto en tu pedido, escríbenos lo antes posible con unas fotos y lo solucionamos.');
+    expect(html).toContain('Si hay algo incorrecto en tu pedido, escríbenos y lo solucionamos.');
     expect(html).not.toContain('Cambios, cancelaciones y desistimiento');
     expect(html).not.toContain('horarios de corte');
     expect(html).not.toContain('103.e');
