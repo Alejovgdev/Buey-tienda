@@ -8,6 +8,8 @@
 //     Busca el PDF en Storage o lo genera y lo sube (sin sobrescribir), y envía
 //     el email «Pedido confirmado» con la factura adjunta. ESCRIBE en Storage y
 //     ENVÍA un email: solo para pedidos de prueba con email delivered@resend.dev.
+//     Con --para <email> el envío va a ese destinatario en lugar del guardado
+//     en el pedido (que no se modifica). Solo admite APPROVED_RECIPIENTS.
 //
 // Lee la configuración de .env.local (base de datos de pruebas).
 
@@ -18,8 +20,13 @@ process.loadEnvFile('.env.local');
 
 const TEST_EMAIL = 'delivered@resend.dev';
 
+// Destinatarios aprobados explícitamente para --para. Solo para ver el email
+// real en una bandeja de pruebas; nunca la dirección de un cliente real. El
+// email guardado en el pedido no se modifica.
+const APPROVED_RECIPIENTS = new Set([TEST_EMAIL, 'alejandroinelcom@gmail.com']);
+
 async function main() {
-  const [mode, ref, folder] = process.argv.slice(2);
+  const [mode, ref, folder, ...rest] = process.argv.slice(2);
   const { supabaseAdmin } = await import('@/lib/supabase-admin');
   const { INVOICE_PDF_COLUMNS, invoicePdfFileName, toInvoicePdfData } = await import('@/lib/invoice-pdf/invoice-data');
 
@@ -37,6 +44,19 @@ async function main() {
   }
 
   if (mode === '--reenviar' && ref) {
+    // Uso: --reenviar <pedido> [--para <email aprobado>]
+    const options = [folder, ...rest].filter((value): value is string => value !== undefined);
+    let recipient: string | null = null;
+    if (options.length > 0) {
+      if (options.length !== 2 || options[0] !== '--para') {
+        throw new Error('Opciones válidas: --para <email aprobado>');
+      }
+      recipient = options[1].trim().toLowerCase();
+      if (!APPROVED_RECIPIENTS.has(recipient)) {
+        throw new Error(`Destinatario no aprobado: ${recipient}. Aprobados: ${[...APPROVED_RECIPIENTS].join(', ')}`);
+      }
+    }
+
     const { ensureInvoicePdf } = await import('@/lib/invoice-pdf/storage');
     const { sendCustomerConfirmationEmail } = await import('@/lib/email/send-order-notifications');
 
@@ -65,7 +85,8 @@ async function main() {
       orderNumber: order.order_number,
       customerName: order.customer_name,
       customerLastName: order.customer_last_name,
-      customerEmail: order.customer_email,
+      // Solo cambia el destinatario de este envío; el pedido no se modifica.
+      customerEmail: recipient ?? order.customer_email,
       customerPhone: order.customer_phone,
       shippingStreet: order.shipping_street,
       shippingCity: order.shipping_city,
@@ -89,7 +110,7 @@ async function main() {
         itemType: item.item_type === 'GIFT' ? 'GIFT' : 'PRODUCT',
       })),
     }, { filename: file.filename, content: file.content });
-    console.log(`Email «Pedido confirmado» enviado a ${order.customer_email} con ${file.filename}`);
+    console.log(`Email «Pedido confirmado» enviado a ${recipient ?? order.customer_email} con ${file.filename}`);
     return;
   }
 

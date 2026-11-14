@@ -15,3 +15,5 @@
 ## Pedidos de prueba
 
 - Usar siempre el email `delivered@resend.dev` (dirección de pruebas de Resend, no rebota) en cualquier pedido de prueba.
+- Enviar los datos de los pedidos de prueba desde un archivo guardado en UTF-8 (por ejemplo `curl --data-binary @pedido.json`), nunca escritos en la línea de comandos: la consola de Windows convierte las tildes y se guardan como «�».
+- En SQL, escribir las letras con tilde con `chr()` (por ejemplo `'X' || chr(224) || 'tiva'`) por el mismo motivo.
