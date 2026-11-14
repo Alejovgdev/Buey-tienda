@@ -16,6 +16,7 @@ export const INCIDENT_EVENT_TYPES = [
   'PAYMENTS_INSERT_ERROR',
   'PROMOCION_NO_APLICADA',
   'REGALO_ENTREGADO_SIN_CANJE_CONTADO',
+  'PAGO_TRAS_CANCELACION',
 ] as const;
 
 export type OrderIncident = {
@@ -44,6 +45,9 @@ export function classifyIncidentEvent(eventType: string, metadata: Json | null):
   if (eventType === 'IMPORTE_INCOHERENTE') return 'critical';
 
   if (eventType === 'PAYMENTS_INSERT_ERROR') return 'critical';
+
+  // Redsys confirmó un pago de un pedido ya cancelado: hay que devolverlo.
+  if (eventType === 'PAGO_TRAS_CANCELACION') return 'critical';
 
   if (eventType === 'PROMOCION_NO_APLICADA') {
     return getMetadataField(metadata, 'reason') === 'SIN_STOCK_REGALO_EN_CONFIRMACION' ? 'action_required' : null;

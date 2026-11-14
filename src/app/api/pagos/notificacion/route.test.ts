@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mocks = vi.hoisted(() => ({
   from: vi.fn(), rpc: vi.fn(), notification: vi.fn(), customer: vi.fn(), internal: vi.fn(), invoice: vi.fn(),
+  stockAlert: vi.fn(), cancelAlert: vi.fn(), previousCancelPayment: vi.fn(),
 }));
 vi.mock('@/lib/invoices', () => ({ issueSimplifiedInvoice: mocks.invoice }));
 const invoicePdf = vi.hoisted(() => vi.fn());
@@ -9,6 +10,10 @@ vi.mock('@/lib/invoice-pdf', () => ({ prepareInvoiceAttachment: invoicePdf }));
 const pdfContent = Buffer.from('%PDF-prueba');
 vi.mock('@/lib/supabase-admin', () => ({ supabaseAdmin: { from: mocks.from, rpc: mocks.rpc } }));
 vi.mock('@/lib/redsys', () => ({ redsys: { processRestNotification: mocks.notification } }));
+vi.mock('@/lib/email/send-order-alerts', () => ({
+  sendStockErrorAlert: mocks.stockAlert,
+  sendPaidAfterCancelAlert: mocks.cancelAlert,
+}));
 vi.mock('@/lib/email/send-order-notifications', () => ({
   sendCustomerConfirmationEmail: mocks.customer,
   sendInternalOrderNotification: mocks.internal,
@@ -37,6 +42,7 @@ beforeEach(() => {
   insert.mockResolvedValue({ error: null });
   readOrder.mockImplementation(async () => ({ data: { ...order }, error: null }));
   readItems.mockResolvedValue({ data: items, error: null });
+  mocks.previousCancelPayment.mockResolvedValue({ data: [], error: null });
   updateOrder.mockResolvedValue({ data: { id: order.id }, error: null });
   update.mockReturnValue({ eq: () => ({ eq: () => ({ select: () => ({ maybeSingle: updateOrder }) }) }) });
   mocks.rpc.mockResolvedValue({ data: { ok: true, already_processed: false, paid_at: paidAt }, error: null });
@@ -60,7 +66,10 @@ beforeEach(() => {
     if (table === 'order_items') return {
       select: () => ({ eq: () => ({ returns: readItems }) }),
     };
-    if (table === 'order_status_history') return { insert };
+    if (table === 'order_status_history') return {
+      insert,
+      select: () => ({ eq: () => ({ eq: () => ({ eq: () => ({ limit: mocks.previousCancelPayment }) }) }) }),
+    };
     throw new Error(`El handler no debe escribir directamente en ${table}`);
   });
 });
@@ -276,12 +285,79 @@ describe('notificación Redsys (servicios simulados; concurrencia SQL en script 
     expect(mocks.customer).not.toHaveBeenCalled();
   });
 
-  it('no vuelve a escribir STOCK_ERROR ni envía emails cuando la RPC ya resolvió la falta de stock', async () => {
+  it('no vuelve a escribir STOCK_ERROR ni envía emails al cliente cuando la RPC ya resolvió la falta de stock', async () => {
     mocks.rpc.mockResolvedValue({ data: { ok: false, error: 'STOCK_INSUFICIENTE', paid_at: paidAt }, error: null });
     expect((await POST(request())).status).toBe(200);
     expect(update).not.toHaveBeenCalled();
-    expect(insert).not.toHaveBeenCalled();
+    expect(insert).not.toHaveBeenCalledWith(expect.objectContaining({ event_type: 'STOCK_ERROR' }));
     expect(mocks.customer).not.toHaveBeenCalled();
+    expect(mocks.internal).not.toHaveBeenCalled();
+  });
+
+  describe('aviso al restaurante por error de stock', () => {
+    it('cobrado sin stock: avisa al restaurante con productos e importe y lo apunta', async () => {
+      mocks.rpc.mockResolvedValue({ data: { ok: false, error: 'STOCK_INSUFICIENTE', paid_at: paidAt }, error: null });
+      expect((await POST(request())).status).toBe(200);
+      expect(mocks.stockAlert).toHaveBeenCalledWith(expect.objectContaining({
+        orderId: 'order-1', amount: 1000,
+        items: [expect.objectContaining({ quantity: 2, itemType: 'PRODUCT' }), expect.objectContaining({ quantity: 1, itemType: 'GIFT' })],
+      }));
+      expect(insert).toHaveBeenCalledWith({ order_id: 'order-1', event_type: 'AVISO_STOCK_ENVIADO' });
+    });
+
+    it('si el aviso falla, lo apunta en el historial y responde igual a Redsys', async () => {
+      mocks.rpc.mockResolvedValue({ data: { ok: false, error: 'STOCK_INSUFICIENTE', paid_at: paidAt }, error: null });
+      mocks.stockAlert.mockRejectedValue(new Error('resend caído'));
+      expect((await POST(request())).status).toBe(200);
+      expect(insert).toHaveBeenCalledWith(expect.objectContaining({ order_id: 'order-1', event_type: 'AVISO_STOCK_ERROR' }));
+    });
+
+    it('un aviso repetido de Redsys (sin paid_at) no vuelve a avisar', async () => {
+      order.status = 'STOCK_ERROR';
+      mocks.rpc.mockResolvedValue({ data: { ok: false, review_required: true, error: 'PAYMENT_RECONCILIATION_REQUIRED' }, error: null });
+      expect((await POST(request())).status).toBe(200);
+      expect(mocks.stockAlert).not.toHaveBeenCalled();
+      expect(mocks.cancelAlert).not.toHaveBeenCalled();
+      expect(insert).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('pago recibido de un pedido cancelado', () => {
+    const cancelledPayment = () => {
+      order.status = 'CANCELLED';
+      mocks.notification.mockReturnValue({ Ds_Order: '26000001', Ds_Response: '0000', Ds_Amount: '1000', Ds_AuthorisationCode: 'AUT123' });
+      mocks.rpc.mockResolvedValue({ data: { ok: false, review_required: true, error: 'ORDER_RECONCILIATION_REQUIRED' }, error: null });
+    };
+
+    it('queda en el historial (aviso rojo) y avisa al restaurante, sin cambiar el estado', async () => {
+      cancelledPayment();
+      expect((await POST(request())).status).toBe(200);
+      expect(update).not.toHaveBeenCalled();
+      expect(insert).toHaveBeenCalledWith({
+        order_id: 'order-1', event_type: 'PAGO_TRAS_CANCELACION',
+        metadata: { ds_order: '26000001', ds_response: '0000', ds_amount: '1000', ds_authorization: 'AUT123' },
+      });
+      expect(mocks.cancelAlert).toHaveBeenCalledWith(expect.objectContaining({ orderId: 'order-1' }), { dsOrder: '26000001', authorization: 'AUT123' });
+      expect(insert).toHaveBeenCalledWith({ order_id: 'order-1', event_type: 'AVISO_PAGO_CANCELADO_ENVIADO' });
+      expect(mocks.customer).not.toHaveBeenCalled();
+      expect(mocks.invoice).not.toHaveBeenCalled();
+    });
+
+    it('si Redsys repite el aviso de la misma operación, no lo duplica', async () => {
+      cancelledPayment();
+      mocks.previousCancelPayment.mockResolvedValue({ data: [{ id: 'h-1' }], error: null });
+      expect((await POST(request())).status).toBe(200);
+      expect(insert).not.toHaveBeenCalled();
+      expect(mocks.cancelAlert).not.toHaveBeenCalled();
+    });
+
+    it('si el aviso falla, lo apunta en el historial', async () => {
+      cancelledPayment();
+      mocks.cancelAlert.mockRejectedValue(new Error('resend caído'));
+      expect((await POST(request())).status).toBe(200);
+      expect(insert).toHaveBeenCalledWith(expect.objectContaining({ event_type: 'PAGO_TRAS_CANCELACION' }));
+      expect(insert).toHaveBeenCalledWith(expect.objectContaining({ event_type: 'AVISO_PAGO_CANCELADO_ERROR' }));
+    });
   });
 
   it('un fallo transaccional devuelve 500 sin histórico ni emails de confirmación', async () => {

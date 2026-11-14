@@ -118,7 +118,19 @@ El «Procedimiento estricto para incidencias comerciales» del §5.5 (aviso en 2
 
 ---
 
-## 8. Fallos de vuestro Word que ya hemos corregido
+## 8. Email de recordatorio de pedido no terminado
+
+**Qué es.** Cuando un cliente empieza un pedido y no termina el pago (o el pago falla), el restaurante puede enviarle desde el panel, pasadas 24 horas, un único email de recordatorio. Lo envía una persona a mano, nunca de forma automática, y solo una vez por pedido. Se envía aunque el cliente no haya marcado la casilla de comunicaciones comerciales. El texto es:
+
+> Hola [nombre], vimos que no terminaste tu pedido. Si todavía quieres estos productos, puedes volver a hacerlo desde la tienda.
+
+Debajo aparecen los productos del pedido, un enlace a la tienda y los datos de contacto. No incluye ofertas, descuentos ni otros productos.
+
+**Pregunta:** ¿El email de recordatorio de pedido no terminado necesita consentimiento de marketing, o se puede enviar como comunicación del propio pedido?
+
+---
+
+## 9. Fallos de vuestro Word que ya hemos corregido
 
 Estos fallos ya están corregidos en la versión de la tienda. Os pedimos que los corrijáis también en vuestro Word para que los dos textos coincidan:
 

@@ -19,12 +19,31 @@ beforeEach(() => {
   mocks.issueInvoice.mockResolvedValue({ ok: true, invoiceNumber: 'T2026-0009', alreadyIssued: false });
 });
 
-function orderDatabase(status: string) {
-  const order = { id: 'order-1', status, admin_notes: 'Nota anterior', labeled_at: null, labeled_by: null };
-  const update = vi.fn((values: object) => ({ eq: vi.fn(async () => {
-    Object.assign(order, values);
-    return { error: null };
-  }) }));
+function orderDatabase(status: string, createdAt = '2026-11-01T10:00:00Z') {
+  const order = {
+    id: 'order-1', status, admin_notes: 'Nota anterior', labeled_at: null, labeled_by: null,
+    created_at: createdAt,
+  };
+  // Notas: update(...).eq('id'). Estado: update(...).eq('id').eq('status',
+  // previo).select().maybeSingle(), que solo cambia si el estado no ha cambiado.
+  const update = vi.fn((values: object) => ({
+    eq: () => {
+      let applied = false;
+      const apply = () => { if (!applied) { applied = true; Object.assign(order, values); } };
+      return {
+        then: (resolve: (value: { error: null }) => unknown) => { apply(); return Promise.resolve({ error: null }).then(resolve); },
+        eq: (_column: string, expected: string) => ({
+          select: () => ({
+            maybeSingle: async () => {
+              if (order.status !== expected) return { data: null, error: null };
+              apply();
+              return { data: { id: order.id }, error: null };
+            },
+          }),
+        }),
+      };
+    },
+  }));
   const insert = vi.fn(async () => ({ error: null }));
   mocks.from.mockImplementation((table: string) => {
     if (table === 'order_status_history') return { insert };

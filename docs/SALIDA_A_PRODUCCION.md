@@ -21,7 +21,7 @@ Nunca en `.env.local`, que es solo de desarrollo.
 
 ## 2. Base de datos de producción
 
-- [ ] Aplicar todas las migraciones de `supabase/migrations/` (incluidas 0024 IVA, 0025 facturas, 0026 almacén de PDF y 0027 factura tras revisión de stock) y comprobar con `supabase migration list` que coinciden.
+- [ ] Aplicar todas las migraciones de `supabase/migrations/` (incluidas 0024 IVA, 0025 facturas, 0026 almacén de PDF, 0027 factura tras revisión de stock y 0028 estado Enviado y recordatorio) y comprobar con `supabase migration list` que coinciden.
 - [ ] Vaciar o no aplicar los datos de ejemplo de `0006_seed_dev.sql` (y el relleno de desarrollo de `0013`).
 - [ ] Revisar en `shop_settings` los datos del emisor (razón social, NIF, dirección) y `shipping_vat_rate`.
 - [ ] Revisar `products.vat_rate` de todo el catálogo (10 % confirmado por el gestor para carne y embutidos).

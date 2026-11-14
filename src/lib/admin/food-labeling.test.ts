@@ -12,6 +12,7 @@ const mocks = vi.hoisted(() => ({
 vi.mock('@/lib/admin/features', () => ({ get FOOD_LABELING_ENABLED() { return mocks.enabled; } }));
 vi.mock('@/lib/admin-session', () => ({ isAdminAuthenticated: mocks.authenticated, getAdminSession: mocks.session }));
 vi.mock('@/lib/supabase-admin', () => ({ supabaseAdmin: { from: mocks.from } }));
+vi.mock('@/components/Admin/OrderReminder', () => ({ default: () => null }));
 vi.mock('@/lib/invoices-admin', () => ({
   listOrderInvoices: async () => [], INVOICE_TYPE_LABELS: {}, INVOICE_STATUS_LABELS: {},
 }));

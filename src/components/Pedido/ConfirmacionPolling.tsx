@@ -19,7 +19,7 @@ export function ConfirmacionEstado({
   let title: string;
   let detail: string;
   const confirmed = state.kind === 'result'
-    && (state.status === 'PAID' || state.status === 'PREPARING');
+    && (state.status === 'PAID' || state.status === 'PREPARING' || state.status === 'SHIPPED');
 
   if (state.kind === 'result') {
     ({ title, detail } = RESULT_MESSAGES[state.status]);
@@ -59,7 +59,7 @@ function ConfirmacionPedido({ orderNumber }: ConfirmacionPollingProps) {
 
   useEffect(() => startConfirmationPolling(orderNumber, (next) => {
     setState(next);
-    if (next.kind === 'result' && (next.status === 'PAID' || next.status === 'PREPARING')) {
+    if (next.kind === 'result' && (next.status === 'PAID' || next.status === 'PREPARING' || next.status === 'SHIPPED')) {
       if (!clearedRef.current) {
         clearedRef.current = true;
         clearCart();

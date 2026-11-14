@@ -56,6 +56,22 @@ function IncidentContent({ incident, giftNames }: { incident: IncidentEvent; gif
     );
   }
 
+  if (incident.eventType === 'PAGO_TRAS_CANCELACION') {
+    return (
+      <>
+        <p className="font-semibold text-gray-900">
+          Redsys ha confirmado un pago para este pedido cuando ya estaba cancelado. El pago no se ha registrado en la
+          tienda ni se ha descontado stock. Devuelve el importe desde el TPV de Redsys o contacta con el cliente.
+        </p>
+        <p className="mt-1 text-sm text-gray-700">
+          Importe: <strong>{formatCentsField(getMetadataField(incident.metadata, 'ds_amount'))}</strong> · Ds_Order:{' '}
+          <strong>{getMetadataString(incident.metadata, 'ds_order') ?? '—'}</strong> · Autorización Redsys:{' '}
+          <strong>{getMetadataString(incident.metadata, 'ds_authorization') ?? '—'}</strong>
+        </p>
+      </>
+    );
+  }
+
   if (incident.eventType === 'PAYMENTS_INSERT_ERROR') {
     const dsOrder = getMetadataString(incident.metadata, 'ds_order');
     const dsAuthorization = getMetadataString(incident.metadata, 'ds_authorization');

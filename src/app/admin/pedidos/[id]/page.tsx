@@ -15,7 +15,14 @@ import OrderTimeline, { type TimelineEvent } from '@/components/Admin/OrderTimel
 import IncidentBanner, { type IncidentEvent } from '@/components/Admin/IncidentBanner';
 import OrderInvoices, { type OrderInvoiceItem } from '@/components/Admin/OrderInvoices';
 import { INVOICE_STATUS_LABELS, INVOICE_TYPE_LABELS, listOrderInvoices } from '@/lib/invoices-admin';
-import { isInvoiceableStatus } from '@/lib/admin/order-status';
+import {
+  UNPAID_GRACE_HOURS,
+  availableTransitions,
+  isInvoiceableStatus,
+  isUnpaidOrderStale,
+  isUnpaidStatus,
+} from '@/lib/admin/order-status';
+import OrderReminder from '@/components/Admin/OrderReminder';
 import type { Json } from '@/supabase/types';
 
 export const dynamic = 'force-dynamic';
@@ -58,6 +65,7 @@ type OrderDetailRow = {
   marketing_consent: boolean | null;
   marketing_consent_at: string | null;
   marketing_consent_version: string | null;
+  payment_reminder_sent_at: string | null;
 };
 
 type OrderItemDetailRow = {
@@ -82,7 +90,7 @@ export default async function AdminPedidoDetailPage({ params }: AdminPedidoDetai
   const { data: order } = await supabaseAdmin
     .from('orders')
     .select(
-      'id, order_number, status, created_at, customer_name, customer_last_name, customer_email, customer_phone, shipping_street, shipping_city, shipping_province, shipping_postal_code, shipping_country, shipping_notes, subtotal, shipping_cost, total, admin_notes, terms_version, terms_accepted_at, marketing_consent, marketing_consent_at, marketing_consent_version' +
+      'id, order_number, status, created_at, customer_name, customer_last_name, customer_email, customer_phone, shipping_street, shipping_city, shipping_province, shipping_postal_code, shipping_country, shipping_notes, subtotal, shipping_cost, total, admin_notes, terms_version, terms_accepted_at, marketing_consent, marketing_consent_at, marketing_consent_version, payment_reminder_sent_at' +
         (FOOD_LABELING_ENABLED ? ', labeled_at, labeled_by' : '')
     )
     .eq('id', id)
@@ -179,6 +187,22 @@ export default async function AdminPedidoDetailPage({ params }: AdminPedidoDetai
     }
   }
 
+  // Pedidos sin pagar: cancelar y recordatorio solo pasadas 24 h.
+  const now = new Date();
+  const statusTransitions = availableTransitions(order.status, order.created_at, now);
+  const unpaid = isUnpaidStatus(order.status);
+  const unpaidStale = isUnpaidOrderStale(order.status, order.created_at, now);
+  const waitHint =
+    unpaid && !unpaidStale
+      ? `Se podrá cancelar a partir del ${formatDateTime(
+          new Date(Date.parse(order.created_at) + UNPAID_GRACE_HOURS * 60 * 60 * 1000).toISOString()
+        )} (${UNPAID_GRACE_HOURS} h desde su creación).`
+      : null;
+  const reminderEmail = getMetadataString(
+    (history ?? []).find((event) => event.event_type === 'RECORDATORIO_ENVIADO')?.metadata ?? null,
+    'email'
+  );
+
   return (
     <div>
       <AdminHeader title={`Pedido ${order.order_number}`} />
@@ -189,7 +213,13 @@ export default async function AdminPedidoDetailPage({ params }: AdminPedidoDetai
             <h2 className="text-lg font-bold text-gray-900">{order.order_number}</h2>
             <p className="text-sm text-gray-500">{formatDateTime(order.created_at)}</p>
           </div>
-          <OrderStatusControl orderId={order.id} status={order.status} />
+          <OrderStatusControl
+            orderId={order.id}
+            orderNumber={order.order_number}
+            status={order.status}
+            transitions={statusTransitions}
+            hint={waitHint}
+          />
         </div>
 
         {canPrepareBoxLabel(order.status) && (
@@ -224,6 +254,23 @@ export default async function AdminPedidoDetailPage({ params }: AdminPedidoDetai
         )}
 
         <IncidentBanner incidents={incidents} giftNames={giftNames} />
+
+        {unpaid && (
+          <section className="rounded-lg border border-gray-300 bg-white p-4">
+            <h3 className="mb-3 text-sm font-bold uppercase tracking-wide text-gray-500">Pedido no terminado</h3>
+            {order.payment_reminder_sent_at ? (
+              <p className="text-sm text-gray-700">
+                {`Recordatorio enviado el ${formatDateTime(order.payment_reminder_sent_at)}${reminderEmail ? ` a ${reminderEmail}` : ''}. No se puede volver a enviar.`}
+              </p>
+            ) : unpaidStale ? (
+              <OrderReminder orderId={order.id} orderNumber={order.order_number} customerEmail={order.customer_email} />
+            ) : (
+              <p className="text-sm text-gray-500">
+                El recordatorio al cliente se podrá enviar {UNPAID_GRACE_HOURS} h después de crear el pedido.
+              </p>
+            )}
+          </section>
+        )}
 
         <section className="rounded-lg border border-gray-300 bg-white p-4">
           <h3 className="mb-3 text-sm font-bold uppercase tracking-wide text-gray-500">Productos a preparar</h3>

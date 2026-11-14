@@ -493,6 +493,7 @@ export type Database = {
           marketing_consent_version: string | null
           order_number: string
           paid_at: string | null
+          payment_reminder_sent_at: string | null
           redsys_ds_order: string | null
           shipping_city: string
           shipping_cost: number
@@ -528,6 +529,7 @@ export type Database = {
           marketing_consent_version?: string | null
           order_number: string
           paid_at?: string | null
+          payment_reminder_sent_at?: string | null
           redsys_ds_order?: string | null
           shipping_city: string
           shipping_cost?: number
@@ -563,6 +565,7 @@ export type Database = {
           marketing_consent_version?: string | null
           order_number?: string
           paid_at?: string | null
+          payment_reminder_sent_at?: string | null
           redsys_ds_order?: string | null
           shipping_city?: string
           shipping_cost?: number

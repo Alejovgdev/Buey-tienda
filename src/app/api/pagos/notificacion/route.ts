@@ -11,6 +11,7 @@ import {
   type OrderEmailData,
 } from '@/lib/email/send-order-notifications';
 import type { Json } from '@/supabase/types';
+import { sendPaidAfterCancelAlert, sendStockErrorAlert, type OrderAlertData } from '@/lib/email/send-order-alerts';
 
 // Fase 5, Unidad 2. Ya no es el stub de Fase 4: aqui se decide de verdad si
 // un pago se confirma o se rechaza. Regla de la casa: ALLOWLIST, no blocklist.
@@ -171,6 +172,41 @@ async function processVerifiedNotification(result: ReturnType<typeof redsys.proc
     return false;
   };
 
+  // Pago confirmado por Redsys para un pedido ya cancelado. Si Redsys repite
+  // el aviso de la misma operacion, no se duplica ni el evento ni el email.
+  const recordPaidAfterCancel = async (orderId: string, alertData: OrderAlertData) => {
+    const { data: previous, error: previousError } = await supabaseAdmin
+      .from('order_status_history')
+      .select('id')
+      .eq('order_id', orderId)
+      .eq('event_type', 'PAGO_TRAS_CANCELACION')
+      .eq('metadata->>ds_order', dsOrder)
+      .limit(1);
+    if (previousError) {
+      console.error('[pagos/notificacion] No se pudo comprobar un pago tras cancelacion previo', {
+        ...paymentContext, stage: 'paid_after_cancel_lookup', orderId, errorCode: safeErrorCode(previousError),
+      });
+    }
+    if (previous && previous.length > 0) return;
+
+    await recordHistory({
+      order_id: orderId,
+      event_type: 'PAGO_TRAS_CANCELACION',
+      metadata: { ds_order: dsOrder, ds_response: dsResponse, ds_amount: dsAmount, ds_authorization: dsAuthorisationCode },
+    });
+    try {
+      await sendPaidAfterCancelAlert(alertData, { dsOrder, authorization: dsAuthorisationCode });
+      await recordHistory({ order_id: orderId, event_type: 'AVISO_PAGO_CANCELADO_ENVIADO' });
+    } catch (err) {
+      console.error('[pagos/notificacion] Aviso de pago de pedido cancelado no enviado', {
+        ...paymentContext, stage: 'paid_after_cancel_alert', orderId, errorCode: safeErrorCode(err),
+      });
+      await recordHistory({
+        order_id: orderId, event_type: 'AVISO_PAGO_CANCELADO_ERROR', metadata: { error: safeErrorCode(err) },
+      });
+    }
+  };
+
   // 2. Un fallo de consulta NO demuestra que el pedido no exista.
   // El 500 expresa fallo de procesamiento; no presupone reintentos de Redsys.
   // Ver docs/T2_RECUPERACION_REDSYS.md para documentacion y recuperacion manual.
@@ -297,6 +333,44 @@ async function processVerifiedNotification(result: ReturnType<typeof redsys.proc
     console.error('[pagos/notificacion] Pago pendiente de revision', {
       ...paymentContext, stage: 'payment_review', orderId: order.id, rpcResult,
     });
+
+    const alertData: OrderAlertData = {
+      orderId: order.id,
+      orderNumber: order.order_number,
+      customerName: order.customer_name,
+      customerLastName: order.customer_last_name,
+      customerEmail: order.customer_email,
+      customerPhone: order.customer_phone,
+      amount: Number(dsAmount),
+      items: itemRows.map((item) => ({
+        productName: item.product_name_snapshot,
+        variantName: item.variant_name_snapshot,
+        quantity: item.quantity,
+        itemType: item.item_type,
+      })),
+    };
+
+    // Cobrado pero sin stock (la RPC devuelve paid_at solo la primera vez:
+    // un aviso repetido de Redsys no vuelve a avisar al restaurante).
+    if (rpcResult.paid_at && !rpcResult.review_required) {
+      try {
+        await sendStockErrorAlert(alertData);
+        await recordHistory({ order_id: order.id, event_type: 'AVISO_STOCK_ENVIADO' });
+      } catch (err) {
+        console.error('[pagos/notificacion] Aviso de error de stock no enviado', {
+          ...paymentContext, stage: 'stock_alert', orderId: order.id, errorCode: safeErrorCode(err),
+        });
+        await recordHistory({ order_id: order.id, event_type: 'AVISO_STOCK_ERROR', metadata: { error: safeErrorCode(err) } });
+      }
+    }
+
+    // Pago confirmado de un pedido ya cancelado: la RPC no guarda nada. Se
+    // deja constancia en el historico (aviso rojo en la ficha) y se avisa al
+    // restaurante, una sola vez por operacion de Redsys.
+    if (rpcResult.error === 'ORDER_RECONCILIATION_REQUIRED' && order.status === 'CANCELLED') {
+      await recordPaidAfterCancel(order.id, alertData);
+    }
+
     return NextResponse.json({ ok: false, review_required: true });
   }
 

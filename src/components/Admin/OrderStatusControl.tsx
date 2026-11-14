@@ -3,28 +3,52 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import OrderStatusBadge from './OrderStatusBadge';
-import { ORDER_STATUS_LABELS, ORDER_STATUS_TRANSITIONS, isValidOrderStatus, type OrderStatus } from '@/lib/admin/order-status';
+import { ORDER_STATUS_LABELS, isUnpaidStatus, type OrderStatus } from '@/lib/admin/order-status';
 
-export default function OrderStatusControl({ orderId, status }: { orderId: string; status: string }) {
+// Texto común de las confirmaciones sobre pedidos sin pagar.
+export const CHECK_REDSYS_WARNING = 'Antes de continuar, comprueba en el TPV de Redsys que este pedido no se ha cobrado.';
+
+function confirmationFor(status: string, next: OrderStatus, orderNumber: string): string | null {
+  // Paso 6. Resolver la revisión emite la factura: crea un número definitivo.
+  if (status === 'NEEDS_REVIEW' && next === 'PREPARING') {
+    return 'Al pasar el pedido a Preparando se emitirá su factura simplificada con un número definitivo. ¿Continuar?';
+  }
+  if (isUnpaidStatus(status) && next === 'CANCELLED') {
+    return `¿Cancelar el pedido ${orderNumber}? ${CHECK_REDSYS_WARNING}`;
+  }
+  if (next === 'SHIPPED') {
+    return `¿Marcar el pedido ${orderNumber} como Enviado? Después ya no se podrá cambiar su estado. No se envía ningún email al cliente.`;
+  }
+  return null;
+}
+
+// Las transiciones disponibles las calcula el servidor (availableTransitions):
+// incluyen la espera de 24 h de los pedidos sin pagar. `hint` explica por qué
+// no hay ninguna cuando hay que esperar.
+export default function OrderStatusControl({
+  orderId,
+  orderNumber,
+  status,
+  transitions,
+  hint,
+}: {
+  orderId: string;
+  orderNumber: string;
+  status: string;
+  transitions: OrderStatus[];
+  hint?: string | null;
+}) {
   const router = useRouter();
   const [selected, setSelected] = useState<OrderStatus | ''>('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<{ kind: 'ok' | 'error'; text: string } | null>(null);
 
-  const currentStatus = isValidOrderStatus(status) ? status : null;
-  const transitions = currentStatus ? ORDER_STATUS_TRANSITIONS[currentStatus] : [];
 
   async function handleApply() {
     if (!selected) return;
-    // Paso 6. Resolver la revisión emite la factura: crea un número definitivo.
-    if (
-      status === 'NEEDS_REVIEW' &&
-      selected === 'PREPARING' &&
-      !window.confirm('Al pasar el pedido a Preparando se emitirá su factura simplificada con un número definitivo. ¿Continuar?')
-    ) {
-      return;
-    }
+    const question = confirmationFor(status, selected, orderNumber);
+    if (question && !window.confirm(question)) return;
     setSaving(true);
     setError(null);
     setNotice(null);
@@ -86,6 +110,7 @@ export default function OrderStatusControl({ orderId, status }: { orderId: strin
         </div>
       )}
 
+      {transitions.length === 0 && hint && <p className="text-sm text-gray-500">{hint}</p>}
       {error && <p className="text-sm text-red-600">{error}</p>}
       {notice && (
         <p className={notice.kind === 'ok' ? 'text-sm text-green-700' : 'text-sm text-red-600'}>{notice.text}</p>

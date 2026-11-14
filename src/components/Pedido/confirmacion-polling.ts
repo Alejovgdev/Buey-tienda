@@ -14,6 +14,10 @@ export const RESULT_MESSAGES = {
     title: 'Estamos preparando tu pedido',
     detail: 'Tu pedido está confirmado y ya hemos empezado a prepararlo.',
   },
+  SHIPPED: {
+    title: 'Tu pedido está en camino',
+    detail: 'Tu pedido está confirmado y ya lo hemos enviado.',
+  },
   PAYMENT_FAILED: {
     title: 'El pago no se ha completado',
     detail: 'Hemos recibido un resultado de pago fallido. Si ves un cargo o tienes dudas, contacta con nosotros antes de volver a pagar.',
