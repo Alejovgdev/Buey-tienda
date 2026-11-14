@@ -301,7 +301,8 @@ Lo único que permanece aquí: el **§6** nombra a Redsys como pasarela, pero **
 ### v1.3 — 12 de noviembre de 2026
 
 - **§6: nuevo bloque «Factura electrónica».** La factura se emite en formato electrónico y se envía al correo facilitado por el Cliente, que consiente recibirla por este medio al aceptar las Condiciones y puede pedir una copia en papel escribiendo a elbueymaduradoxativa@gmail.com.
-- **Pendiente antes de publicar en producción:** la tienda todavía no genera ni envía facturas. Esta versión no debe publicarse hasta que funcione el envío automático de facturas.
+- **Envío de facturas:** resuelto. La tienda ya genera la factura en PDF y la adjunta al email de confirmación del pedido (commit `55039a3`).
+- **Pendiente antes de publicar en producción:** la validación de los asesores. Los puntos a revisar están en [PARA_ASESORES.md](./PARA_ASESORES.md).
 - **§5.5: corrección del artículo.** La excepción al desistimiento de los bienes que pueden deteriorarse o caducar con rapidez es el artículo **103.d)** del Real Decreto Legislativo 1/2007, no el 103.e). Corregido en esta misma versión porque la 1.2 y la 1.3 no se han publicado. Las versiones 1.0 y 1.1 conservan la cita original.
 - Sin cambios en el resto del articulado.
 
@@ -322,3 +323,7 @@ Lo único que permanece aquí: el **§6** nombra a Redsys como pasarela, pero **
 - Primera versión canónica en Markdown, convertida desde el `.docx` original.
 - Correcciones aplicadas: marcador de plantilla `www.web.de empresa` en §1; dominio `elbuey.com` (3 apariciones, §3, §5.4 y §10); frase incompleta del §5.3; pasarela de pago nombrada en §6; destinatarios reales en §8.4; enlace de resolución de litigios en §15; redacción del pago a través de SEUR Frío en §3.3; plazo de prescripción tributaria en §8.5.
 - Numeración normalizada (`8-`, `9-`, `10-`… → `8.`, `9.`, `10.`) y jerarquía de encabezados unificada.
+- *Anotado el 14 de noviembre de 2026 al cotejar con el `.docx` original; estos cambios ya estaban en la v1.0 pero faltaban en esta lista:*
+  - **§15: texto reformulado junto con el enlace.** Original: «el listado oficial de las Entidades de Resolución Alternativa de Litigios de Consumo acreditadas en España a través del siguiente espacio web institucional gestionado por la Comisión Europea: https://european-union.europa.eu/index_es». v1.0: «el listado oficial de entidades de resolución alternativa de litigios de consumo de la Comisión Europea: https://consumer-redress.ec.europa.eu/dispute-resolution-bodies». Se suprime «acreditadas en España».
+  - **Minúsculas en los títulos:** «Privacidad Y Protección De Datos Personales», «Uso Del Servicio Y Responsabilidades», «Legislación Aplicable Y Jurisdicción Competente» y «Nulidad e Ineficacia De Las Cláusulas» pasan a «y», «de», «del» y «de las».
+  - **Dominios sin enlace:** en el `.docx`, `www.restauranteelbueymadurado.com` era un hipervínculo en la introducción, en §2 y en §9. En el Markdown y en la página publicada aparece como texto, sin enlace.
