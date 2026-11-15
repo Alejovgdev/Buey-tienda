@@ -30,6 +30,7 @@ Nunca en `.env.local`, que es solo de desarrollo.
 - [ ] No publicar las Condiciones v1.3 (cláusula de factura electrónica) hasta que el envío automático de la factura en PDF funcione en producción.
 - [ ] Comprobar en producción que el primer pago real genera `T<año>-0001` y que el cliente la recibe adjunta.
 - [ ] **Pregunta pendiente para el gestor: pedidos cobrados y luego cancelados.** Hoy, si el banco cobra pero el pedido se queda en «Error de stock» y el admin lo cancela (y devuelve el dinero), no se emite factura. Solo se factura si se resuelve pasándolo a «Preparando». Como el cobro es por adelantado, el IVA podría deberse ya en el momento del pago. ¿Hay que emitir la factura al cobrar y, si se cancela, una rectificativa (serie R)? ¿O basta con no facturar porque la venta no llega a hacerse? La respuesta decide cómo tratar las cancelaciones en el paso 8 (rectificativas). Lo mismo vale para un pedido «Pagado» que se cancela antes de enviarse: ya tiene factura y hoy no se rectifica.
+- [ ] **Pregunta pendiente para el gestor: facturas a empresas.** Decisión tomada: la tienda solo emite facturas simplificadas (serie T) y rectificativas (serie R); no emite factura completa. Si un cliente empresa la pide, la hace el gestor con su programa. Pregunta: cuando un cliente empresa pida factura con sus datos, ¿cómo la emitís vosotros (serie propia) para que no choque con la numeración de la tienda?
 
 ## 4. Pagos
 

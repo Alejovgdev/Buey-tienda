@@ -7,8 +7,8 @@ import type { EmailAttachment } from './send-order-notifications';
 import { resolveEmailFrom, resolveReplyTo } from './email-config';
 
 // Paso 6. Envío de una factura suelta (reenvío desde el panel). La plantilla
-// es común; cada tipo de factura solo aporta su frase. La completa (paso 7) y
-// la rectificativa (paso 8) añadirán aquí la suya.
+// es común; cada tipo de factura solo aporta su frase. La rectificativa
+// (paso 8) añadirá aquí la suya. La tienda no emite facturas completas.
 type InvoiceEmailText = (invoiceNumber: string, orderNumber: string) => string;
 
 const INVOICE_EMAIL_TEXT: Partial<Record<InvoiceType, InvoiceEmailText>> = {
