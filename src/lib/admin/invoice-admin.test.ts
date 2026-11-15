@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-// Paso 6. Factura en el panel: descarga, reenvío y emisión manual.
+// Pasos 6 y 8. Factura en el panel: descarga, reenvío, emisión manual y rectificativas.
 const mocks = vi.hoisted(() => ({
   authenticated: vi.fn(),
   from: vi.fn(),
@@ -20,6 +20,7 @@ vi.mock('@/lib/invoice-pdf/render', () => ({ renderInvoicePdf: mocks.render }));
 import { GET as downloadPdf } from '@/app/api/admin/facturas/[id]/pdf/route';
 import { POST as resendInvoice } from '@/app/api/admin/facturas/[id]/reenviar/route';
 import { POST as issueInvoice } from '@/app/api/admin/pedidos/[id]/factura/route';
+import { POST as issueCorrective } from '@/app/api/admin/pedidos/[id]/rectificativa/route';
 import { invoiceEmailMessage, invoiceEmailSubject } from '@/lib/email/send-invoice-email';
 import { issueInvoiceFromAdmin } from '@/lib/invoices-admin';
 
@@ -44,13 +45,16 @@ let history: Record<string, unknown>[];
 let pdfInStorage: boolean;
 let upload: ReturnType<typeof vi.fn>;
 
-function database({ invoice = invoiceRow as typeof invoiceRow | null } = {}) {
+// `invoices` puede ser una lista: cada consulta a la tabla devuelve la siguiente
+// (la rectificativa y después la factura que rectifica).
+function database({ invoice = invoiceRow as Record<string, unknown> | null, invoices = null as Record<string, unknown>[] | null } = {}) {
   history = [];
+  const queue = invoices ? [...invoices] : null;
   mocks.from.mockImplementation((table: string) => {
     if (table === 'order_status_history') {
       return { insert: vi.fn(async (row: Record<string, unknown>) => { history.push(row); return { error: null }; }) };
     }
-    const row = table === 'invoices' ? invoice : table === 'orders' ? orderRow : undefined;
+    const row = table === 'invoices' ? (queue ? queue.shift() ?? null : invoice) : table === 'orders' ? orderRow : undefined;
     if (row === undefined) throw new Error(`No debe consultar ${table}`);
     return { select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: row, error: null }) }) }) };
   });
@@ -146,9 +150,31 @@ describe('reenviar al cliente', () => {
     expect(history).toEqual([]);
   });
 
-  it('la plantilla solo tiene texto para la simplificada por ahora', () => {
-    expect(invoiceEmailSubject('R2026-0001')).toBe('Tu factura R2026-0001 — El Buey Madurado');
+  it('la plantilla tiene texto para la simplificada y la rectificativa, no para la completa', () => {
+    expect(invoiceEmailSubject('T2026-0001')).toBe('Tu factura T2026-0001 — El Buey Madurado');
+    expect(invoiceEmailSubject('R2026-0001', 'CORRECTIVE')).toBe('Tu factura rectificativa R2026-0001 — El Buey Madurado');
+    expect(invoiceEmailMessage('CORRECTIVE', 'R2026-0001', 'BM-2026-00112', 'T2026-0001')).toBe(
+      'Te enviamos la factura rectificativa R2026-0001 de tu pedido BM-2026-00112, que corrige la factura T2026-0001. ' +
+      'La devolución del importe, si corresponde, se hace aparte en la tarjeta con la que pagaste.'
+    );
+    expect(() => invoiceEmailMessage('CORRECTIVE', 'R2026-0001', 'BM-2026-00112')).toThrow();
     expect(() => invoiceEmailMessage('FULL', 'T2026-0009', 'BM-2026-00001')).toThrow();
+  });
+
+  it('envía la rectificativa con su texto y la referencia a la factura que rectifica', async () => {
+    const corrective = {
+      ...invoiceRow, invoice_type: 'CORRECTIVE', invoice_number: 'R2026-0001', issue_date: '2026-11-15',
+      correction_reason: 'Chuletón 1 kg, llegó con el vacío roto', rectifies_invoice_id: INVOICE_ID,
+      lines: [{ type: 'CORRECTION', description: 'Devolución parcial: Chuletón 1 kg, llegó con el vacío roto', quantity: 1, line_total: -1000 }],
+      vat_breakdown: [{ vat_rate: 10, tax_base: -909, vat_amount: -91 }], total: -1000,
+    };
+    database({ invoices: [corrective, { invoice_number: 'T2026-0001', issue_date: '2026-11-12' }] });
+    const response = await resendInvoice(post(), ctx(INVOICE_ID));
+    expect(response.status).toBe(200);
+    const email = mocks.send.mock.calls[0][0];
+    expect(email.subject).toBe('Tu factura rectificativa R2026-0001 — El Buey Madurado');
+    expect(email.html).toContain('que corrige la factura T2026-0001');
+    expect(email.attachments[0].filename).toBe('Factura-R2026-0001.pdf');
   });
 });
 
@@ -206,5 +232,61 @@ describe('emitir factura', () => {
     mocks.rpc.mockResolvedValue({ data: { ok: false, error: 'PEDIDO_NO_PAGADO' }, error: null });
     expect((await issueInvoice(post(), ctx(ORDER_ID))).status).toBe(409);
     expect(history).toEqual([expect.objectContaining({ event_type: 'FACTURA_ERROR', metadata: { error: 'PEDIDO_NO_PAGADO', origen: 'admin' } })]);
+  });
+});
+
+describe('emitir rectificativa', () => {
+  const REQUEST_ID = '33333333-3333-4333-8333-333333333333';
+  const body = (value: unknown) =>
+    new Request('http://localhost/api/admin', { method: 'POST', body: JSON.stringify(value), headers: { 'Content-Type': 'application/json' } });
+  const partial = { kind: 'PARTIAL', amount: 1000, reason: 'Chuletón 1 kg, llegó con el vacío roto', requestId: REQUEST_ID };
+
+  it('sin sesión, 401 y no llama a la BD', async () => {
+    mocks.authenticated.mockResolvedValue(false);
+    expect((await issueCorrective(body(partial), ctx(ORDER_ID))).status).toBe(401);
+    expect(mocks.rpc).not.toHaveBeenCalled();
+  });
+
+  it('valida la petición antes de llamar a la BD', async () => {
+    for (const value of [{ ...partial, reason: ' ' }, { ...partial, amount: 0 }, { ...partial, requestId: 'x' }, { ...partial, kind: 'X' }]) {
+      expect((await issueCorrective(body(value), ctx(ORDER_ID))).status).toBe(400);
+    }
+    expect((await issueCorrective(body(partial), ctx('no-es-uuid'))).status).toBe(404);
+    expect(mocks.rpc).not.toHaveBeenCalled();
+  });
+
+  it('parcial: llama a la función con el importe en céntimos y devuelve el número', async () => {
+    mocks.rpc.mockResolvedValue({ data: { ok: true, already_issued: false, invoice_id: INVOICE_ID, invoice_number: 'R2026-0001', total: -1000 }, error: null });
+    const response = await issueCorrective(body(partial), ctx(ORDER_ID));
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ ok: true, invoiceId: INVOICE_ID, invoiceNumber: 'R2026-0001', total: -1000, alreadyIssued: false });
+    expect(mocks.rpc).toHaveBeenCalledWith('issue_corrective_invoice', {
+      p_order_id: ORDER_ID, p_kind: 'PARTIAL', p_amount: 1000,
+      p_reason: 'Chuletón 1 kg, llegó con el vacío roto', p_request_id: REQUEST_ID,
+    });
+    // El historial lo escribe la función SQL en la misma transacción.
+    expect(history).toEqual([]);
+  });
+
+  it('total: no manda importe', async () => {
+    mocks.rpc.mockResolvedValue({ data: { ok: true, already_issued: false, invoice_id: INVOICE_ID, invoice_number: 'R2026-0002', total: -3500 }, error: null });
+    await issueCorrective(body({ kind: 'TOTAL', amount: 50, reason: 'Pedido cancelado', requestId: REQUEST_ID }), ctx(ORDER_ID));
+    expect(mocks.rpc.mock.calls[0][1]).toMatchObject({ p_kind: 'TOTAL', p_amount: null });
+  });
+
+  it('si se pasa de la factura o ya no queda nada, 409 con mensaje claro', async () => {
+    mocks.rpc.mockResolvedValue({ data: { ok: false, error: 'IMPORTE_SUPERA_FACTURA', remaining: 500 }, error: null });
+    let response = await issueCorrective(body(partial), ctx(ORDER_ID));
+    expect(response.status).toBe(409);
+    expect(await response.json()).toMatchObject({ code: 'IMPORTE_SUPERA_FACTURA', remaining: 500 });
+
+    mocks.rpc.mockResolvedValue({ data: { ok: false, error: 'NADA_QUE_DEVOLVER' }, error: null });
+    response = await issueCorrective(body(partial), ctx(ORDER_ID));
+    expect((await response.json()).error).toBe('Ya se ha rectificado todo el importe de la factura');
+  });
+
+  it('si la BD falla, 500', async () => {
+    mocks.rpc.mockResolvedValue({ data: null, error: { code: 'XX000', message: 'boom' } });
+    expect((await issueCorrective(body(partial), ctx(ORDER_ID))).status).toBe(500);
   });
 });

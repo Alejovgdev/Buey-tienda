@@ -46,6 +46,7 @@ export async function POST(_request: Request, { params }: RouteParams) {
       orderNumber: order.order_number,
       invoiceNumber: invoice.invoiceNumber,
       invoiceType: invoice.invoiceType,
+      rectifiedInvoiceNumber: invoice.rectifiedInvoiceNumber,
       pdf: { filename: invoice.pdf.filename, content: invoice.pdf.content },
     });
   } catch (err) {

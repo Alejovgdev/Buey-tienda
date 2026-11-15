@@ -7,6 +7,10 @@ import type { InvoicePdfData } from './invoice-data';
 // distinta, razón social y NIF del emisor, descripción e importe de cada
 // línea, tipo de IVA con la mención «IVA incluido» y total.
 //
+// Paso 8. La rectificativa usa la misma plantilla y añade lo que pide el
+// art. 15 (a validar con el gestor): que es rectificativa, la factura que
+// rectifica (número y fecha) y el motivo. Los importes van en negativo.
+//
 // Todo sale de la copia guardada en la factura (InvoicePdfData), nunca de los
 // datos actuales del pedido o de los productos.
 //
@@ -47,11 +51,12 @@ const styles = StyleSheet.create({
 
 export function InvoiceDocument({ invoice }: { invoice: InvoicePdfData }) {
   const showOperationDate = invoice.operationDate !== invoice.issueDate;
+  const correction = invoice.correction;
 
   return (
     <Document title={`Factura ${invoice.invoiceNumber}`} author={invoice.issuerLegalName} language="es">
       <Page size="A4" style={styles.page}>
-        <Text style={styles.title}>Factura simplificada</Text>
+        <Text style={styles.title}>{correction ? 'Factura rectificativa' : 'Factura simplificada'}</Text>
         <Text style={styles.subtitle}>Nº {invoice.invoiceNumber}</Text>
 
         <View style={styles.block}>
@@ -71,6 +76,19 @@ export function InvoiceDocument({ invoice }: { invoice: InvoicePdfData }) {
             </View>
           ) : null}
         </View>
+
+        {correction ? (
+          <View style={styles.block}>
+            <View style={styles.row}>
+              <Text style={styles.label}>Rectifica a la factura</Text>
+              <Text>
+                {correction.rectifiedInvoiceNumber} del {formatDate(correction.rectifiedIssueDate)}
+              </Text>
+            </View>
+            <Text style={styles.label}>Motivo de la rectificación</Text>
+            <Text>{correction.reason}</Text>
+          </View>
+        ) : null}
 
         <View style={styles.tableHeader}>
           <Text style={[styles.description, styles.bold]}>Descripción</Text>

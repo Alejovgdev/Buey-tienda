@@ -112,6 +112,7 @@ export type Database = {
           order_id: string
           rectifies_invoice_id: string | null
           replaces_invoice_id: string | null
+          request_id: string | null
           series: string
           tax_base_total: number
           total: number
@@ -140,6 +141,7 @@ export type Database = {
           order_id: string
           rectifies_invoice_id?: string | null
           replaces_invoice_id?: string | null
+          request_id?: string | null
           series: string
           tax_base_total: number
           total: number
@@ -168,6 +170,7 @@ export type Database = {
           order_id?: string
           rectifies_invoice_id?: string | null
           replaces_invoice_id?: string | null
+          request_id?: string | null
           series?: string
           tax_base_total?: number
           total?: number
@@ -1065,6 +1068,16 @@ export type Database = {
       }
       generate_order_number: { Args: never; Returns: string }
       generate_redsys_ds_order: { Args: never; Returns: string }
+      issue_corrective_invoice: {
+        Args: {
+          p_amount: number
+          p_kind: string
+          p_order_id: string
+          p_reason: string
+          p_request_id: string
+        }
+        Returns: Json
+      }
       issue_simplified_invoice: { Args: { p_order_id: string }; Returns: Json }
       madrid_date: { Args: { p_ts: string }; Returns: string }
     }

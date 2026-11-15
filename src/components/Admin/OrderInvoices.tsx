@@ -3,15 +3,18 @@
 import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { formatPriceFromCents } from '@/lib/format-price';
+import CorrectiveInvoiceForm, { type CorrectiveFormData } from './CorrectiveInvoiceForm';
 
 // Paso 6. Sección "Factura" de la ficha del pedido: lista de facturas con
 // descarga y reenvío, y emisión manual si el pedido pagado se quedó sin ella.
 // Las dos acciones que escriben piden confirmación y bloquean todos los
 // botones mientras trabajan (un doble clic no duplica envíos ni números).
+// Paso 8: emisión de rectificativas (CorrectiveInvoiceForm).
 
 export type OrderInvoiceItem = {
   id: string;
   invoiceNumber: string;
+  invoiceType: string;
   typeLabel: string;
   statusLabel: string;
   status: string;
@@ -32,12 +35,15 @@ export default function OrderInvoices({
   customerEmail,
   invoices,
   canIssue,
+  corrective,
 }: {
   orderId: string;
   orderNumber: string;
   customerEmail: string;
   invoices: OrderInvoiceItem[];
   canIssue: boolean;
+  /** null si no hay nada que rectificar (sin factura vigente o ya devuelto todo). */
+  corrective: CorrectiveFormData | null;
 }) {
   const router = useRouter();
   const busyRef = useRef(false);
@@ -130,7 +136,11 @@ export default function OrderInvoices({
                   disabled={disabled}
                   className={`${buttonClass} bg-gray-900 text-white hover:bg-gray-800`}
                 >
-                  {busy === `resend:${invoice.id}` ? 'Enviando…' : 'Reenviar al cliente'}
+                  {busy === `resend:${invoice.id}`
+                    ? 'Enviando…'
+                    : invoice.invoiceType === 'CORRECTIVE'
+                      ? 'Enviar al cliente'
+                      : 'Reenviar al cliente'}
                 </button>
               </div>
             </li>
@@ -153,6 +163,8 @@ export default function OrderInvoices({
           </button>
         </div>
       )}
+
+      {corrective && <CorrectiveInvoiceForm orderId={orderId} data={corrective} />}
 
       {feedback && (
         <p className={feedback.kind === 'ok' ? 'text-sm text-green-700' : 'text-sm text-red-600'}>{feedback.text}</p>

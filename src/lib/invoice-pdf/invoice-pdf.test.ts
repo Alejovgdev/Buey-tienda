@@ -49,6 +49,44 @@ describe('datos del PDF', () => {
   });
 });
 
+describe('PDF de la rectificativa', () => {
+  const corrective: InvoiceRow = {
+    ...row,
+    invoice_type: 'CORRECTIVE',
+    invoice_number: 'R2026-0001',
+    issue_date: '2026-11-15',
+    correction_reason: 'Chuletón 1 kg, llegó con el vacío roto',
+    rectifies_invoice_id: '11111111-1111-4111-8111-111111111111',
+    total: -1000,
+    lines: [{ type: 'CORRECTION', description: 'Devolución parcial: Chuletón 1 kg, llegó con el vacío roto', quantity: 1, unit_price: -1000, line_total: -1000, vat_rate: 10, tax_base: -909, vat_amount: -91 }],
+    vat_breakdown: [{ vat_rate: 10, tax_base: -909, vat_amount: -91 }],
+  };
+  const rectified = { invoice_number: 'T2026-0002', issue_date: '2026-11-12' };
+
+  it('lleva la factura que rectifica y el motivo', () => {
+    const data = toInvoicePdfData(corrective, rectified);
+    expect(data.correction).toEqual({
+      reason: 'Chuletón 1 kg, llegó con el vacío roto', rectifiedInvoiceNumber: 'T2026-0002', rectifiedIssueDate: '2026-11-12',
+    });
+    expect(data.total).toBe(-1000);
+    // El motivo sale solo en su bloque, no en la línea.
+    expect(data.lines).toEqual([{ type: 'CORRECTION', description: 'Devolución parcial', quantity: 1, lineTotal: -1000 }]);
+    expect(invoicePdfPath(data)).toBe('2026/Factura-R2026-0001.pdf');
+    expect(toInvoicePdfData(row).correction).toBeNull();
+  });
+
+  it('sin la factura rectificada o sin motivo no se genera', () => {
+    expect(() => toInvoicePdfData(corrective)).toThrow();
+    expect(() => toInvoicePdfData({ ...corrective, correction_reason: null }, rectified)).toThrow();
+  });
+
+  it('genera un PDF de una página', async () => {
+    const pdf = await renderInvoicePdf(toInvoicePdfData(corrective, rectified));
+    expect(pdf.subarray(0, 5).toString('latin1')).toBe('%PDF-');
+    expect(pdf.toString('latin1').match(/\/Type\s*\/Page[^s]/g)).toHaveLength(1);
+  });
+});
+
 describe('almacén de PDFs', () => {
   const data = toInvoicePdfData(row);
   const existing = Buffer.from('%PDF-guardado');

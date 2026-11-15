@@ -1,12 +1,13 @@
 import 'server-only';
 import { supabaseAdmin } from './supabase-admin';
-import { INVOICE_PDF_COLUMNS, toInvoicePdfData, type InvoiceRow } from './invoice-pdf/invoice-data';
+import { INVOICE_PDF_COLUMNS, type InvoiceRow } from './invoice-pdf/invoice-data';
+import { loadInvoicePdfData } from './invoice-pdf/load';
 import { ensureInvoicePdf, type InvoicePdfFile } from './invoice-pdf/storage';
 import { issueSimplifiedInvoice, type InvoiceIssueOutcome } from './invoices';
 import { safeErrorCode } from './safe-error-code';
 import type { Json } from '@/supabase/types';
 
-// Paso 6. Facturas en la ficha del pedido del panel de administración.
+// Pasos 6 y 8. Facturas en la ficha del pedido del panel de administración.
 // Solo lo usan Server Components y API Routes que ya han comprobado la
 // sesión de admin.
 
@@ -106,6 +107,8 @@ export type InvoiceWithPdf = {
   orderId: string;
   invoiceType: InvoiceType;
   invoiceNumber: string;
+  /** Solo en las rectificativas: número de la factura que rectifica. */
+  rectifiedInvoiceNumber: string | null;
   pdf: InvoicePdfFile;
 };
 
@@ -120,18 +123,20 @@ export async function loadInvoiceWithPdf(invoiceId: string): Promise<InvoiceWith
 
   const { data, error } = await supabaseAdmin
     .from('invoices')
-    .select(`id, order_id, invoice_type, ${INVOICE_PDF_COLUMNS}`)
+    .select(`id, order_id, ${INVOICE_PDF_COLUMNS}`)
     .eq('id', invoiceId)
     .maybeSingle<InvoiceByIdRow>();
   if (error) throw error;
   if (!data) return null;
 
-  const pdf = await ensureInvoicePdf(supabaseAdmin, toInvoicePdfData(data));
+  const pdfData = await loadInvoicePdfData(supabaseAdmin, data);
+  const pdf = await ensureInvoicePdf(supabaseAdmin, pdfData);
   return {
     id: data.id,
     orderId: data.order_id,
     invoiceType: data.invoice_type as InvoiceType,
     invoiceNumber: data.invoice_number,
+    rectifiedInvoiceNumber: pdfData.correction?.rectifiedInvoiceNumber ?? null,
     pdf,
   };
 }

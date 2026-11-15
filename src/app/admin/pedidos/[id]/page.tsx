@@ -15,6 +15,8 @@ import OrderTimeline, { type TimelineEvent } from '@/components/Admin/OrderTimel
 import IncidentBanner, { type IncidentEvent } from '@/components/Admin/IncidentBanner';
 import OrderInvoices, { type OrderInvoiceItem } from '@/components/Admin/OrderInvoices';
 import { INVOICE_STATUS_LABELS, INVOICE_TYPE_LABELS, listOrderInvoices } from '@/lib/invoices-admin';
+import { correctiveBalance } from '@/lib/corrective-invoice';
+import type { CorrectiveFormData } from '@/components/Admin/CorrectiveInvoiceForm';
 import {
   UNPAID_GRACE_HOURS,
   availableTransitions,
@@ -120,6 +122,7 @@ export default async function AdminPedidoDetailPage({ params }: AdminPedidoDetai
   const invoiceItems: OrderInvoiceItem[] = (invoiceList ?? []).map((invoice) => ({
     id: invoice.id,
     invoiceNumber: invoice.invoiceNumber,
+    invoiceType: invoice.invoiceType,
     typeLabel: INVOICE_TYPE_LABELS[invoice.invoiceType] ?? invoice.invoiceType,
     statusLabel: INVOICE_STATUS_LABELS[invoice.status] ?? invoice.status,
     status: invoice.status,
@@ -139,6 +142,26 @@ export default async function AdminPedidoDetailPage({ params }: AdminPedidoDetai
     .select('id, product_name_snapshot, variant_name_snapshot, unit_price_snapshot, quantity, line_total, allergens_snapshot, allergens_notes_snapshot, item_type')
     .eq('order_id', order.id)
     .returns<OrderItemDetailRow[]>();
+
+  // Paso 8. Lo que queda por rectificar de la factura vigente. Con la lista
+  // de facturas sin cargar no se ofrece la rectificativa ni el aviso.
+  const balance = invoiceList === null ? null : correctiveBalance(invoiceList);
+  const hasInvoiceToRectify = balance !== null && balance.remaining > 0;
+  const correctiveData: CorrectiveFormData | null = hasInvoiceToRectify
+    ? {
+        originalNumber: balance.originalNumber,
+        remaining: balance.remaining,
+        items: (items ?? [])
+          .filter((item) => item.line_total > 0)
+          .map((item) => ({
+            description:
+              `${item.product_name_snapshot} — ${item.variant_name_snapshot}` +
+              (item.quantity > 1 ? ` × ${item.quantity}` : ''),
+            lineTotal: item.line_total,
+          })),
+        shippingCost: order.shipping_cost,
+      }
+    : null;
 
   const orderItemIds = (items ?? []).map((item) => item.id);
   const { data: labelStats } = FOOD_LABELING_ENABLED
@@ -219,6 +242,7 @@ export default async function AdminPedidoDetailPage({ params }: AdminPedidoDetai
             status={order.status}
             transitions={statusTransitions}
             hint={waitHint}
+            hasInvoiceToRectify={hasInvoiceToRectify}
           />
         </div>
 
@@ -341,6 +365,7 @@ export default async function AdminPedidoDetailPage({ params }: AdminPedidoDetai
               customerEmail={order.customer_email}
               invoices={invoiceItems}
               canIssue={canIssueInvoice}
+              corrective={correctiveData}
             />
           )}
         </section>

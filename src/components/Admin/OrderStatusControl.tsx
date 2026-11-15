@@ -8,7 +8,19 @@ import { ORDER_STATUS_LABELS, isUnpaidStatus, type OrderStatus } from '@/lib/adm
 // Texto común de las confirmaciones sobre pedidos sin pagar.
 export const CHECK_REDSYS_WARNING = 'Antes de continuar, comprueba en el TPV de Redsys que este pedido no se ha cobrado.';
 
-function confirmationFor(status: string, next: OrderStatus, orderNumber: string): string | null {
+// Paso 8. Cancelar no rectifica la factura ni devuelve el dinero.
+export const INVOICE_ON_CANCEL_WARNING =
+  'Este pedido tiene factura: emite una rectificativa y devuelve el dinero en el TPV de Redsys.';
+
+export function confirmationFor(
+  status: string,
+  next: OrderStatus,
+  orderNumber: string,
+  hasInvoiceToRectify = false
+): string | null {
+  if (next === 'CANCELLED' && hasInvoiceToRectify) {
+    return `¿Cancelar el pedido ${orderNumber}? ${INVOICE_ON_CANCEL_WARNING}`;
+  }
   // Paso 6. Resolver la revisión emite la factura: crea un número definitivo.
   if (status === 'NEEDS_REVIEW' && next === 'PREPARING') {
     return 'Al pasar el pedido a Preparando se emitirá su factura simplificada con un número definitivo. ¿Continuar?';
@@ -31,12 +43,15 @@ export default function OrderStatusControl({
   status,
   transitions,
   hint,
+  hasInvoiceToRectify = false,
 }: {
   orderId: string;
   orderNumber: string;
   status: string;
   transitions: OrderStatus[];
   hint?: string | null;
+  /** Paso 8: el pedido tiene factura vigente con importe por rectificar. */
+  hasInvoiceToRectify?: boolean;
 }) {
   const router = useRouter();
   const [selected, setSelected] = useState<OrderStatus | ''>('');
@@ -47,7 +62,7 @@ export default function OrderStatusControl({
 
   async function handleApply() {
     if (!selected) return;
-    const question = confirmationFor(status, selected, orderNumber);
+    const question = confirmationFor(status, selected, orderNumber, hasInvoiceToRectify);
     if (question && !window.confirm(question)) return;
     setSaving(true);
     setError(null);

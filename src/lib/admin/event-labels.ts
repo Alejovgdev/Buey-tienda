@@ -24,6 +24,7 @@ const EVENT_TYPE_LABELS: Record<string, string> = {
   FACTURA_ERROR: 'Error al emitir la factura',
   FACTURA_PDF_ERROR: 'Error al generar el PDF de la factura',
   FACTURA_REENVIADA: 'Factura reenviada al cliente',
+  FACTURA_RECTIFICATIVA_EMITIDA: 'Factura rectificativa emitida',
   AVISO_STOCK_ENVIADO: 'Aviso de error de stock enviado al restaurante',
   AVISO_STOCK_ERROR: 'Error al enviar el aviso de error de stock al restaurante',
   PAGO_TRAS_CANCELACION: 'Pago recibido de un pedido cancelado',
