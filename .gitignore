@@ -34,3 +34,6 @@ tsconfig.tsbuildinfo
 
 # Reglas para agentes que genera next dev
 AGENTS.md
+
+# Tipos de Next.js: los regenera next dev / next build
+next-env.d.ts
