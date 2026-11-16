@@ -1,5 +1,5 @@
 const AV_SMARTECH_URL = "https://avsmartech.com/";
-const AV_SMARTECH_LOGO = "assets/images/avsmartech_logo_circle_masked.png";
+const AV_SMARTECH_LOGO = "/assets/images/avsmartech_logo_circle_masked.webp";
 
 type AvSmartechSignatureProps = {
   variant?: "footer" | "contact";
