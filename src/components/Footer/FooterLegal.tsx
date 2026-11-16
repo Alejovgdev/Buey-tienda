@@ -17,7 +17,7 @@ export default function FooterLegal() {
             href="/aviso-legal"
             className="hover:text-amber-500 transition-colors"
           >
-            Términos y condiciones
+            Aviso legal
           </Link>
         </li>
         <li className="flex justify-center md:justify-start items-center gap-2">
