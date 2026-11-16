@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   description: 'Restaurante de carne madurada en Xàtiva. Consulta la carta, reserva mesa y conoce la tienda online de El Buey Madurado.',
   // El canonical se define en cada página indexable, nunca en este layout.
   icons: {
-    icon: '/logo-fondo-blanco.ico',
+    icon: '/favicon.ico',
     apple: [{ url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
   },
   appleWebApp: {

@@ -19,7 +19,7 @@ sin push, despliegues ni modificaciones de servicios remotos.
   funciones offline ni nuevas cachés de compra o datos privados.
 
 El vídeo del origen se incorpora como `/hero-restaurante.mp4`. El anterior
-`/hero.mp4` permanece intacto. Las opciones de los componentes compartidos
+`/hero.mp4` permanece intacto (retirado el 16/11/2026: no se usaba). Las opciones de los componentes compartidos
 limitan las novedades del Home a Inicio: Contacto conserva vídeo, promoción
 y bloque de contacto anteriores. La firma del footer conserva su recurso
 anterior; solo la firma incorporada al Home usa WebP.
