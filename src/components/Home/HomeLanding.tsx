@@ -9,8 +9,12 @@ import ConditionalMap from '@/components/Cookies/ConditionalMap';
 import type { HomeProductData } from '@/types/shop';
 import GallerySection from './GallerySection';
 import HomeProductCard from './HomeProductCard';
+import HomeShowcase from './HomeShowcase';
 import VisibleVideo from './VisibleVideo';
 import styles from './HomeLanding.module.css';
+
+// Vitrina de prueba con imágenes de fondo transparente. false = tarjetas del catálogo.
+const SHOW_TEST_SHOWCASE = true;
 
 const MEAT_IMAGE = '/assets/images/chuleton-corte.webp';
 const MAPS_URL = 'https://maps.app.goo.gl/PFgL2Ww84fGHULMp6';
@@ -67,12 +71,12 @@ export default function HomeLanding({ products, catalogUnavailable = false }: { 
             <p>Nuestra carne madurada, envasada y enviada con SEUR Frío.</p>
           </header>
           <Link href="/tienda" className={`${styles.button} ${styles.outlineButton} ${styles.shopLink}`}>Ver toda la tienda</Link>
-          <ul className={styles.productGrid} aria-label="Productos de la tienda">
+          {SHOW_TEST_SHOWCASE ? <HomeShowcase /> : <ul className={styles.productGrid} aria-label="Productos de la tienda">
             {products.map((product) => (
               <HomeProductCard product={product} key={product.slug} />
             ))}
-          </ul>
-          {products.length === 0 && <p className={styles.productsUnavailable}>{catalogUnavailable
+          </ul>}
+          {!SHOW_TEST_SHOWCASE && products.length === 0 && <p className={styles.productsUnavailable}>{catalogUnavailable
             ? 'No se ha podido cargar el catálogo. Inténtalo de nuevo más tarde.'
             : 'Consulta los productos disponibles en la tienda.'}</p>}
         </div>
